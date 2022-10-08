@@ -6,3 +6,4 @@ package-lock.json
 bot.py
 register_cmd.js
 bdd.json
+bdd_backup.json
