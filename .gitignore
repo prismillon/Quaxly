@@ -7,3 +7,5 @@ bot.py
 register_cmd.js
 bdd.json
 bdd_backup.json
+user_list.json
+user_list_backup.json
