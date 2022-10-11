@@ -736,7 +736,11 @@ client.on("interactionCreate", async (interaction) => {
                     best_time_object.push({ time: bdd[user_list[interaction.guild.id][i]][speed][item][track], user: user.displayName });
                 }
             }
-            best_time_object.sort((a, b) => a.time - b.time);
+            best_time_object.sort((a, b) => {
+                if (a["time"] < b["time"]) return -1;
+                if (a["time"] > b["time"]) return 1;
+                return 0;
+            });
             for (let i = 0; i < best_time_object.length; i++) {
                 best_times_string += `**${i + 1}**: ${best_time_object[i].user}: \`${best_time_object[i].time}\`\n`;
             }
@@ -793,7 +797,11 @@ client.on("interactionCreate", async (interaction) => {
                             track_rank.push({ time: bdd[user_list[interaction.guild.id][j]][speed][item][track_list[i]], user: user_list[interaction.guild.id][j] });
                         }
                     }
-                    track_rank.sort((a, b) => a.time - b.time);
+                    track_rank.best_time_object.sort((a, b) => {
+                        if (a["time"] < b["time"]) return -1;
+                        if (a["time"] > b["time"]) return 1;
+                        return 0;
+                    });
                     for (let j = 0; j < track_rank.length; j++) {
                         if (track_rank[j].user == user_id) {
                             time_list += `**${track_list[i]}**: \`${bdd[user_id][speed][item][track_list[i]]}\` - ${j + 1}/${track_rank.length}\n`;
