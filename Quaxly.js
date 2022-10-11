@@ -627,7 +627,7 @@ client.on("interactionCreate", async (interaction) => {
                     continue;
                 }
             }
-            time = list_array[i].split(" -> ")[1];
+            let time = list_array[i].split(" -> ")[1];
             bdd[interaction.user.id][speed][item][track] = time;
         }
         if (save_bdd() == 0) {
