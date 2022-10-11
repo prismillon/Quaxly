@@ -797,7 +797,7 @@ client.on("interactionCreate", async (interaction) => {
                             track_rank.push({ time: bdd[user_list[interaction.guild.id][j]][speed][item][track_list[i]], user: user_list[interaction.guild.id][j] });
                         }
                     }
-                    track_rank.best_time_object.sort((a, b) => {
+                    track_rank.sort((a, b) => {
                         if (a["time"] < b["time"]) return -1;
                         if (a["time"] > b["time"]) return 1;
                         return 0;
