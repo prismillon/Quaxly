@@ -33,6 +33,14 @@ function save_user_list() {
     });
 }
 
+function error_embed(interaction, error) {
+    const embed = new EmbedBuilder()
+        .setTitle("Error")
+        .setDescription(error)
+        .setColor(0xff0000)
+    interaction.reply({ embeds: [embed], ephemeral: true });
+}
+
 client.on("ready", () => {
     console.log(`Logged in as ${client.user.tag}!`);
     client.user.setActivity(`${client.guilds.cache.size} servers`, {
@@ -82,12 +90,7 @@ client.on("interactionCreate", async (interaction) => {
                 break;
             }
             if (i == track_list.length - 1) {
-                const embed = new EmbedBuilder()
-                    .setTitle("Error")
-                    .setColor(0xff0000)
-                    .setDescription(`could not find \`${track}\` in the track list`);
-                await interaction.reply({ embeds: [embed], ephemeral: true });
-                return;
+                return error_embed(interaction, "couldn't find \`${track}\` in the list");
             }
         }
         const time = interaction.options.get("time").value;
@@ -134,8 +137,7 @@ client.on("interactionCreate", async (interaction) => {
                     if (i.customId == "Yes") {
                         bdd[interaction.user.id][speed][item][track] = time;
                         if (save_bdd() == 0) {
-                            i.reply({ embeds: [new EmbedBuilder().setTitle(`Error`).setColor(0xff0000).setDescription(`could not save the new time`)], ephemeral: true });
-                            return;
+                            return error_embed(i, "could not save the file as expected");
                         }
                         await i.update({
                             embeds: [
@@ -153,12 +155,7 @@ client.on("interactionCreate", async (interaction) => {
                 return;
             }
             else if (bdd[interaction.user.id][speed][item][track] == time) {
-                const embed = new EmbedBuilder()
-                    .setTitle(`Error`)
-                    .setColor(0xff0000)
-                    .setDescription(`you already have **${bdd[interaction.user.id][speed][item][track]}** on \`${track}\` in ${speed} (${item})`);
-                await interaction.reply({ embeds: [embed], ephemeral: true });
-                return;
+                return error_embed(interaction, `you already have \`${bdd[interaction.user.id][speed][item][track]}\` on this track`);
             }
             bdd[interaction.user.id][speed][item][track] = time;
         }
@@ -176,8 +173,7 @@ client.on("interactionCreate", async (interaction) => {
         }
         bdd[interaction.user.id][speed][item][track] = time;
         if (save_bdd() == 0) {
-            interaction.reply({ embeds: [new EmbedBuilder().setTitle(`Error`).setColor(0xff0000).setDescription(`could not save the file as expected`)], ephemeral: true });
-            return;
+            return error_embed(interaction, "could not save the new time");
         }
         const embed = new EmbedBuilder()
             .setTitle(`Time saved`)
@@ -209,12 +205,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 if (i == track_list.length - 1) {
-                    const embed = new EmbedBuilder()
-                        .setTitle("Error")
-                        .setColor(0xff0000)
-                        .setDescription(`could not find \`${track}\` in the track list`);
-                    await interaction.reply({ embeds: [embed], ephemeral: true });
-                    return;
+                    return error_embed(interaction, `could not find \`${track}\` in the track list`);
                 }
             }
             if (is_track_init(interaction.user.id, speed, item, track)) {
@@ -240,17 +231,11 @@ client.on("interactionCreate", async (interaction) => {
                             item = "Shroom";
                         }
                         if (!is_track_init(interaction.user.id, speed, item, track)) {
-                            const embed = new EmbedBuilder()
-                                .setTitle(`Error`)
-                                .setColor(0xff0000)
-                                .setDescription(`you don't have any time saved on \`${track}\` in ${speed} (${item})`);
-                            await i.reply({ embeds: [embed], ephemeral: true });
-                            return;
+                            return error_embed(i, `you don't have any time saved on \`${track}\` in ${speed} (${item})`);
                         }
                         delete bdd[interaction.user.id][speed][item][track];
                         if (save_bdd() == 0) {
-                            i.reply({ embeds: [new EmbedBuilder().setTitle(`Error`).setColor(0xff0000).setDescription(`could not save the file as expected`)], ephemeral: true });
-                            return;
+                            return error_embed(i, `could not save the file as expected`);
                         }
                         const embed = new EmbedBuilder()
                             .setTitle(`Time deleted`)
@@ -271,12 +256,7 @@ client.on("interactionCreate", async (interaction) => {
                 });
             }
             else {
-                const embed = new EmbedBuilder()
-                    .setTitle(`Error`)
-                    .setColor(0xff0000)
-                    .setDescription(`you don't have any time saved on \`${track}\` in ${speed} (${item})`);
-                await interaction.reply({ embeds: [embed], ephemeral: true });
-                return;
+                return error_embed(interaction, `you don't have any time saved on \`${track}\` in ${speed} (${item})`);
             }
         }
         else if (args.length == 0) {
@@ -299,8 +279,7 @@ client.on("interactionCreate", async (interaction) => {
                 if (i.customId == "Yes") {
                     delete bdd[interaction.user.id];
                     if (save_bdd() == 0) {
-                        i.reply({ embeds: [new EmbedBuilder().setTitle(`Error`).setColor(0xff0000).setDescription(`could not save the file as expected`)], ephemeral: true });
-                        return;
+                        return error_embed(i, `could not save the file as expected`);
                     }
                     const embed = new EmbedBuilder()
                         .setTitle(`Time deleted`)
@@ -341,8 +320,7 @@ client.on("interactionCreate", async (interaction) => {
                     bdd[interaction.user.id][speed].Shroom = {};
                     bdd[interaction.user.id][speed].NI = {};
                     if (save_bdd() == 0) {
-                        i.reply({ embeds: [new EmbedBuilder().setTitle(`Error`).setColor(0xff0000).setDescription(`could not save the file as expected`)], ephemeral: true });
-                        return;
+                        return error_embed(i, `could not save the file as expected`);
                     }
                     const embed = new EmbedBuilder()
                         .setTitle(`Time deleted`)
@@ -386,8 +364,7 @@ client.on("interactionCreate", async (interaction) => {
                     bdd[interaction.user.id][150][item] = {};
                     bdd[interaction.user.id][200][item] = {};
                     if (save_bdd() == 0) {
-                        i.reply({ embeds: [new EmbedBuilder().setTitle(`Error`).setColor(0xff0000).setDescription(`could not save the file as expected`)], ephemeral: true });
-                        return;
+                        return error_embed(i, `could not save the file as expected`);
                     }
                     const embed = new EmbedBuilder()
                         .setTitle(`Time deleted`)
@@ -414,12 +391,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 if (i == track_list.length - 1) {
-                    const embed = new EmbedBuilder()
-                        .setTitle("Error")
-                        .setColor(0xff0000)
-                        .setDescription(`could not find \`${track}\` in the track list`);
-                    await interaction.reply({ embeds: [embed], ephemeral: true });
-                    return;
+                    return error_embed(interaction, `track \`${track}\` not found`);
                 }
             }
             interaction.reply({
@@ -444,8 +416,7 @@ client.on("interactionCreate", async (interaction) => {
                     bdd[interaction.user.id][200].Shroom[track] = {};
                     bdd[interaction.user.id][200].NI[track] = {};
                     if (save_bdd() == 0) {
-                        i.reply({ embeds: [new EmbedBuilder().setTitle(`Error`).setColor(0xff0000).setDescription(`could not save the file as expected`)], ephemeral: true });
-                        return;
+                        return error_embed(i, `could not save the file as expected`);
                     }
                     const embed = new EmbedBuilder()
                         .setTitle(`Time deleted`)
@@ -489,8 +460,7 @@ client.on("interactionCreate", async (interaction) => {
                 if (i.customId == "Yes") {
                     bdd[interaction.user.id][speed][item] = {};
                     if (save_bdd() == 0) {
-                        i.reply({ embeds: [new EmbedBuilder().setTitle(`Error`).setColor(0xff0000).setDescription(`could not save the file as expected`)], ephemeral: true });
-                        return;
+                        return error_embed(i, `could not save the file as expected`);
                     }
                     const embed = new EmbedBuilder()
                         .setTitle(`Time deleted`)
@@ -518,12 +488,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 if (i == track_list.length - 1) {
-                    const embed = new EmbedBuilder()
-                        .setTitle("Error")
-                        .setColor(0xff0000)
-                        .setDescription(`could not find \`${track}\` in the track list`);
-                    await interaction.reply({ embeds: [embed], ephemeral: true });
-                    return;
+                    return error_embed(interaction, `could not find \`${track}\` in the track list`);
                 }
             }
             interaction.reply({
@@ -546,8 +511,7 @@ client.on("interactionCreate", async (interaction) => {
                     delete bdd[interaction.user.id][speed].Shroom[track];
                     delete bdd[interaction.user.id][speed].NI[track];
                     if (save_bdd() == 0) {
-                        i.reply({ embeds: [new EmbedBuilder().setTitle(`Error`).setColor(0xff0000).setDescription(`could not save the file as expected`)], ephemeral: true });
-                        return;
+                        return error_embed(i, `could not save the file as expected`);
                     }
                     const embed = new EmbedBuilder()
                         .setTitle(`Time deleted`)
@@ -578,12 +542,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 if (i == track_list.length - 1) {
-                    const embed = new EmbedBuilder()
-                        .setTitle("Error")
-                        .setColor(0xff0000)
-                        .setDescription(`could not find \`${track}\` in the track list`);
-                    await interaction.reply({ embeds: [embed], ephemeral: true });
-                    return;
+                    return error_embed(interaction, `could not find \`${track}\` in the track list`);
                 }
             }
             interaction.reply({
@@ -606,8 +565,7 @@ client.on("interactionCreate", async (interaction) => {
                     delete bdd[interaction.user.id][150][item][track];
                     delete bdd[interaction.user.id][200][item][track];
                     if (save_bdd() == 0) {
-                        i.reply({ embeds: [new EmbedBuilder().setTitle(`Error`).setColor(0xff0000).setDescription(`could not save the file as expected`)], ephemeral: true });
-                        return;
+                        return error_embed(i, `could not save the file as expected`);
                     }
                     const embed = new EmbedBuilder()
                         .setTitle(`Time deleted`)
@@ -656,12 +614,7 @@ client.on("interactionCreate", async (interaction) => {
         const list = interaction.options.get("list").value;
         const list_array = list.match(/[a-z,A-Z,0-9]+ : [0-9]+\/[0-9]+ -> [0-9]:[0-5][0-9]\.[0-9]{3}/g);
         if (list_array == null) {
-            const embed = new EmbedBuilder()
-                .setTitle("Error")
-                .setColor(0xff0000)
-                .setDescription(`the list you provided is not valid`);
-            await interaction.reply({ embeds: [embed], ephemeral: true });
-            return;
+            return error_embed(interaction, "could not find any time in the list you provided");
         }
         for (let i = 0; i < list_array.length; i++) {
             track = list_array[i].split(" : ")[0];
@@ -678,8 +631,7 @@ client.on("interactionCreate", async (interaction) => {
             bdd[interaction.user.id][speed][item][track] = time;
         }
         if (save_bdd() == 0) {
-            interaction.reply({ embeds: [new EmbedBuilder().setTitle(`Error`).setColor(0xff0000).setDescription(`could not save the file as expected`)], ephemeral: true });
-            return;
+            return error_embed(interaction, `could not save the file as expected`);
         }
         const embed = new EmbedBuilder()
             .setTitle(`Times imported`)
@@ -696,73 +648,51 @@ client.on("interactionCreate", async (interaction) => {
                 item = "Shroom";
             }
             if (user_list[interaction.guild.id] == undefined) {
-                interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`Error`)
-                            .setColor(0xff0000)
-                            .setDescription(`sorry, but this server is not registered in the database, please register members with the \`/register\` command`),
-                    ],
-                    ephemeral: true,
-                })
+                return error_embed(interaction, "sorry, but this server is not registered in the database, please register members with the \`/register\` command");
             }
-            else {
-                best_times_string = '';
-                best_time_object = {};
-                for (let i = 0; i < user_list[interaction.guild.id].length; i++) {
-                    if (bdd[user_list[interaction.guild.id][i]] == undefined) {
-                        user_list[interaction.guild.id].splice(i, 1);
+            best_times_string = '';
+            best_time_object = {};
+            for (let i = 0; i < track_list.length; i++) {
+                for (let j = 0; j < user_list[interaction.guild.id].length; j++) {
+                    if (bdd[user_list[interaction.guild.id][j]] == undefined) {
+                        user_list[interaction.guild.id].splice(j, 1);
                         save_user_list();
-                        i--;
+                        j--;
                         continue;
                     }
-                    const user = await interaction.guild.members.fetch(user_list[interaction.guild.id][i]);
+                    const user = await interaction.guild.members.fetch(user_list[interaction.guild.id][j]);
                     if (user == undefined) {
-                        user_list[interaction.guild.id].splice(i, 1);
+                        user_list[interaction.guild.id].splice(j, 1);
                         save_user_list();
-                        i--;
+                        j--;
                         continue;
                     }
-                    if (bdd[user_list[interaction.guild.id][i]][speed][item] == undefined) {
+                    if (bdd[user_list[interaction.guild.id][j]][speed][item][track_list[i]] == undefined) {
                         continue;
                     }
-                    for (let track in bdd[user_list[interaction.guild.id][i]][speed][item]) {
-                        if (best_time_object[track] == undefined) {
-                            best_time_object[track] = track + `: \`${bdd[user_list[interaction.guild.id][i]][speed][item][track]}\` - ${user.displayName}`;
-                        }
-                        else if (bdd[user_list[interaction.guild.id][i]][speed][item][track] < best_time_object[track].split("`")[1]) {
-                            best_time_object[track] = track + `: \`${bdd[user_list[interaction.guild.id][i]][speed][item][track]}\` - ${user.displayName}`;
-                        }
-                        else if (bdd[user_list[interaction.guild.id][i]][speed][item][track] == best_time_object[track].split("`")[1]) {
-                            best_time_object[track] += `/${user.displayName}`;
-                        }
+                    if (best_time_object[track_list[i]] == undefined || (bdd[user_list[interaction.guild.id][j]][speed][item][track_list[i]] < best_time_object[track_list[i]].split("`")[1])) {
+                        best_time_object[track_list[i]] = "**" + track_list[i] + `**: \`${bdd[user_list[interaction.guild.id][j]][speed][item][track_list[i]]}\` - ${user.displayName}`;
                     }
-                }
-                for (let track in best_time_object) {
-                    best_times_string += best_time_object[track] + "\n";
-                }
-                if (best_times_string == '') {
-                    interaction.reply({
-                        embeds: [
-                            new EmbedBuilder()
-                                .setTitle(`Error`)
-                                .setColor(0xff0000)
-                                .setDescription(`sorry, but no one has registered any time for this category`),
-                        ],
-                        ephemeral: true,
-                    })
-                }
-                else {
-                    interaction.reply({
-                        embeds: [
-                            new EmbedBuilder()
-                                .setTitle(`${speed}cc ${item}`)
-                                .setColor(0x47e0ff)
-                                .setDescription(best_times_string),
-                        ],
-                    })
+                    else if (bdd[user_list[interaction.guild.id][j]][speed][item][track_list[i]] == best_time_object[track_list[i]].split("`")[1]) {
+                        best_time_object[track_list[i]] += `/${user.displayName}`;
+                    }
                 }
             }
+            for (let track in best_time_object) {
+                best_times_string += best_time_object[track] + "\n";
+            }
+            if (best_times_string == '') {
+                return error_embed(interaction, `no times found for this category`);
+            }
+            interaction.reply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setTitle(`${speed}cc ${item}`)
+                        .setColor(0x47e0ff)
+                        .setThumbnail(interaction.guild.iconURL())
+                        .setDescription(best_times_string),
+                ],
+            })
         }
         else if (args.length == 3 && interaction.options.get("track") != undefined) {
             const speed = interaction.options.get("speed").value;
@@ -777,78 +707,51 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 if (i == track_list.length - 1) {
-                    interaction.reply({
-                        embeds: [
-                            new EmbedBuilder()
-                                .setTitle(`Error`)
-                                .setColor(0xff0000)
-                                .setDescription(`sorry, but the track you provided is not valid`),
-                        ],
-                        ephemeral: true
-                    })
+                    return error_embed(interaction, `the track you provided is not valid`);
                 }
             }
             if (user_list[interaction.guild.id] == undefined) {
-                interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`Error`)
-                            .setColor(0xff0000)
-                            .setDescription(`sorry, but this server is not registered in the database, please register members with the \`/register\` command`),
-                    ],
-                    ephemeral: true,
-                })
+                return error_embed(interaction, `sorry, but this server is not registered in the database, please register members with the \`/register\` command`);
             }
-            else {
-                best_times_string = '';
-                best_time_object = [];
-                for (let i = 0; i < user_list[interaction.guild.id].length; i++) {
-                    if (bdd[user_list[interaction.guild.id][i]] == undefined) {
-                        user_list[interaction.guild.id].splice(i, 1);
-                        save_user_list();
-                        i--;
-                        continue;
-                    }
-                    const user = await interaction.guild.members.fetch(user_list[interaction.guild.id][i]);
-                    if (user == undefined) {
-                        user_list[interaction.guild.id].splice(i, 1);
-                        save_user_list();
-                        i--;
-                        continue;
-                    }
-                    if (bdd[user_list[interaction.guild.id][i]][speed][item] == undefined) {
-                        continue;
-                    }
-                    if (bdd[user_list[interaction.guild.id][i]][speed][item][track] != undefined) {
-                        best_time_object.push({ time: bdd[user_list[interaction.guild.id][i]][speed][item][track], user: user.displayName });
-                    }
+            best_times_string = '';
+            best_time_object = [];
+            for (let i = 0; i < user_list[interaction.guild.id].length; i++) {
+                if (bdd[user_list[interaction.guild.id][i]] == undefined) {
+                    user_list[interaction.guild.id].splice(i, 1);
+                    save_user_list();
+                    i--;
+                    continue;
                 }
-                best_time_object.sort((a, b) => a.time - b.time);
-                for (let i = 0; i < best_time_object.length; i++) {
-                    best_times_string += `**${i + 1}**: ${best_time_object[i].user}: \`${best_time_object[i].time}\`\n`;
+                const user = await interaction.guild.members.fetch(user_list[interaction.guild.id][i]);
+                if (user == undefined) {
+                    user_list[interaction.guild.id].splice(i, 1);
+                    save_user_list();
+                    i--;
+                    continue;
                 }
-                if (best_times_string == '') {
-                    interaction.reply({
-                        embeds: [
-                            new EmbedBuilder()
-                                .setTitle(`Error`)
-                                .setColor(0xff0000)
-                                .setDescription(`sorry, but no one has registered any time for this category`),
-                        ],
-                        ephemeral: true,
-                    })
+                if (bdd[user_list[interaction.guild.id][i]][speed][item] == undefined) {
+                    continue;
                 }
-                else {
-                    interaction.reply({
-                        embeds: [
-                            new EmbedBuilder()
-                                .setTitle(`${track} ${speed}cc ${item}`)
-                                .setColor(0x47e0ff)
-                                .setDescription(best_times_string),
-                        ],
-                    })
+                if (bdd[user_list[interaction.guild.id][i]][speed][item][track] != undefined) {
+                    best_time_object.push({ time: bdd[user_list[interaction.guild.id][i]][speed][item][track], user: user.displayName });
                 }
             }
+            best_time_object.sort((a, b) => a.time - b.time);
+            for (let i = 0; i < best_time_object.length; i++) {
+                best_times_string += `**${i + 1}**: ${best_time_object[i].user}: \`${best_time_object[i].time}\`\n`;
+            }
+            if (best_times_string == '') {
+                return error_embed(interaction, `sorry, but no one has registered any time for this category`);
+            }
+            interaction.reply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setTitle(`${speed}cc ${item}`)
+                        .setColor(0x47e0ff)
+                        .setDescription(best_times_string)
+                        .setThumbnail(`http://51.68.230.75:8000/mk8dx_tracks/${track}.png`)
+                ],
+            })
         }
         else if (args.length == 3 && interaction.options.get("user").value != undefined) {
             const speed = interaction.options.get("speed").value;
@@ -864,43 +767,16 @@ client.on("interactionCreate", async (interaction) => {
                 user_id = user_id.slice(2, -1);
             }
             if (isNaN(user_id)) {
-                interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`Error`)
-                            .setColor(0xff0000)
-                            .setDescription(`sorry, but the user you provided is not valid`),
-                    ],
-                    ephemeral: true,
-                })
-                return;
+                return error_embed(interaction, "sorry, but the user you provided is not valid");
             }
             if (bdd[user_id] == undefined) {
-                interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`Error`)
-                            .setColor(0xff0000)
-                            .setDescription(`sorry, but the user you provided is not registered in the database`),
-                    ],
-                    ephemeral: true,
-                })
-                return;
+                return error_embed(interaction, "sorry, but the user you provided is not registered in the database");
             }
             try {
                 user = await interaction.guild.members.fetch(user_id);
             }
             catch (e) {
-                interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`Error`)
-                            .setColor(0xff0000)
-                            .setDescription(`sorry, but the user you provided is not valid`),
-                    ],
-                    ephemeral: true,
-                })
-                return;
+                return error_embed(interaction, "sorry, but the user you provided is not valid");
             }
             time_list = '';
             for (let i = 0; i < track_list.length; i++) {
@@ -927,26 +803,17 @@ client.on("interactionCreate", async (interaction) => {
                 }
             }
             if (time_list == '') {
-                interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`Error`)
-                            .setColor(0xff0000)
-                            .setDescription(`sorry, but this user has not registered any time for this category`),
-                    ],
-                    ephemeral: true,
-                })
+                return error_embed(interaction, "sorry, but this user has not registered any time for this category");
             }
-            else {
-                interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`${user.displayName} ${speed}cc ${item}`)
-                            .setColor(0x47e0ff)
-                            .setDescription(time_list),
-                    ],
-                })
-            }
+            interaction.reply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setTitle(`${user.displayName}  ${speed}cc ${item}`)
+                        .setColor(0x47e0ff)
+                        .setDescription(time_list)
+                        .setThumbnail(user.displayAvatarURL()),
+                ],
+            })
         }
         else if (args.length == 4) {
             const speed = interaction.options.get("speed").value;
@@ -961,16 +828,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 if (i == track_list.length - 1) {
-                    interaction.reply({
-                        embeds: [
-                            new EmbedBuilder()
-                                .setTitle(`Error`)
-                                .setColor(0xff0000)
-                                .setDescription(`sorry, but the track you provided is not valid`),
-                        ],
-                        ephemeral: true,
-                    })
-                    return;
+                    return error_embed(interaction, "sorry, but the track you provided is not valid");
                 }
             }
             var user_id = interaction.options.get("user").value;
@@ -981,66 +839,62 @@ client.on("interactionCreate", async (interaction) => {
                 user_id = user_id.slice(2, -1);
             }
             if (isNaN(user_id)) {
-                interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`Error`)
-                            .setColor(0xff0000)
-                            .setDescription(`sorry, but the user you provided is not valid`),
-                    ],
-                    ephemeral: true,
-                })
-                return;
+                return error_embed(interaction, "sorry, but the user you provided is not valid");
             }
             if (bdd[user_id] == undefined) {
-                interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`Error`)
-                            .setColor(0xff0000)
-                            .setDescription(`sorry, but the user you provided is not registered in the database`),
-                    ],
-                    ephemeral: true,
-                })
-                return;
+                return error_embed(interaction, "sorry, but the user you provided is not registered in the database");
             }
             try {
                 user = await interaction.guild.members.fetch(user_id);
             }
             catch (e) {
-                interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`Error`)
-                            .setColor(0xff0000)
-                            .setDescription(`sorry, but the user you provided is not valid`),
-                    ],
-                    ephemeral: true,
-                })
-                return;
+                return error_embed(interaction, "sorry, but the user you provided is not valid");
             }
             if (bdd[user_id][speed][item][track] == undefined) {
-                interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`Error`)
-                            .setColor(0xff0000)
-                            .setDescription(`sorry, but this user has not registered any time for this category`),
-                    ],
-                    ephemeral: true,
-                })
+                return error_embed(interaction, "sorry, but this user has not registered any time for this category");
             }
-            else {
-                interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`${user.displayName} ${track} ${speed}cc ${item}`)
-                            .setColor(0x47e0ff)
-                            .setDescription(`\`${bdd[user_id][speed][item][track]}\` + ratio`),
-                    ],
-                })
-            }
+            interaction.reply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0x47e0ff)
+                        .setTitle(`${user.displayName}  ${speed}cc ${item}`)
+                        .setDescription(`${track}   -    **${bdd[user_id][speed][item][track]}**`)
+                        .setThumbnail(`http://51.68.230.75:8000/mk8dx_tracks/${track}.png`)
+                ],
+            })
         }
+    }
+    if (interaction.commandName == "help") {
+        interaction.reply({
+            embeds: [
+                new EmbedBuilder()
+                    .setTitle("Help menu")
+                    .setColor(0x47e0ff)
+                    .setThumbnail("https://archives.bulbagarden.net/media/upload/4/49/Quaxly.png")
+                    .setFooter({ text: "Made by pierre#1111, feel free to contact me if you have any questions" })
+                    .addFields({
+                        name: "ping",
+                        value: "Returns the bot's latency",
+
+                    },
+                        {
+                            name: "save_time",
+                            value: "Saves your time in the chosen category",
+                        },
+                        {
+                            name: "delete_time",
+                            value: "Deletes times based on the parameters you provide",
+                        },
+                        {
+                            name: "import_times",
+                            value: "Import times from Cadoizzob#8500's bot, copy paste the text from the bot in the list field",
+                        },
+                        {
+                            name: "display_time",
+                            value: "Displays your times based on the parameters you provide",
+                        })
+            ],
+        })
     }
 });
 
