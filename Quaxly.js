@@ -3,7 +3,6 @@ const { Client, GatewayIntentBits, EmbedBuilder, ActivityType, ActionRowBuilder,
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] });
 const token = require("./config.json");
 const fs = require("fs");
-const { time } = require("console");
 const buttons = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("Yes").setLabel("Yes").setStyle(ButtonStyle.Success), new ButtonBuilder().setCustomId("No").setLabel("No").setStyle(ButtonStyle.Danger));
 
 function is_track_init(user_id, speed, item, track) {
@@ -112,7 +111,8 @@ client.on("interactionCreate", async (interaction) => {
                 const embed = new EmbedBuilder()
                     .setTitle(`Error`)
                     .setColor(0xff0000)
-                    .setDescription(`you already have \`${bdd[interaction.user.id][speed][item][track]}\` on this track, do you really want to override it?`);
+                    .setDescription(`you already have \`${bdd[interaction.user.id][speed][item][track]}\` on this track, do you really want to override it?`)
+                    .setThumbnail(`http://51.68.230.75:8000/mk8dx_tracks/${track}.png`);
                 await interaction.reply({
                     embeds: [embed],
                     ephemeral: true,
@@ -144,7 +144,8 @@ client.on("interactionCreate", async (interaction) => {
                                 new EmbedBuilder()
                                     .setTitle(`Done`)
                                     .setColor(0x00ff00)
-                                    .setDescription(`you now have **${bdd[interaction.user.id][speed][item][track]}** on \`${track}\` in ${speed} (${item})`),
+                                    .setDescription(`you now have **${bdd[interaction.user.id][speed][item][track]}** on \`${track}\` in ${speed} (${item})`)
+                                    .setThumbnail(`http://51.68.230.75:8000/mk8dx_tracks/${track}.png`)
                             ],
                             components: [],
                             fetchReply: true,
@@ -178,7 +179,8 @@ client.on("interactionCreate", async (interaction) => {
         const embed = new EmbedBuilder()
             .setTitle(`Time saved`)
             .setColor(0x47e0ff)
-            .setDescription(`saved **${time}** on \`${track}\`, ${speed}cc (${item})`);
+            .setDescription(`saved **${time}** on \`${track}\`, ${speed}cc (${item})`)
+            .setThumbnail(`http://51.68.230.75:8000/mk8dx_tracks/${track}.png`);
         await interaction.reply({ embeds: [embed] });
         ``;
     }
@@ -214,7 +216,8 @@ client.on("interactionCreate", async (interaction) => {
                         new EmbedBuilder()
                             .setTitle(`Are you sure?`)
                             .setColor(0xff0000)
-                            .setDescription(`you are about to delete **${bdd[interaction.user.id][speed][item][track]}** on \`${track}\` in ${speed}cc (${item})`),
+                            .setDescription(`you are about to delete **${bdd[interaction.user.id][speed][item][track]}** on \`${track}\` in ${speed}cc (${item})`)
+                            .setThumbnail(`http://51.68.230.75:8000/mk8dx_tracks/${track}.png`),
                     ],
                     ephemeral: true,
                     components: [buttons],
@@ -240,7 +243,8 @@ client.on("interactionCreate", async (interaction) => {
                         const embed = new EmbedBuilder()
                             .setTitle(`Time deleted`)
                             .setColor(0x47e0ff)
-                            .setDescription(`deleted your time on \`${track}\`, ${speed}cc (${item})`);
+                            .setDescription(`deleted your time on \`${track}\`, ${speed}cc (${item})`)
+                            .setThumbnail(`http://51.68.230.75:8000/mk8dx_tracks/${track}.png`);
                         await i.reply({ embeds: [embed] });
 
                     }
@@ -446,7 +450,7 @@ client.on("interactionCreate", async (interaction) => {
                     new EmbedBuilder()
                         .setTitle(`Are you sure?`)
                         .setColor(0xff0000)
-                        .setDescription(`you are about to delete **all** your times with ${item} on ${speed}cc`),
+                        .setDescription(`you are about to delete **all** your times in ${item} on ${speed}cc`),
                 ],
                 ephemeral: true,
                 components: [buttons],
@@ -496,7 +500,8 @@ client.on("interactionCreate", async (interaction) => {
                     new EmbedBuilder()
                         .setTitle(`Are you sure?`)
                         .setColor(0xff0000)
-                        .setDescription(`you are about to delete **all** your times on ${track} in ${speed}cc`),
+                        .setDescription(`you are about to delete **all** your times on ${track} in ${speed}cc`)
+                        .setThumbnail(`http://51.68.230.75:8000/mk8dx_tracks/${track}.png`),
                 ],
                 ephemeral: true,
                 components: [buttons],
@@ -516,7 +521,8 @@ client.on("interactionCreate", async (interaction) => {
                     const embed = new EmbedBuilder()
                         .setTitle(`Time deleted`)
                         .setColor(0x47e0ff)
-                        .setDescription(`deleted all your times on ${track} in ${speed}`);
+                        .setDescription(`deleted all your times on ${track} in ${speed}`)
+                        .setThumbnail(`http://51.68.230.75:8000/mk8dx_tracks/${track}.png`);
                     await i.reply({ embeds: [embed] });
                 }
                 if (i.customId == "No") {
@@ -550,7 +556,8 @@ client.on("interactionCreate", async (interaction) => {
                     new EmbedBuilder()
                         .setTitle(`Are you sure?`)
                         .setColor(0xff0000)
-                        .setDescription(`you are about to delete **all** your times on ${track} with ${item}`),
+                        .setDescription(`you are about to delete **all** your times on ${track} with ${item}`)
+                        .setThumbnail(`http://51.68.230.75:8000/mk8dx_tracks/${track}.png`),
                 ],
                 ephemeral: true,
                 components: [buttons],
@@ -570,7 +577,8 @@ client.on("interactionCreate", async (interaction) => {
                     const embed = new EmbedBuilder()
                         .setTitle(`Time deleted`)
                         .setColor(0x47e0ff)
-                        .setDescription(`deleted all your times on ${track} with ${item}`);
+                        .setDescription(`deleted all your times on ${track} with ${item}`)
+                        .setThumbnail(`http://51.68.230.75:8000/mk8dx_tracks/${track}.png`);
                     await interaction.reply({ embeds: [embed] });
                 }
                 if (i.customId == "No") {
