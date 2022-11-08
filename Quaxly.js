@@ -179,7 +179,7 @@ client.on("interactionCreate", async (interaction) => {
         const embed = new EmbedBuilder()
             .setTitle(`Time saved`)
             .setColor(0x47e0ff)
-            .setDescription(`saved **${time}** on \`${track}\`, ${speed}cc (${item})`)
+            .setDescription(`**${interaction.member.displayName}** saved **${time}** on \`${track}\`, ${speed}cc (${item})`)
             .setThumbnail(`http://51.68.230.75:8000/mk8dx_tracks/${track}.png`);
         await interaction.reply({ embeds: [embed] });
         ``;
@@ -719,7 +719,7 @@ client.on("interactionCreate", async (interaction) => {
                 }
             }
             if (user_list[interaction.guild.id] == undefined) {
-                return error_embed(interaction, `sorry, but this server is not registered in the database, please register members with the \`/register\` command`);
+                return error_embed(interaction, `sorry, but this server is not registered in the database, please register members with the \`/register_user\` command`);
             }
             best_times_string = '';
             best_time_object = [];
