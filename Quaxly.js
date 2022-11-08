@@ -889,26 +889,91 @@ client.on("interactionCreate", async (interaction) => {
                     .setThumbnail("https://archives.bulbagarden.net/media/upload/4/49/Quaxly.png")
                     .setFooter({ text: "Made by pierre#1111, feel free to contact me if you have any questions" })
                     .addFields({
-                        name: "ping",
+                        name: "/ping",
                         value: "Returns the bot's latency",
 
                     },
                         {
-                            name: "save_time",
+                            name: "/save_time",
                             value: "Saves your time in the chosen category",
                         },
                         {
-                            name: "delete_time",
+                            name: "/delete_time",
                             value: "Deletes times based on the parameters you provide",
                         },
                         {
-                            name: "import_times",
+                            name: "/import_times",
                             value: "Import times from Cadoizzob#8500's bot, copy paste the text from the bot in the list field",
                         },
                         {
-                            name: "display_time",
+                            name: "/display_time",
                             value: "Displays your times based on the parameters you provide",
                         })
+            ],
+        })
+    }
+    if (interaction.commandName == "register_user") {
+        if (user_list[interaction.guild.id] == undefined) {
+            user_list[interaction.guild.id] = [];
+        }
+        var user_id = interaction.options.get("user").value;
+        if (user_id.startsWith("<@!") && user_id.endsWith(">")) {
+            user_id = user_id.slice(3, -1);
+        }
+        else if (user_id.startsWith("<@") && user_id.endsWith(">")) {
+            user_id = user_id.slice(2, -1);
+        }
+        if (isNaN(user_id)) {
+            return error_embed(interaction, "sorry, but the user you provided is not valid");
+        }
+        if (bdd[user_id] == undefined) {
+            return error_embed(interaction, "sorry, but the user you provided is not registered in the database");
+        }
+        try {
+            user = await interaction.guild.members.fetch(user_id);
+        }
+        catch (e) {
+            return error_embed(interaction, "sorry, but the user you provided is not valid or not in this server");
+        }
+        if (user_list[interaction.guild.id].includes(user_id)) {
+            return error_embed(interaction, "sorry, but this user is already registered in this server");
+        }
+        user_list[interaction.guild.id].push(user_id);
+        interaction.reply({
+            embeds: [
+                new EmbedBuilder()
+                    .setTitle("User registered")
+                    .setColor(0x47e0ff)
+                    .setDescription(`${user.displayName} has been registered in this server`)
+                    .setThumbnail(user.displayAvatarURL()),
+            ],
+        })
+    }
+    if (interaction.commandName == "remove_user") {
+        if (user_list[interaction.guild.id] == undefined) {
+            user_list[interaction.guild.id] = [];
+        }
+        var user_id = interaction.options.get("user").value;
+        if (user_id.startsWith("<@!") && user_id.endsWith(">")) {
+            user_id = user_id.slice(3, -1);
+        }
+        else if (user_id.startsWith("<@") && user_id.endsWith(">")) {
+            user_id = user_id.slice(2, -1);
+        }
+        if (isNaN(user_id)) {
+            return error_embed(interaction, "sorry, but the user you provided is not valid");
+        }
+        if (!user_list[interaction.guild.id].includes(user_id)) {
+            return error_embed(interaction, "sorry, but this user is not registered in this server");
+        }
+        user_list[interaction.guild.id].splice(user_list[interaction.guild.id].indexOf(user_id), 1);
+        interaction.reply({
+            embeds: [
+                new EmbedBuilder()
+                    .setTitle("User removed")
+                    .setColor(0x47e0ff)
+                    .setDescription(`${user_id} has been removed from this server`)
+                    .setThumbnail(interaction.guild.iconURL()),
             ],
         })
     }
