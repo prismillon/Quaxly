@@ -908,7 +908,16 @@ client.on("interactionCreate", async (interaction) => {
                         {
                             name: "/display_time",
                             value: "Displays your times based on the parameters you provide",
-                        })
+                        },
+                        {
+                            name: "/register_user",
+                            value: "Register the user selected in the server",
+                        },
+                        {
+                            name: "/remove_user",
+                            value: "Remove the user selected from the server",
+                        },
+                    )
             ],
         })
     }
