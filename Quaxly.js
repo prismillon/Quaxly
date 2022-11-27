@@ -730,18 +730,22 @@ client.on("interactionCreate", async (interaction) => {
                     i--;
                     continue;
                 }
-                const user = await interaction.guild.members.fetch(user_list[interaction.guild.id][i]);
-                if (user == undefined) {
-                    user_list[interaction.guild.id].splice(i, 1);
-                    save_user_list();
-                    i--;
-                    continue;
+                try {
+                    const user = await interaction.guild.members.fetch(user_list[interaction.guild.id][i]);
+                    if (user == undefined) {
+                        user_list[interaction.guild.id].splice(i, 1);
+                        save_user_list();
+                        i--;
+                        continue;
+                    }
+                    if (bdd[user_list[interaction.guild.id][i]][speed][item] == undefined) {
+                        continue;
+                    }
+                    if (bdd[user_list[interaction.guild.id][i]][speed][item][track] != undefined) {
+                        best_time_object.push({ time: bdd[user_list[interaction.guild.id][i]][speed][item][track], user: user.displayName });
+                    }
                 }
-                if (bdd[user_list[interaction.guild.id][i]][speed][item] == undefined) {
-                    continue;
-                }
-                if (bdd[user_list[interaction.guild.id][i]][speed][item][track] != undefined) {
-                    best_time_object.push({ time: bdd[user_list[interaction.guild.id][i]][speed][item][track], user: user.displayName });
+                catch (e) {
                 }
             }
             best_time_object.sort((a, b) => {
