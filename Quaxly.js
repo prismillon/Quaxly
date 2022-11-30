@@ -246,7 +246,7 @@ client.on("interactionCreate", async (interaction) => {
                             .setDescription(`deleted your time on \`${track}\`, ${speed}cc (${item})`)
                             .setThumbnail(`http://51.68.230.75:8000/mk8dx_tracks/${track}.png`);
                         await i.reply({ embeds: [embed] });
-
+                        interaction.deleteReply();
                     }
                     if (i.customId == "No") {
                         await i.update({
@@ -256,6 +256,7 @@ client.on("interactionCreate", async (interaction) => {
                             components: [],
                             fetchReply: true,
                         });
+                        interaction.deleteReply();
                     }
                 });
             }
