@@ -195,7 +195,7 @@ client.on("interactionCreate", async (interaction) => {
             else if (ms < 100) {
                 ms = "0" + ms;
             }
-            time_diff_str = `\nyou improved by **${min}:${sec}.${ms}**`;
+            time_diff_str = `\nyou improved by \`${min}:${sec}.${ms}\` 🏁`;
         }
         bdd[interaction.user.id][speed][item][track] = time;
         if (save_bdd() == 0) {
