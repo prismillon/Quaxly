@@ -158,7 +158,7 @@ client.on("interactionCreate", async (interaction) => {
             else if (bdd[interaction.user.id][speed][item][track] == time) {
                 return error_embed(interaction, `you already have \`${bdd[interaction.user.id][speed][item][track]}\` on this track`);
             }
-            bdd[interaction.user.id][speed][item][track] = time;
+            //bdd[interaction.user.id][speed][item][track] = time;
         }
         if (bdd[interaction.user.id] == undefined) {
             bdd[interaction.user.id] = {
@@ -172,6 +172,31 @@ client.on("interactionCreate", async (interaction) => {
                 },
             };
         }
+        let time_diff = 0;
+        let time_diff_str = "";
+        if (bdd[interaction.user.id][speed][item][track] != undefined) {
+            let old_time = bdd[interaction.user.id][speed][item][track];
+            time_diff = (parseInt(old_time[0]) * 60 + parseInt(old_time[2] + old_time[3])) * 1000 + parseInt(old_time[5] + old_time[6] + old_time[7]) - (parseInt(time[0]) * 60 + parseInt(time[2] + time[3])) * 1000 - parseInt(time[5] + time[6] + time[7]);
+        }
+        if (time_diff != 0) {
+            //time_diff to 1:23.456
+            let min = Math.floor(time_diff / 60000);
+            let sec = Math.floor((time_diff - min * 60000) / 1000);
+            let ms = time_diff - min * 60000 - sec * 1000;
+            if (min < 10) {
+                min = "0" + min;
+            }
+            if (sec < 10) {
+                sec = "0" + sec;
+            }
+            if (ms < 10) {
+                ms = "00" + ms;
+            }
+            else if (ms < 100) {
+                ms = "0" + ms;
+            }
+            time_diff_str = `\nyou improved by **${min}:${sec}.${ms}**`;
+        }
         bdd[interaction.user.id][speed][item][track] = time;
         if (save_bdd() == 0) {
             return error_embed(interaction, "could not save the new time");
@@ -179,10 +204,9 @@ client.on("interactionCreate", async (interaction) => {
         const embed = new EmbedBuilder()
             .setTitle(`Time saved`)
             .setColor(0x47e0ff)
-            .setDescription(`**${interaction.member.displayName}** saved **${time}** on \`${track}\`, ${speed}cc (${item})`)
+            .setDescription(`**${interaction.member.displayName}** saved **${time}** on \`${track}\`, ${speed}cc (${item})` + time_diff_str)
             .setThumbnail(`http://51.68.230.75:8000/mk8dx_tracks/${track}.png`);
         await interaction.reply({ embeds: [embed] });
-        ``;
     }
     if (interaction.commandName === "delete_time") {
         if (user_list[interaction.guild.id] == undefined) {
