@@ -825,7 +825,7 @@ client.on("interactionCreate", async (interaction) => {
             for (let i = 0; i < track_list.length; i++) {
                 if (bdd[user_id][speed][item][track_list[i]] != undefined) {
                     nb_track_played++;
-                    total_time += bdd[user_id][speed][item][track_list[i]][0] * 60000 + (bdd[user_id][speed][item][track_list[i]][2] * 10 + bdd[user_id][speed][item][track_list[i]][3]) * 1000 + bdd[user_id][speed][item][track_list[i]][5] * 100 + bdd[user_id][speed][item][track_list[i]][6] * 10 + bdd[user_id][speed][item][track_list[i]][7];
+                    total_time += parseInt(bdd[user_id][speed][item][track_list[i]][0]) * 60000 + parseInt(bdd[user_id][speed][item][track_list[i]][2] + bdd[user_id][speed][item][track_list[i]][3]) * 1000 + parseInt(bdd[user_id][speed][item][track_list[i]][5] + bdd[user_id][speed][item][track_list[i]][6] + bdd[user_id][speed][item][track_list[i]][7]);
                     track_rank = [];
                     for (let j = 0; j < user_list[interaction.guild.id].length; j++) {
                         if (bdd[user_list[interaction.guild.id][j]] == undefined) {
@@ -858,17 +858,23 @@ client.on("interactionCreate", async (interaction) => {
                 return error_embed(interaction, "sorry, but this user has not registered any time for this category");
             }
             if (as_time_on_all_tracks) {
-                //convert time in ms in readable time
-                let ms = total_time;
-                let s = Math.floor(ms / 1000);
-                ms = ms % 1000;
-                let m = Math.floor(s / 60);
-                s = s % 60;
-                let h = Math.floor(m / 60);
-                m = m % 60;
-                let d = Math.floor(h / 24);
-                h = h % 24;
-                total_string = `**Total**: \`${h}h ${m}m ${s}s ${ms}ms\``;
+                let hours = Math.floor(total_time / 3600000);
+                let minutes = Math.floor(total_time / 60000) - hours * 60;
+                let seconds = Math.floor((total_time - minutes * 60000) / 1000);
+                let milliseconds = total_time - minutes * 60000 - seconds * 1000;
+                if (minutes < 10) {
+                    minutes = "0" + minutes;
+                }
+                if (seconds < 10) {
+                    seconds = "0" + seconds;
+                }
+                if (milliseconds < 10) {
+                    milliseconds = "00" + milliseconds;
+                }
+                else if (milliseconds < 100) {
+                    milliseconds = "0" + milliseconds;
+                }
+                total_string = `**Total time**: \`${hours}h ${minutes}:${seconds}.${milliseconds}\``;
             }
             else {
                 total_string = `**played tracks**: ${nb_track_played}/${track_list.length}\n`;
