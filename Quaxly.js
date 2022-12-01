@@ -818,8 +818,13 @@ client.on("interactionCreate", async (interaction) => {
                 return error_embed(interaction, "sorry, but the user you provided is not valid");
             }
             time_list = '';
+            let total_time = 0;
+            let nb_track_played = 0;
+            let as_time_on_all_tracks = true;
             for (let i = 0; i < track_list.length; i++) {
                 if (bdd[user_id][speed][item][track_list[i]] != undefined) {
+                    nb_track_played++;
+                    total_time += bdd[user_id][speed][item][track_list[i]][0] * 60000 + (bdd[user_id][speed][item][track_list[i]][2] * 10 + bdd[user_id][speed][item][track_list[i]][3]) * 1000 + bdd[user_id][speed][item][track_list[i]][5] * 100 + bdd[user_id][speed][item][track_list[i]][6] * 10 + bdd[user_id][speed][item][track_list[i]][7];
                     track_rank = [];
                     for (let j = 0; j < user_list[interaction.guild.id].length; j++) {
                         if (bdd[user_list[interaction.guild.id][j]] == undefined) {
@@ -844,16 +849,25 @@ client.on("interactionCreate", async (interaction) => {
                         }
                     }
                 }
+                else {
+                    as_time_on_all_tracks = false;
+                }
             }
             if (time_list == '') {
                 return error_embed(interaction, "sorry, but this user has not registered any time for this category");
+            }
+            if (as_time_on_all_tracks) {
+                total_time = `**Total**: \`${Math.floor(total_time / 60000)}:${Math.floor(total_time / 1000) % 60}:${Math.floor(total_time / 100) % 10}${Math.floor(total_time / 10) % 10}${total_time % 10}\``;
+            }
+            else {
+                total_time = `**played tracks**: ${nb_track_played}/${track_list.length}\n`;
             }
             interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setTitle(`${user.displayName}  ${speed}cc ${item}`)
                         .setColor(0x47e0ff)
-                        .setDescription(time_list)
+                        .setDescription(time_list + total_time)
                         .setThumbnail(user.displayAvatarURL()),
                 ],
             })
