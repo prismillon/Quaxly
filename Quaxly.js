@@ -858,7 +858,17 @@ client.on("interactionCreate", async (interaction) => {
                 return error_embed(interaction, "sorry, but this user has not registered any time for this category");
             }
             if (as_time_on_all_tracks) {
-                total_string = `**Total**: \`${Math.floor(total_time / 60000)}:${Math.floor(total_time / 1000) % 60}:${Math.floor(total_time / 100) % 10}${Math.floor(total_time / 10) % 10}${total_time % 10}\``;
+                //convert time in ms in readable time
+                let ms = total_time;
+                let s = Math.floor(ms / 1000);
+                ms = ms % 1000;
+                let m = Math.floor(s / 60);
+                s = s % 60;
+                let h = Math.floor(m / 60);
+                m = m % 60;
+                let d = Math.floor(h / 24);
+                h = h % 24;
+                total_string = `**Total**: \`${h}h ${m}m ${s}s ${ms}ms\``;
             }
             else {
                 total_string = `**played tracks**: ${nb_track_played}/${track_list.length}\n`;
