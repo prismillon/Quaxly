@@ -874,10 +874,10 @@ client.on("interactionCreate", async (interaction) => {
                 else if (milliseconds < 100) {
                     milliseconds = "0" + milliseconds;
                 }
-                total_string = `**Total time**: \`${hours}h${minutes}:${seconds}.${milliseconds}\``;
+                total_string = `\n**Played tracks**: ${nb_track_played}/${track_list.length}\n**Total time**: \`${hours}h${minutes}:${seconds}.${milliseconds}\``;
             }
             else {
-                total_string = `**played tracks**: ${nb_track_played}/${track_list.length}\n`;
+                total_string = `\n**Played tracks**: ${nb_track_played}/${track_list.length}\n**Bonus**: *complete all tracks to get a total time*`;
             }
             interaction.reply({
                 embeds: [
