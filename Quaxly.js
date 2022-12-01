@@ -60,7 +60,8 @@ fs.writeFileSync("./bdd_backup.json", JSON.stringify(bdd, null, 4));
 
 fs.writeFileSync("./user_list_backup.json", JSON.stringify(user_list, null, 4));
 
-const track_list = fs.readFileSync("./tracklist.txt", "utf-8").split(/\r?\n/).filter(/\S/);
+console.log(fs.readFileSync("./tracklist.txt", "utf-8"));
+const track_list = fs.readFileSync("./tracklist.txt", "utf-8").split(/\r?\n/);
 
 client.on("interactionCreate", async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
