@@ -822,6 +822,7 @@ client.on("interactionCreate", async (interaction) => {
             let nb_track_played = 0;
             let as_time_on_all_tracks = true;
             for (let i = 0; i < track_list.length; i++) {
+                console.log(track_list[i]);
                 if (bdd[user_id][speed][item][track_list[i]] != undefined) {
                     nb_track_played++;
                     total_time += bdd[user_id][speed][item][track_list[i]][0] * 60000 + (bdd[user_id][speed][item][track_list[i]][2] * 10 + bdd[user_id][speed][item][track_list[i]][3]) * 1000 + bdd[user_id][speed][item][track_list[i]][5] * 100 + bdd[user_id][speed][item][track_list[i]][6] * 10 + bdd[user_id][speed][item][track_list[i]][7];
