@@ -860,8 +860,8 @@ client.on("interactionCreate", async (interaction) => {
             if (as_time_on_all_tracks) {
                 let hours = Math.floor(total_time / 3600000);
                 let minutes = Math.floor(total_time / 60000) - hours * 60;
-                let seconds = Math.floor((total_time - minutes * 60000) / 1000);
-                let milliseconds = total_time - minutes * 60000 - seconds * 1000;
+                let seconds = Math.floor(total_time / 1000) - hours * 3600 - minutes * 60;
+                let milliseconds = total_time - hours * 3600000 - minutes * 60000 - seconds * 1000;
                 if (minutes < 10) {
                     minutes = "0" + minutes;
                 }
@@ -874,7 +874,7 @@ client.on("interactionCreate", async (interaction) => {
                 else if (milliseconds < 100) {
                     milliseconds = "0" + milliseconds;
                 }
-                total_string = `**Total time**: \`${hours}h ${minutes}:${seconds}.${milliseconds}\``;
+                total_string = `**Total time**: \`${hours}h${minutes}:${seconds}.${milliseconds}\``;
             }
             else {
                 total_string = `**played tracks**: ${nb_track_played}/${track_list.length}\n`;
