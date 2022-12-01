@@ -877,7 +877,7 @@ client.on("interactionCreate", async (interaction) => {
                 total_string = `\n**Played tracks**: ${nb_track_played}/${track_list.length}\n**Total time**: \`${hours}h${minutes}:${seconds}.${milliseconds}\``;
             }
             else {
-                total_string = `\n**Played tracks**: ${nb_track_played}/${track_list.length}\n**Bonus**: *complete all tracks to get a total time*`;
+                total_string = `\n**Played tracks**: ${nb_track_played}/${track_list.length}\n**Total time**: *complete all tracks to get a total time*`;
             }
             interaction.reply({
                 embeds: [
