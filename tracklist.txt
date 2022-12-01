@@ -62,11 +62,3 @@ bSS
 bSL
 bMG
 bSHS
-bLL
-bBL
-bRRM
-bMT
-bBB
-bPG
-bMM
-bRR7
