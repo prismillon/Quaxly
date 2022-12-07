@@ -939,6 +939,12 @@ client.on("interactionCreate", async (interaction) => {
         }
     }
     if (interaction.commandName == "help") {
+        //get last 8 tracks from tracklist
+        let new_tracks = track_list.slice(-8);
+        let new_tracks_string = "";
+        for (let i = 0; i < new_tracks.length; i++) {
+            new_tracks_string += `${new_tracks[i]} `;
+        }
         interaction.reply({
             embeds: [
                 new EmbedBuilder()
@@ -975,6 +981,10 @@ client.on("interactionCreate", async (interaction) => {
                             name: "/remove_user",
                             value: "Remove the user selected from the server",
                         },
+                        {
+                            name: "Last 8 dlc tracks names in order:",
+                            value: new_tracks_string,
+                        }
                     )
             ],
         })
