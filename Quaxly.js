@@ -943,7 +943,7 @@ client.on("interactionCreate", async (interaction) => {
         let new_tracks = track_list.slice(-8);
         let new_tracks_string = "";
         for (let i = 0; i < new_tracks.length; i++) {
-            new_tracks_string += `${new_tracks[i]} `;
+            new_tracks_string += `\`${new_tracks[i]}\` `;
         }
         interaction.reply({
             embeds: [
