@@ -5,6 +5,8 @@ const token = require("./config.json");
 const fs = require("fs");
 const buttons = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("Yes").setLabel("Yes").setStyle(ButtonStyle.Success), new ButtonBuilder().setCustomId("No").setLabel("No").setStyle(ButtonStyle.Danger));
 
+const track_list = fs.readFileSync("./tracklist.txt", "utf-8").replace(/^(?=\n)$|^\s|\s$|\n\n+/gm, "").split(/\r?\n/);
+
 function is_track_init(user_id, speed, item, track) {
     if (bdd[user_id] != undefined && bdd[user_id][speed] != undefined && bdd[user_id][speed][item] != undefined && bdd[user_id][speed][item][track] != undefined) {
         return true;
@@ -38,11 +40,9 @@ function player_update(user_id) {
 }
 
 function get_track_formated(track) {
-    if (track_list.includes(track)) {
-        for (let i = 0; i < track_list.length; i++) {
-            if (track_list[i].toLowerCase() == track.toLowerCase()) {
-                return track_list[i];
-            }
+    for (let i = 0; i < track_list.length; i++) {
+        if (track_list[i].toLowerCase() == track.toLowerCase()) {
+            return track_list[i];
         }
     }
     return 0
@@ -95,8 +95,6 @@ user_list = JSON.parse(fs.readFileSync("./user_list.json", "utf8"));
 fs.writeFileSync("./bdd_backup.json", JSON.stringify(bdd, null, 4));
 
 fs.writeFileSync("./user_list_backup.json", JSON.stringify(user_list, null, 4));
-
-const track_list = fs.readFileSync("./tracklist.txt", "utf-8").replace(/^(?=\n)$|^\s|\s$|\n\n+/gm, "").split(/\r?\n/);
 
 client.on("interactionCreate", async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
