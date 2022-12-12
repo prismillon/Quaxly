@@ -12,6 +12,42 @@ function is_track_init(user_id, speed, item, track) {
     return false;
 }
 
+function user_and_server_id_check(user_id, guild_id) {
+    if (user_list[guild_id] == undefined) {
+        user_list[guild_id] = [user_id];
+        save_user_list();
+    }
+    else if (!user_list[guild_id].includes(user_id)) {
+        user_list[guild_id].push(user_id);
+        save_user_list();
+    }
+}
+
+function player_update(user_id) {
+    if (bdd[user_id] != undefined) return
+    bdd[user_id] = {
+        150: {
+            Shroom: {},
+            NI: {},
+        },
+        200: {
+            Shroom: {},
+            NI: {},
+        },
+    }
+}
+
+function get_track_formated(track) {
+    if (track_list.includes(track)) {
+        for (let i = 0; i < track_list.length; i++) {
+            if (track_list[i].toLowerCase() == track.toLowerCase()) {
+                return track_list[i];
+            }
+        }
+    }
+    return 0
+}
+
 function save_bdd() {
     fs.writeFile("./bdd.json", JSON.stringify(bdd, null, 4), (err) => {
         if (err) {
@@ -73,25 +109,10 @@ client.on("interactionCreate", async (interaction) => {
         await interaction.reply({ embeds: [embed], ephemeral: true });
     }
     if (interaction.commandName === "save_time") {
-        if (user_list[interaction.guild.id] == undefined) {
-            user_list[interaction.guild.id] = [interaction.user.id];
-            save_user_list();
-        }
-        else if (!user_list[interaction.guild.id].includes(interaction.user.id)) {
-            user_list[interaction.guild.id].push(interaction.user.id);
-            save_user_list();
-        }
+        user_and_server_id_check(interaction.user.id, interaction.guild.id)
         const speed = interaction.options.get("speed").value;
-        track = interaction.options.get("track").value;
-        for (let i = 0; i < track_list.length; i++) {
-            if (track_list[i].toLowerCase() == track.toLowerCase()) {
-                track = track_list[i];
-                break;
-            }
-            if (i == track_list.length - 1) {
-                return error_embed(interaction, "couldn't find \`${track}\` in the list");
-            }
-        }
+        track = get_track_formated(interaction.options.get("track").value)
+        if (track == 0) return error_embed(interaction, `couldn't find \`${interaction.options.get("track").value}\` in the list`)
         const time = interaction.options.get("time").value;
         const reg = new RegExp("^[0-9]:[0-5][0-9]\\.[0-9]{3}$");
         if (!reg.test(time)) {
@@ -158,20 +179,8 @@ client.on("interactionCreate", async (interaction) => {
             else if (bdd[interaction.user.id][speed][item][track] == time) {
                 return error_embed(interaction, `you already have \`${bdd[interaction.user.id][speed][item][track]}\` on this track`);
             }
-            //bdd[interaction.user.id][speed][item][track] = time;
         }
-        if (bdd[interaction.user.id] == undefined) {
-            bdd[interaction.user.id] = {
-                150: {
-                    Shroom: {},
-                    NI: {},
-                },
-                200: {
-                    Shroom: {},
-                    NI: {},
-                },
-            };
-        }
+        player_update(interaction.user.id);
         let time_diff = 0;
         let time_diff_str = "";
         if (bdd[interaction.user.id][speed][item][track] != undefined) {
@@ -179,7 +188,6 @@ client.on("interactionCreate", async (interaction) => {
             time_diff = (parseInt(old_time[0]) * 60 + parseInt(old_time[2] + old_time[3])) * 1000 + parseInt(old_time[5] + old_time[6] + old_time[7]) - (parseInt(time[0]) * 60 + parseInt(time[2] + time[3])) * 1000 - parseInt(time[5] + time[6] + time[7]);
         }
         if (time_diff != 0) {
-            //time_diff to 1:23.456
             let min = Math.floor(time_diff / 60000);
             let sec = Math.floor((time_diff - min * 60000) / 1000);
             let ms = time_diff - min * 60000 - sec * 1000;
@@ -209,14 +217,7 @@ client.on("interactionCreate", async (interaction) => {
         await interaction.reply({ embeds: [embed] });
     }
     if (interaction.commandName === "delete_time") {
-        if (user_list[interaction.guild.id] == undefined) {
-            user_list[interaction.guild.id] = [interaction.user.id];
-            save_user_list();
-        }
-        else if (!user_list[interaction.guild.id].includes(interaction.user.id)) {
-            user_list[interaction.guild.id].push(interaction.user.id);
-            save_user_list();
-        }
+        user_and_server_id_check(interaction.user.id, interaction.guild.id)
         const args = interaction.options.data;
         if (args.length == 3) {
             const speed = interaction.options.get("speed").value;
@@ -224,16 +225,8 @@ client.on("interactionCreate", async (interaction) => {
             if (interaction.options.get("item").value == 1) {
                 item = "Shroom";
             }
-            track = interaction.options.get("track").value;
-            for (let i = 0; i < track_list.length; i++) {
-                if (track_list[i].toLowerCase() == track.toLowerCase()) {
-                    track = track_list[i];
-                    break;
-                }
-                if (i == track_list.length - 1) {
-                    return error_embed(interaction, `could not find \`${track}\` in the track list`);
-                }
-            }
+            track = get_track_formated(interaction.options.get("track").value)
+            if (track == 0) return error_embed(interaction, `couldn't find \`${interaction.options.get("track").value}\` in the list`)
             if (is_track_init(interaction.user.id, speed, item, track)) {
                 interaction.reply({
                     embeds: [
@@ -411,16 +404,8 @@ client.on("interactionCreate", async (interaction) => {
             });
         }
         else if (args.length == 1 && args[0].name == "track") {
-            track = interaction.options.get("track").value;
-            for (let i = 0; i < track_list.length; i++) {
-                if (track_list[i].toLowerCase() == track.toLowerCase()) {
-                    track = track_list[i];
-                    break;
-                }
-                if (i == track_list.length - 1) {
-                    return error_embed(interaction, `track \`${track}\` not found`);
-                }
-            }
+            track = get_track_formated(interaction.options.get("track").value)
+            if (track == 0) return error_embed(interaction, `couldn't find \`${interaction.options.get("track").value}\` in the list`)
             interaction.reply({
                 embeds: [
                     new EmbedBuilder()
@@ -508,16 +493,8 @@ client.on("interactionCreate", async (interaction) => {
         }
         else if (args.length == 2 && (args[0].name == "speed" && args[1].name == "track") || (args[0].name == "track" && args[1].name == "speed")) {
             const speed = interaction.options.get("speed").value;
-            track = interaction.options.get("track").value;
-            for (let i = 0; i < track_list.length; i++) {
-                if (track_list[i].toLowerCase() == track.toLowerCase()) {
-                    track = track_list[i];
-                    break;
-                }
-                if (i == track_list.length - 1) {
-                    return error_embed(interaction, `could not find \`${track}\` in the track list`);
-                }
-            }
+            track = get_track_formated(interaction.options.get("track").value)
+            if (track == 0) return error_embed(interaction, `couldn't find \`${interaction.options.get("track").value}\` in the list`)
             interaction.reply({
                 embeds: [
                     new EmbedBuilder()
@@ -564,16 +541,8 @@ client.on("interactionCreate", async (interaction) => {
             if (interaction.options.get("item").value == 1) {
                 item = "Shroom";
             }
-            track = interaction.options.get("track").value;
-            for (let i = 0; i < track_list.length; i++) {
-                if (track_list[i].toLowerCase() == track.toLowerCase()) {
-                    track = track_list[i];
-                    break;
-                }
-                if (i == track_list.length - 1) {
-                    return error_embed(interaction, `could not find \`${track}\` in the track list`);
-                }
-            }
+            track = get_track_formated(interaction.options.get("track").value)
+            if (track == 0) return error_embed(interaction, `couldn't find \`${interaction.options.get("track").value}\` in the list`)
             interaction.reply({
                 embeds: [
                     new EmbedBuilder()
@@ -617,26 +586,8 @@ client.on("interactionCreate", async (interaction) => {
         }
     }
     if (interaction.commandName === "import_times") {
-        if (user_list[interaction.guild.id] == undefined) {
-            user_list[interaction.guild.id] = [interaction.user.id];
-            save_user_list();
-        }
-        else if (!user_list[interaction.guild.id].includes(interaction.user.id)) {
-            user_list[interaction.guild.id].push(interaction.user.id);
-            save_user_list();
-        }
-        if (!bdd[interaction.user.id]) {
-            bdd[interaction.user.id] = {
-                150: {
-                    Shroom: {},
-                    NI: {},
-                },
-                200: {
-                    Shroom: {},
-                    NI: {},
-                },
-            };
-        }
+        user_and_server_id_check(interaction.user.id, interaction.guild.id)
+        player_update(interaction.user.id)
         const speed = interaction.options.get("speed").value;
         item = "NI";
         if (interaction.options.get("item").value == 1) {
@@ -671,6 +622,9 @@ client.on("interactionCreate", async (interaction) => {
         await interaction.reply({ embeds: [embed] });
     }
     if (interaction.commandName === "display_time") {
+        if (user_list[interaction.guild.id] == undefined) {
+            return error_embed(interaction, "sorry, but this server is not registered in the database, please register members with the \`/register\` command");
+        }
         const args = interaction.options.data;
         if (args.length == 2 && (args[0].name == "item" && args[1].name == "speed" || args[0].name == "speed" && args[1].name == "item")) {
             const speed = interaction.options.get("speed").value;
@@ -731,16 +685,8 @@ client.on("interactionCreate", async (interaction) => {
             if (interaction.options.get("item").value == 1) {
                 item = "Shroom";
             }
-            track = interaction.options.get("track").value;
-            for (let i = 0; i < track_list.length; i++) {
-                if (track_list[i].toLowerCase() == track.toLowerCase()) {
-                    track = track_list[i];
-                    break;
-                }
-                if (i == track_list.length - 1) {
-                    return error_embed(interaction, `the track you provided is not valid`);
-                }
-            }
+            track = get_track_formated(interaction.options.get("track").value)
+            if (track == 0) return error_embed(interaction, `couldn't find \`${interaction.options.get("track").value}\` in the list`)
             if (user_list[interaction.guild.id] == undefined) {
                 return error_embed(interaction, `sorry, but this server is not registered in the database, please register members with the \`/register_user\` command`);
             }
@@ -895,16 +841,8 @@ client.on("interactionCreate", async (interaction) => {
             if (interaction.options.get("item").value == 1) {
                 item = "Shroom";
             }
-            var track = interaction.options.get("track").value;
-            for (let i = 0; i < track_list.length; i++) {
-                if (track_list[i].toLowerCase() == track.toLowerCase()) {
-                    track = track_list[i];
-                    break;
-                }
-                if (i == track_list.length - 1) {
-                    return error_embed(interaction, "sorry, but the track you provided is not valid");
-                }
-            }
+            track = get_track_formated(interaction.options.get("track").value)
+            if (track == 0) return error_embed(interaction, `couldn't find \`${interaction.options.get("track").value}\` in the list`)
             var user_id = interaction.options.get("user").value;
             if (user_id.startsWith("<@!") && user_id.endsWith(">")) {
                 user_id = user_id.slice(3, -1);
