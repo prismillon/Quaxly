@@ -6,6 +6,11 @@ const fs = require("fs");
 const buttons = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("Yes").setLabel("Yes").setStyle(ButtonStyle.Success), new ButtonBuilder().setCustomId("No").setLabel("No").setStyle(ButtonStyle.Danger));
 
 const track_list = fs.readFileSync("./tracklist.txt", "utf-8").replace(/^(?=\n)$|^\s|\s$|\n\n+/gm, "").split(/\r?\n/);
+bdd = JSON.parse(fs.readFileSync("./bdd.json", "utf8"));
+user_list = JSON.parse(fs.readFileSync("./user_list.json", "utf8"));
+
+fs.writeFileSync("./bdd_backup.json", JSON.stringify(bdd, null, 4));
+fs.writeFileSync("./user_list_backup.json", JSON.stringify(user_list, null, 4));
 
 function is_track_init(user_id, speed, item, track) {
     if (bdd[user_id] != undefined && bdd[user_id][speed] != undefined && bdd[user_id][speed][item] != undefined && bdd[user_id][speed][item][track] != undefined) {
@@ -87,14 +92,6 @@ client.on("ready", () => {
         });
     }, 60000);
 });
-
-bdd = JSON.parse(fs.readFileSync("./bdd.json", "utf8"));
-
-user_list = JSON.parse(fs.readFileSync("./user_list.json", "utf8"));
-
-fs.writeFileSync("./bdd_backup.json", JSON.stringify(bdd, null, 4));
-
-fs.writeFileSync("./user_list_backup.json", JSON.stringify(user_list, null, 4));
 
 client.on("interactionCreate", async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
