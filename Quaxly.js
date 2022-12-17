@@ -950,6 +950,105 @@ client.on("interactionCreate", async (interaction) => {
             ],
         })
     }
+
+    if (interaction.commandName === "team_mmr") {
+        const role = interaction.options.get("role").value.replace(/\D/g, '');
+        if (role.length === 18) {
+            interaction.guild.members.fetch()
+                .then(async members => {
+                    const ids = members.filter(mmbr => mmbr.roles.cache.get(role)).map(m => m.user.id)
+                    console.log(interaction.options.get("role"))
+                    let embed =
+                    {
+                        title: "Average MMR ",
+                        description: interaction.options.get("role").value,
+                        color: 15514131,
+                        fields: [
+                        ],
+                        thumbnail: {
+                            url: "https://cdn.discordapp.com/icons/445404006177570829/a_8fd213e4469496c5da086d02b195f4ff.gif?size=96"
+                        }
+                    }
+
+                    let mmrArray = []
+                    let jsonArray = []
+                    let embedArray = []
+                    if (ids.length > 300) {
+                        interaction.reply({
+                            embeds: [{
+                                description: "Your role have too many members. Please retry with another role under 300 members.",
+                                color: 15863148
+                            }]
+                        })
+                    }
+                    else {
+                        interaction.reply({ embeds: [embed] }).then(async () => {
+                            for (let i = 0; i < ids.length; i++) {
+                                await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + ids[i], {
+                                    "headers": {
+                                        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                                        "accept-language": "en-US,en;q=0.9,fr-FR;q=0.8,fr;q=0.7,ja-FR;q=0.6,ja;q=0.5",
+                                        "cache-control": "max-age=0",
+                                        "sec-ch-ua": "\"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"108\", \"Google Chrome\";v=\"108\"",
+                                        "sec-ch-ua-mobile": "?0",
+                                        "sec-ch-ua-platform": "\"Windows\"",
+                                        "sec-fetch-dest": "document",
+                                        "sec-fetch-mode": "navigate",
+                                        "sec-fetch-site": "none",
+                                        "sec-fetch-user": "?1",
+                                        "upgrade-insecure-requests": "1"
+                                    },
+                                    "referrerPolicy": "strict-origin-when-cross-origin",
+                                    "body": null,
+                                    "method": "GET",
+                                    "mode": "cors",
+                                    "credentials": "include"
+                                }).then(r => {
+                                    return r.text()
+                                }).then(r => {
+                                    let json = JSON.parse(r)
+                                    if (json.name != undefined && json.mmr != undefined) {
+                                        mmrArray.push(parseInt(json.mmr))
+                                        jsonArray.push(json)
+                                        console.log(Math.floor((jsonArray.length - 1) / 24), (jsonArray.length - 1) % 24)
+                                        if ((jsonArray.length - 1) % 24 === 0 && jsonArray.length > 1) {
+                                            embedArray.push({
+                                                color: 15514131,
+                                                fields: [
+                                                ]
+                                            })
+                                        }
+                                        else if ((jsonArray.length - 1) % 24 === 0) {
+                                            console.log('embed 1')
+                                            embedArray.push(embed)
+                                        }
+                                        embedArray[Math.floor((jsonArray.length - 1) / 24)].fields.push({ name: json.name, value: json.mmr, inline: true })
+                                        interaction.editReply({ embeds: embedArray })
+
+                                    }
+                                    if (i === ids.length - 1) {
+                                        embedArray[embedArray.length - 1].fields.push({ name: "MMR average", value: `__${parseInt(mmrArray.reduce((a, b) => a + b, 0) / mmrArray.length)}__`, inline: false })
+                                        interaction.editReply({ embeds: embedArray })
+
+                                    }
+                                })
+
+                            }
+                        })
+                    }
+                });
+        }
+        else {
+            const failEmbed =
+            {
+                title: "Failed Command",
+                description: "Please use a role ID or @",
+                color: 15863148
+            }
+            interaction.reply({ embeds: [failEmbed] })
+        }
+    }
+    //test push3
 });
 
 client.login(token.Quaxly);
