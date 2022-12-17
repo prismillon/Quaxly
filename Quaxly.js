@@ -1010,19 +1010,17 @@ client.on("interactionCreate", async (interaction) => {
                                     if (json.name != undefined && json.mmr != undefined) {
                                         mmrArray.push(parseInt(json.mmr))
                                         jsonArray.push(json)
-                                        console.log(Math.floor((jsonArray.length - 1) / 24), (jsonArray.length - 1) % 24)
-                                        if ((jsonArray.length - 1) % 24 === 0 && jsonArray.length > 1) {
+                                        if ((jsonArray.length - 1) % 22 === 0 && jsonArray.length > 1) {
                                             embedArray.push({
                                                 color: 15514131,
                                                 fields: [
                                                 ]
                                             })
                                         }
-                                        else if ((jsonArray.length - 1) % 24 === 0) {
-                                            console.log('embed 1')
+                                        else if ((jsonArray.length - 1) % 22 === 0) {
                                             embedArray.push(embed)
                                         }
-                                        embedArray[Math.floor((jsonArray.length - 1) / 24)].fields.push({ name: json.name, value: json.mmr, inline: true })
+                                        embedArray[Math.floor((jsonArray.length - 1) / 22)].fields.push({ name: json.name, value: json.mmr, inline: true })
                                         interaction.editReply({ embeds: embedArray })
 
                                     }
