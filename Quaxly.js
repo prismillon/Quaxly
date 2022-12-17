@@ -1038,7 +1038,7 @@ client.on("interactionCreate", async (interaction) => {
                     }
                 });
         }
-        return error_embed(interaction, "Please use a @role");
+        else return error_embed(interaction, "Please use a @role");
     }
 });
 
