@@ -22,12 +22,11 @@ function is_track_init(user_id, speed, item, track) {
 function user_and_server_id_check(user_id, guild_id) {
     if (user_list[guild_id] == undefined) {
         user_list[guild_id] = [user_id];
-        save_user_list();
     }
     else if (!user_list[guild_id].includes(user_id)) {
         user_list[guild_id].push(user_id);
-        save_user_list();
     }
+    save_user_list();
 }
 
 function player_update(user_id) {
