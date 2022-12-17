@@ -950,7 +950,6 @@ client.on("interactionCreate", async (interaction) => {
             ],
         })
     }
-
     if (interaction.commandName === "team_mmr") {
         const role = interaction.options.get("role").value.replace(/\D/g, '');
         if (role.length === 18 && interaction.options.get("role").value.includes('<@&')) {
@@ -1038,6 +1037,82 @@ client.on("interactionCreate", async (interaction) => {
                 });
         }
         else return error_embed(interaction, "Please use a @role");
+    }
+    if (interaction.commandName === "name_history") {
+        const discordId = interaction.options.get("player").value.replace(/\D/g, '');
+        if (discordId.length === 18) {
+            fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + discordId, {
+                "headers": {
+                    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                    "accept-language": "en-US,en;q=0.9,fr-FR;q=0.8,fr;q=0.7,ja-FR;q=0.6,ja;q=0.5",
+                    "cache-control": "max-age=0",
+                    "sec-ch-ua": "\"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"108\", \"Google Chrome\";v=\"108\"",
+                    "sec-ch-ua-mobile": "?0",
+                    "sec-ch-ua-platform": "\"Windows\"",
+                    "sec-fetch-dest": "document",
+                    "sec-fetch-mode": "navigate",
+                    "sec-fetch-site": "none",
+                    "sec-fetch-user": "?1",
+                    "upgrade-insecure-requests": "1"
+                },
+                "referrerPolicy": "strict-origin-when-cross-origin",
+                "body": null,
+                "method": "GET",
+                "mode": "cors",
+                "credentials": "include"
+            }).then(r => {
+                return r.text()
+            }).then(r => {
+                const currentName = JSON.parse(r).name
+                fetch("https://www.mk8dx-lounge.com/api/player/details?name=" + currentName, {
+                    "headers": {
+                        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                        "accept-language": "en-US,en;q=0.9,fr-FR;q=0.8,fr;q=0.7,ja-FR;q=0.6,ja;q=0.5",
+                        "sec-ch-ua": "\"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"108\", \"Google Chrome\";v=\"108\"",
+                        "sec-ch-ua-mobile": "?0",
+                        "sec-ch-ua-platform": "\"Windows\"",
+                        "sec-fetch-dest": "document",
+                        "sec-fetch-mode": "navigate",
+                        "sec-fetch-site": "none",
+                        "sec-fetch-user": "?1",
+                        "upgrade-insecure-requests": "1"
+                    },
+                    "referrerPolicy": "strict-origin-when-cross-origin",
+                    "body": null,
+                    "method": "GET",
+                    "mode": "cors",
+                    "credentials": "include"
+                }).then(r => {
+                    return r.text()
+                }).then(r => {
+                    const json = JSON.parse(r)
+                    let nameDate = new Date(json.nameHistory[0].changedOn)
+                    let nextChange
+                    nameDate.setDate(nameDate.getDate() + 60)
+                    if (nameDate < new Date()) {
+                        nextChange = "✅ User can change their name since <t:" + Math.floor(nameDate.getTime() / 1000) + '>'
+                    }
+                    else {
+                        nextChange = "⏳ User will be able to change their name on <t:" + Math.floor(nameDate.getTime() / 1000) + '>'
+                    }
+                    let embed =
+                    {
+                        title: currentName + "'s name history",
+                        description: nextChange,
+                        color: 15514131,
+                        fields: [],
+                        thumbnail: {
+                            url: "https://cdn.discordapp.com/icons/445404006177570829/a_8fd213e4469496c5da086d02b195f4ff.gif?size=96"
+                        }
+                    }
+                    json.nameHistory.forEach(function (nameArray) {
+                        embed.fields.push({ name: nameArray.name, value: 'Changed on: <t:' + Math.floor(new Date(nameArray.changedOn).getTime() / 1000) + '>', inline: false })
+                    })
+                    interaction.reply({ embeds: [embed] })
+                })
+            })
+        }
+        else return error_embed(interaction, "Please use a @user or ID");
     }
 });
 
