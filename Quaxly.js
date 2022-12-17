@@ -953,7 +953,7 @@ client.on("interactionCreate", async (interaction) => {
 
     if (interaction.commandName === "team_mmr") {
         const role = interaction.options.get("role").value.replace(/\D/g, '');
-        if (role.length === 18) {
+        if (role.length === 18 && interaction.options.get("role").value.includes('<@&')) {
             interaction.guild.members.fetch()
                 .then(async members => {
                     const ids = members.filter(mmbr => mmbr.roles.cache.get(role)).map(m => m.user.id)
@@ -1038,17 +1038,8 @@ client.on("interactionCreate", async (interaction) => {
                     }
                 });
         }
-        else {
-            const failEmbed =
-            {
-                title: "Failed Command",
-                description: "Please use a role ID or @",
-                color: 15863148
-            }
-            interaction.reply({ embeds: [failEmbed] })
-        }
+        return error_embed(interaction, "Please use a @role");
     }
-    //test push3
 });
 
 client.login(token.Quaxly);
