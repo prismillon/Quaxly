@@ -1027,8 +1027,10 @@ client.on("interactionCreate", async (interaction) => {
 
                                     }
                                     if (i === ids.length - 1) {
-                                        embedArray[embedArray.length - 1].fields.push({ name: "MMR average", value: `__${parseInt(mmrArray.reduce((a, b) => a + b, 0) / mmrArray.length)}__`, inline: false })
-                                        interaction.editReply({ embeds: embedArray })
+                                        embedArray[embedArray.length - 1].fields.push({ name: '\u200B', value: '\u200B' })
+                                        embedArray[embedArray.length - 1].fields.push({ name: "MMR average", value: `__${parseInt(mmrArray.reduce((a, b) => a + b, 0) / mmrArray.length)}__`, inline: true })
+                                        let top6 = jsonArray.sort((a, b) => b.mmr - a.mmr).slice(0, 6)
+                                        embedArray[embedArray.length - 1].fields.push({ name: "Top 6 average", value: `__${parseInt(top6.reduce((a, b) => a + b.mmr, 0) / top6.length)}__`, inline: true })
 
                                     }
                                 })
