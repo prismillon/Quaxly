@@ -738,18 +738,9 @@ client.on("interactionCreate", async (interaction) => {
             if (interaction.options.get("item").value == 1) {
                 item = "Shroom";
             }
-            var user_id = interaction.options.get("user").value;
-            if (user_id.startsWith("<@!") && user_id.endsWith(">")) {
-                user_id = user_id.slice(3, -1);
-            }
-            else if (user_id.startsWith("<@") && user_id.endsWith(">")) {
-                user_id = user_id.slice(2, -1);
-            }
-            if (isNaN(user_id)) {
-                return error_embed(interaction, "sorry, but the user you provided is not valid");
-            }
+            var user_id = interaction.options.get("user").value.replace(/[^0-9]/g, '');
             if (bdd[user_id] == undefined) {
-                return error_embed(interaction, "sorry, but the user you provided is not registered in the database");
+                return error_embed(interaction, "sorry, but the user you provided is invalid or not registered in the database");
             }
             try {
                 user = await interaction.guild.members.fetch(user_id);
@@ -837,18 +828,9 @@ client.on("interactionCreate", async (interaction) => {
             }
             track = get_track_formated(interaction.options.get("track").value)
             if (track == 0) return error_embed(interaction, `couldn't find \`${interaction.options.get("track").value}\` in the list`)
-            var user_id = interaction.options.get("user").value;
-            if (user_id.startsWith("<@!") && user_id.endsWith(">")) {
-                user_id = user_id.slice(3, -1);
-            }
-            else if (user_id.startsWith("<@") && user_id.endsWith(">")) {
-                user_id = user_id.slice(2, -1);
-            }
-            if (isNaN(user_id)) {
-                return error_embed(interaction, "sorry, but the user you provided is not valid");
-            }
+            var user_id = interaction.options.get("user").value.replace(/[^0-9]/g, '');
             if (bdd[user_id] == undefined) {
-                return error_embed(interaction, "sorry, but the user you provided is not registered in the database");
+                return error_embed(interaction, "sorry, but the user you provided is invalid or not registered in the database");
             }
             try {
                 user = await interaction.guild.members.fetch(user_id);
@@ -925,18 +907,9 @@ client.on("interactionCreate", async (interaction) => {
         if (user_list[interaction.guild.id] == undefined) {
             user_list[interaction.guild.id] = [];
         }
-        var user_id = interaction.options.get("user").value;
-        if (user_id.startsWith("<@!") && user_id.endsWith(">")) {
-            user_id = user_id.slice(3, -1);
-        }
-        else if (user_id.startsWith("<@") && user_id.endsWith(">")) {
-            user_id = user_id.slice(2, -1);
-        }
-        if (isNaN(user_id)) {
-            return error_embed(interaction, "sorry, but the user you provided is not valid");
-        }
+        var user_id = interaction.options.get("user").value.replace(/[^0-9]/g, '');
         if (bdd[user_id] == undefined) {
-            return error_embed(interaction, "sorry, but the user you provided is not registered in the database");
+            return error_embed(interaction, "sorry, but the user you provided is invalid or not registered in the database");
         }
         try {
             user = await interaction.guild.members.fetch(user_id);
@@ -962,18 +935,9 @@ client.on("interactionCreate", async (interaction) => {
         if (user_list[interaction.guild.id] == undefined) {
             user_list[interaction.guild.id] = [];
         }
-        var user_id = interaction.options.get("user").value;
-        if (user_id.startsWith("<@!") && user_id.endsWith(">")) {
-            user_id = user_id.slice(3, -1);
-        }
-        else if (user_id.startsWith("<@") && user_id.endsWith(">")) {
-            user_id = user_id.slice(2, -1);
-        }
-        if (isNaN(user_id)) {
-            return error_embed(interaction, "sorry, but the user you provided is not valid");
-        }
+        var user_id = interaction.options.get("user").value.replace(/[^0-9]/g, '');
         if (!user_list[interaction.guild.id].includes(user_id)) {
-            return error_embed(interaction, "sorry, but this user is not registered in this server");
+            return error_embed(interaction, "sorry, but this user is invalid or not registered in this server");
         }
         user_list[interaction.guild.id].splice(user_list[interaction.guild.id].indexOf(user_id), 1);
         interaction.reply({
