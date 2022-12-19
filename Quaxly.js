@@ -80,6 +80,59 @@ function error_embed(interaction, error) {
     interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
+async function averageMmr(ids, embed, interaction, embedArray, jsonArray, mmrArray) {
+    for (let i = 0; i < ids.length; i++) {
+        await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + ids[i], {
+            "headers": {
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                "accept-language": "en-US,en;q=0.9,fr-FR;q=0.8,fr;q=0.7,ja-FR;q=0.6,ja;q=0.5",
+                "cache-control": "max-age=0",
+                "sec-ch-ua": "\"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"108\", \"Google Chrome\";v=\"108\"",
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": "\"Windows\"",
+                "sec-fetch-dest": "document",
+                "sec-fetch-mode": "navigate",
+                "sec-fetch-site": "none",
+                "sec-fetch-user": "?1",
+                "upgrade-insecure-requests": "1"
+            },
+            "referrerPolicy": "strict-origin-when-cross-origin",
+            "body": null,
+            "method": "GET",
+            "mode": "cors",
+            "credentials": "include"
+        }).then(r => {
+            return r.text()
+        }).then(r => {
+            let json = JSON.parse(r)
+            if (json.name != undefined && json.mmr != undefined) {
+                mmrArray.push(parseInt(json.mmr))
+                jsonArray.push(json)
+                if ((jsonArray.length - 1) % 21 === 0 && jsonArray.length > 1) {
+                    embedArray.push({
+                        color: 15514131,
+                        fields: [
+                        ]
+                    })
+                }
+                else if ((jsonArray.length - 1) % 21 === 0) {
+                    embedArray.push(embed)
+                }
+                embedArray[Math.floor((jsonArray.length - 1) / 21)].fields.push({ name: json.name, value: json.mmr, inline: true })
+                interaction.editReply({ embeds: embedArray })
+
+            }
+            if (i === ids.length - 1) {
+                embedArray[embedArray.length - 1].fields.push({ name: '\u200B', value: '\u200B' })
+                embedArray[embedArray.length - 1].fields.push({ name: "MMR average", value: `__${parseInt(mmrArray.reduce((a, b) => a + b, 0) / mmrArray.length)}__`, inline: true })
+                let top6 = jsonArray.sort((a, b) => b.mmr - a.mmr).slice(0, 6)
+                embedArray[embedArray.length - 1].fields.push({ name: "Top 6 average", value: `__${parseInt(top6.reduce((a, b) => a + b.mmr, 0) / top6.length)}__`, inline: true })
+                interaction.editReply({ embeds: embedArray })
+            }
+        })
+    }
+}
+
 client.on("ready", () => {
     console.log(`Logged in as ${client.user.tag}!`);
     client.user.setActivity(`${client.guilds.cache.size} servers`, {
@@ -951,16 +1004,16 @@ client.on("interactionCreate", async (interaction) => {
         })
     }
     if (interaction.commandName === "team_mmr") {
-        const role = interaction.options.get("role").value.replace(/\D/g, '');
-        if (role.length === 18 && interaction.options.get("role").value.includes('<@&')) {
+        if (interaction.options.get("player").value.includes('<@&')) {
             interaction.guild.members.fetch()
                 .then(async members => {
+                    const role = interaction.options.get("player").value.replace(/\D/g, '');
                     const ids = members.filter(mmbr => mmbr.roles.cache.get(role)).map(m => m.user.id)
-                    console.log(interaction.options.get("role"))
+                    console.log(interaction.options.get("player"))
                     let embed =
                     {
                         title: "Average MMR ",
-                        description: interaction.options.get("role").value,
+                        description: interaction.options.get("player").value,
                         color: 15514131,
                         fields: [
                         ],
@@ -982,61 +1035,46 @@ client.on("interactionCreate", async (interaction) => {
                     }
                     else {
                         interaction.reply({ embeds: [embed] }).then(async () => {
-                            for (let i = 0; i < ids.length; i++) {
-                                await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + ids[i], {
-                                    "headers": {
-                                        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-                                        "accept-language": "en-US,en;q=0.9,fr-FR;q=0.8,fr;q=0.7,ja-FR;q=0.6,ja;q=0.5",
-                                        "cache-control": "max-age=0",
-                                        "sec-ch-ua": "\"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"108\", \"Google Chrome\";v=\"108\"",
-                                        "sec-ch-ua-mobile": "?0",
-                                        "sec-ch-ua-platform": "\"Windows\"",
-                                        "sec-fetch-dest": "document",
-                                        "sec-fetch-mode": "navigate",
-                                        "sec-fetch-site": "none",
-                                        "sec-fetch-user": "?1",
-                                        "upgrade-insecure-requests": "1"
-                                    },
-                                    "referrerPolicy": "strict-origin-when-cross-origin",
-                                    "body": null,
-                                    "method": "GET",
-                                    "mode": "cors",
-                                    "credentials": "include"
-                                }).then(r => {
-                                    return r.text()
-                                }).then(r => {
-                                    let json = JSON.parse(r)
-                                    if (json.name != undefined && json.mmr != undefined) {
-                                        mmrArray.push(parseInt(json.mmr))
-                                        jsonArray.push(json)
-                                        if ((jsonArray.length - 1) % 21 === 0 && jsonArray.length > 1) {
-                                            embedArray.push({
-                                                color: 15514131,
-                                                fields: [
-                                                ]
-                                            })
-                                        }
-                                        else if ((jsonArray.length - 1) % 21 === 0) {
-                                            embedArray.push(embed)
-                                        }
-                                        embedArray[Math.floor((jsonArray.length - 1) / 21)].fields.push({ name: json.name, value: json.mmr, inline: true })
-                                        interaction.editReply({ embeds: embedArray })
+                            averageMmr(ids, embed, interaction, embedArray, jsonArray, mmrArray)
 
-                                    }
-                                    if (i === ids.length - 1) {
-                                        embedArray[embedArray.length - 1].fields.push({ name: '\u200B', value: '\u200B' })
-                                        embedArray[embedArray.length - 1].fields.push({ name: "MMR average", value: `__${parseInt(mmrArray.reduce((a, b) => a + b, 0) / mmrArray.length)}__`, inline: true })
-                                        let top6 = jsonArray.sort((a, b) => b.mmr - a.mmr).slice(0, 6)
-                                        embedArray[embedArray.length - 1].fields.push({ name: "Top 6 average", value: `__${parseInt(top6.reduce((a, b) => a + b.mmr, 0) / top6.length)}__`, inline: true })
-                                        interaction.editReply({ embeds: embedArray })
-                                    }
-                                })
-                            }
                         })
                     }
                 });
         }
-        else return error_embed(interaction, "Please use a @role");
+        else if (interaction.options.get("player").value.replace(/[0-9 ]/g, '').includes('<@><@>')) {
+            let ids = interaction.options.get("player").value.replace(/[<> ]/g, '').split('@')
+            ids.shift()
+            console.log(ids)
+            let embed =
+            {
+                title: "Average MMR",
+                color: 15514131,
+                fields: [
+                ],
+                thumbnail: {
+                    url: "https://cdn.discordapp.com/icons/445404006177570829/a_8fd213e4469496c5da086d02b195f4ff.gif?size=96"
+                }
+            }
+
+            let mmrArray = []
+            let jsonArray = []
+            let embedArray = []
+            if (ids.length > 300) {
+                interaction.reply({
+                    embeds: [{
+                        description: "Your command have too many users. Please retry with less than 300 users.",
+                        color: 15863148
+                    }]
+                })
+            }
+            else {
+                interaction.reply({ embeds: [embed] }).then(async () => {
+                    averageMmr(ids, embed, interaction, embedArray, jsonArray, mmrArray)
+
+                })
+            }
+        }
+        else return error_embed(interaction, "Wrong option format: mention one role or multiple users");
     }
     if (interaction.commandName === "name_history") {
         const discordId = interaction.options.get("player").value.replace(/\D/g, '');
