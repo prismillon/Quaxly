@@ -48,8 +48,8 @@ dSBS
 dBB
 bPP
 bTC
-bCM64
-bCMW
+bCMo
+bCMa
 bTB
 bSR
 bSG
