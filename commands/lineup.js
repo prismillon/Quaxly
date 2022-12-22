@@ -79,7 +79,10 @@ export const lineup = async (interaction) => {
         time: 28800000,
     })
     collector.on('end', async () => {
-        await interaction.editReply({ content: '', embeds: [embed], components: [] })
+        try {
+            await interaction.editReply({ content: '', embeds: [embed], components: [] })
+        } catch (error) {
+        }
     })
     collector.on('collect', async i => {
         if (i.customId === 'edit_lineup') {
@@ -214,8 +217,5 @@ export const lineup = async (interaction) => {
                 }
             })
         }
-    })
-    collector.on('end', () => {
-        interaction.editReply({ content: ``, embeds: [embed], components: [] })
     })
 }
