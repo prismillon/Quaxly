@@ -75,6 +75,7 @@ export const lineup = async (interaction) => {
         interaction.editReply({ content: '', embeds: [embed], components: [button] })
     })
     const collector = interaction.channel.createMessageComponentCollector({
+        filter: i => i.user.id === interaction.user.id,
         time: 28800000,
     })
     collector.on('end', async () => {
@@ -129,18 +130,21 @@ export const lineup = async (interaction) => {
             i.showModal(modal_edit_lineup)
             const filter = (interaction) => interaction.customId === 'modal_edit_lineup';
             i.awaitModalSubmit({ filter, time: 600000 }).then(async i => {
-                i.fields.getTextInputValue('input_time') ? time = i.fields.getTextInputValue('input_time') : time = time
-                i.fields.getTextInputValue('input_host') ? host = i.fields.getTextInputValue('input_host') : host = host
-                i.fields.getTextInputValue('input_ennemy_tag') ? ennemy_tag = i.fields.getTextInputValue('input_ennemy_tag') : ennemy_tag = ennemy_tag
-                i.fields.getTextInputValue('input_tag') ? tag = i.fields.getTextInputValue('input_tag') : tag = tag
-                if (i.fields.getTextInputValue('input_host')) await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host).then(r => r.json()).then(r => {
-                    if (r.switchFc != undefined) host = `${r.switchFc} (<@${host}>)`
-                })
-                embed.fields[1].value = '`' + time + '`'
-                embed.fields[2].value = host
-                embed.title = `Clan war | ${tag} vs ${ennemy_tag}`
-                await i.update({ embeds: [embed] })
-            }).catch(() => { })
+                try {
+                    i.fields.getTextInputValue('input_time') ? time = i.fields.getTextInputValue('input_time') : time = time
+                    i.fields.getTextInputValue('input_host') ? host = i.fields.getTextInputValue('input_host') : host = host
+                    i.fields.getTextInputValue('input_ennemy_tag') ? ennemy_tag = i.fields.getTextInputValue('input_ennemy_tag') : ennemy_tag = ennemy_tag
+                    i.fields.getTextInputValue('input_tag') ? tag = i.fields.getTextInputValue('input_tag') : tag = tag
+                    if (i.fields.getTextInputValue('input_host')) await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host).then(r => r.json()).then(r => {
+                        if (r.switchFc != undefined) host = `${r.switchFc} (<@${host}>)`
+                    })
+                    embed.fields[1].value = '`' + time + '`'
+                    embed.fields[2].value = host
+                    embed.title = `Clan war | ${tag} vs ${ennemy_tag}`
+                    await i.update({ embeds: [embed] })
+                } catch (error) {
+                }
+            })
         }
         if (i.customId === 'add_player') {
             const modal_add_player = new ModalBuilder()
@@ -160,19 +164,22 @@ export const lineup = async (interaction) => {
             i.showModal(modal_add_player)
             const filter = (interaction) => interaction.customId === 'modal_add_player';
             i.awaitModalSubmit({ filter, time: 60000 }).then(async i => {
-                await i.guild.members.fetch(i.fields.getTextInputValue('input_player')).then(async () => {
-                    if (!players.includes('<@' + i.fields.getTextInputValue('input_player') + '>')) {
-                        players = players + ' - <@' + i.fields.getTextInputValue('input_player') + '>'
-                        embed.fields[0].value = players
-                        button = embed.fields[0].value.split(' - ').length == 6 ? buttonFull : buttonDefault
-                        await i.update({ embeds: [embed], components: [button] })
-                    } else {
-                        await error_embed(i, `<@${i.fields.getTextInputValue('input_player')}> is already in the lineup`)
-                    }
-                }).catch(async () => {
-                    await error_embed(i, 'Player not found in this server, double check the id')
-                })
-            }).catch(() => { })
+                try {
+                    await i.guild.members.fetch(i.fields.getTextInputValue('input_player')).then(async () => {
+                        if (!players.includes('<@' + i.fields.getTextInputValue('input_player') + '>')) {
+                            players = players + ' - <@' + i.fields.getTextInputValue('input_player') + '>'
+                            embed.fields[0].value = players
+                            button = embed.fields[0].value.split(' - ').length == 6 ? buttonFull : buttonDefault
+                            await i.update({ embeds: [embed], components: [button] })
+                        } else {
+                            await error_embed(i, `<@${i.fields.getTextInputValue('input_player')}> is already in the lineup`)
+                        }
+                    }).catch(async () => {
+                        await error_embed(i, 'Player not found in this server, double check the id')
+                    })
+                } catch (error) {
+                }
+            })
         }
         if (i.customId === 'remove_player') {
             const modal_remove_player = new ModalBuilder()
@@ -192,17 +199,20 @@ export const lineup = async (interaction) => {
             i.showModal(modal_remove_player)
             const filter = (interaction) => interaction.customId === 'modal_remove_player';
             i.awaitModalSubmit({ filter, time: 60000 }).then(async i => {
-                if (players.includes('<@' + i.fields.getTextInputValue('input_player') + '>')) {
-                    players = players.replace(' - <@' + i.fields.getTextInputValue('input_player') + '>', '')
-                    players = players.replace('<@' + i.fields.getTextInputValue('input_player') + '> - ', '')
-                    players = players.replace('<@' + i.fields.getTextInputValue('input_player') + '>', '')
-                    embed.fields[0].value = players
-                    button = embed.fields[0].value.split(' - ').length == 6 ? buttonFull : buttonDefault
-                    await i.update({ embeds: [embed], components: [button] })
-                } else {
-                    await error_embed(i, 'Player is not in the lineup, double check the id')
+                try {
+                    if (players.includes('<@' + i.fields.getTextInputValue('input_player') + '>')) {
+                        players = players.replace(' - <@' + i.fields.getTextInputValue('input_player') + '>', '')
+                        players = players.replace('<@' + i.fields.getTextInputValue('input_player') + '> - ', '')
+                        players = players.replace('<@' + i.fields.getTextInputValue('input_player') + '>', '')
+                        embed.fields[0].value = players
+                        button = embed.fields[0].value.split(' - ').length == 6 ? buttonFull : buttonDefault
+                        await i.update({ embeds: [embed], components: [button] })
+                    } else {
+                        await error_embed(i, 'Player is not in the lineup, double check the id')
+                    }
+                } catch (error) {
                 }
-            }).catch(() => { })
+            })
         }
     })
     collector.on('end', () => {
