@@ -94,7 +94,7 @@ export async function averageMmr(ids, embed, interaction, embedArray, jsonArray,
                 else if ((jsonArray.length - 1) % 21 === 0) {
                     embedArray.push(embed)
                 }
-                embedArray[Math.floor((jsonArray.length - 1) / 21)].fields.push({ name: json.name, value: json.mmr, inline: true })
+                embedArray[Math.floor((jsonArray.length - 1) / 21)].fields.push({ name: json.name, value: `<@${json.discordId}> ([${json.mmr}](https://www.mk8dx-lounge.com/PlayerDetails/${json.id}))`, inline: true })
                 interaction.editReply({ embeds: embedArray })
 
             }
