@@ -3,6 +3,7 @@ import { bdd, user_list, get_track_formated, save_user_list, error_embed, track_
 import { EmbedBuilder, } from "discord.js";
 
 export const display_time = async (interaction) => {
+    let user
     if (user_list[interaction.guild.id] == undefined) {
         return error_embed(interaction, "sorry, but this server is not registered in the database, please register members with the \`/register\` command");
     }
@@ -136,6 +137,7 @@ export const display_time = async (interaction) => {
             return error_embed(interaction, "sorry, but the user you provided is not valid");
         }
         let time_list = '';
+        let track_rank = [];
         let total_time = 0;
         let nb_track_played = 0;
         let as_time_on_all_tracks = true;
@@ -219,9 +221,11 @@ export const display_time = async (interaction) => {
         if (bdd[user_id] == undefined) {
             return error_embed(interaction, "sorry, but the user you provided is invalid or not registered in the database");
         }
-        let user = await interaction.guild.members.fetch(user_id).catch(() => {
+        try {
+            user = await interaction.guild.members.fetch(user_id)
+        } catch (error) {
             return error_embed(interaction, "sorry, but the user you provided is not valid");
-        })
+        }
         if (bdd[user_id][speed][item][track] == undefined) {
             return error_embed(interaction, "sorry, but this user has not registered any time for this category");
         }
