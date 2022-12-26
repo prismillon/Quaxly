@@ -10,9 +10,12 @@ export const register_user = async (interaction) => {
     if (bdd[user_id] == undefined) {
         return error_embed(interaction, "sorry, but the user you provided is invalid or not registered in the database");
     }
-    let user = await interaction.guild.members.fetch(user_id).catch(() => {
+    let user
+    try {
+        user = await interaction.guild.members.fetch(user_id)
+    } catch (error) {
         return error_embed(interaction, "sorry, but the user you provided is not valid or not in this server");
-    })
+    }
     if (user_list[interaction.guild.id].includes(user_id)) {
         return error_embed(interaction, "sorry, but this user is already registered in this server");
     }
