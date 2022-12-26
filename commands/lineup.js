@@ -1,4 +1,4 @@
-import { TextInputBuilder, ModalBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, parseResponse } from 'discord.js'
+import { TextInputBuilder, ModalBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder } from 'discord.js'
 import { error_embed } from '../utils.js'
 
 export const lineup = async (interaction) => {
