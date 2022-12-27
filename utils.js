@@ -1,4 +1,5 @@
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, } from "discord.js";
+import { client } from "./Quaxly.js";
 import fs from "fs";
 export const yes_no_buttons = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("Yes").setLabel("Yes").setStyle(ButtonStyle.Success), new ButtonBuilder().setCustomId("No").setLabel("No").setStyle(ButtonStyle.Danger));
 export const track_list = fs.readFileSync("./tracklist.txt", "utf-8").replace(/^(?=\n)$|^\s|\s$|\n\n+/gm, "").split(/\r?\n/);
@@ -83,8 +84,8 @@ export async function averageMmr(searchType, ids, embed, interaction, embedArray
         } catch (e) {
             console.log(interaction);
             const owner = await client.users.fetch("169497208406802432");
-            owner.send(`An error occurred: \`\`\`${e}\`\`\`\n\n\`\`\`${interaction}\`\`\``).Catch(() => {
-                console.log("Error while sending error to owner\n\n" + e + "\n\n" + interaction)
+            owner.send(`An error occurred: \`\`\`${e}\`\`\`\n\n\`\`\`${interaction}\`\`\`\n\n\`\`\`${searchType}\`\`\`\n\n\`\`\`${ids[i]}\`\`\``).Catch(() => {
+                console.log("Error while sending error to owner\n\n" + e + "\n\n" + interaction + "\n\n" + searchType + "\n\n" + ids[i])
             });
         }
         if (json.name != undefined && json.mmr != undefined) {
