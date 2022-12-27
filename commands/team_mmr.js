@@ -54,11 +54,14 @@ export const team_mmr = async (interaction) => {
         default:
             let json = await (await fetch("https://www.mariokartcentral.com/mkc/api/registry/teams/category/150cc")).json()
             const team_name = interaction.options.get("group").value.toLowerCase()
-            console.log(team_name, interaction)
-            if (json.data.find(el => el.team_name.toLowerCase() == team_name) !== undefined) {
-                await teamFCs(json.data.find(el => el.team_name.toLowerCase() == team_name).team_id, interaction)
+            try {
+                if (json.data.find(el => el.team_name.toLowerCase() == team_name) !== undefined) {
+                    await teamFCs(json.data.find(el => el.team_name.toLowerCase() == team_name).team_id, interaction)
+                }
+                else return error_embed(interaction, "Wrong option format: mention a role, multiple users, a team url or a team name.");
+            } catch (error) {
+                console.log(error, interaction.options.get("group").value, interaction);
             }
-            else return error_embed(interaction, "Wrong option format: mention a role, multiple users, a team url or a team name.");
             break;
     }
 }

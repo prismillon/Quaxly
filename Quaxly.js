@@ -1,5 +1,5 @@
 import { Client, GatewayIntentBits, ActivityType, } from "discord.js";
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] });
+export const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] });
 import config from "./config.js";
 import fs from "fs";
 import { bdd, user_list } from "./utils.js";
