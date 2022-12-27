@@ -77,62 +77,66 @@ export async function error_embed(interaction, error) {
 
 export async function averageMmr(searchType, ids, embed, interaction, embedArray, jsonArray, mmrArray) {
     for (let i = 0; i < ids.length; i++) {
-        await fetch("https://www.mk8dx-lounge.com/api/player?" + searchType + "=" + ids[i]).then(r => {
-            return r.text()
-        }).then(r => {
-            let json = JSON.parse(r)
-            if (json.name != undefined && json.mmr != undefined) {
-                mmrArray.push(parseInt(json.mmr))
-                jsonArray.push(json)
-                if ((jsonArray.length - 1) % 21 === 0 && jsonArray.length > 1) {
-                    embedArray.push({
-                        color: 15514131,
-                        fields: [
-                        ]
-                    })
-                }
-                else if ((jsonArray.length - 1) % 21 === 0) {
-                    embedArray.push(embed)
-                }
-                embedArray[Math.floor((jsonArray.length - 1) / 21)].fields.push({ name: json.name, value: `<@${json.discordId}> ([${json.mmr}](https://www.mk8dx-lounge.com/PlayerDetails/${json.id}))`, inline: true })
-                interaction.editReply({ embeds: embedArray })
+        let json = await (await fetch("https://www.mk8dx-lounge.com/api/player?" + searchType + "=" + ids[i])).json()
+        if (json.name != undefined && json.mmr != undefined) {
+            mmrArray.push(parseInt(json.mmr))
+            jsonArray.push(json)
+            if ((jsonArray.length - 1) % 21 === 0 && jsonArray.length > 1) {
+                embedArray.push({
+                    color: 15514131,
+                    fields: [
+                    ]
+                })
+            }
+            else if ((jsonArray.length - 1) % 21 === 0) {
+                embedArray.push(embed)
+            }
+            embedArray[Math.floor((jsonArray.length - 1) / 21)].fields.push({ name: json.name, value: `<@${json.discordId}> ([${json.mmr}](https://www.mk8dx-lounge.com/PlayerDetails/${json.id}))`, inline: true })
+            interaction.editReply({ embeds: embedArray })
 
-            }
-            if (i === ids.length - 1) {
-                embedArray[embedArray.length - 1].fields.push({ name: '\u200B', value: '\u200B' })
-                embedArray[embedArray.length - 1].fields.push({ name: "MMR average", value: `__${parseInt(mmrArray.reduce((a, b) => a + b, 0) / mmrArray.length)}__`, inline: true })
-                let top6 = jsonArray.sort((a, b) => b.mmr - a.mmr).slice(0, 6)
-                embedArray[embedArray.length - 1].fields.push({ name: "Top 6 average", value: `__${parseInt(top6.reduce((a, b) => a + b.mmr, 0) / top6.length)}__`, inline: true })
-                interaction.editReply({ embeds: embedArray })
-            }
-        })
+        }
+        if (i === ids.length - 1 && embedArray[embedArray.length - 1] != undefined) {
+            embedArray[embedArray.length - 1].fields.push({ name: '\u200B', value: '\u200B' })
+            embedArray[embedArray.length - 1].fields.push({ name: "MMR average", value: `__${parseInt(mmrArray.reduce((a, b) => a + b, 0) / mmrArray.length)}__`, inline: true })
+            let top6 = jsonArray.sort((a, b) => b.mmr - a.mmr).slice(0, 6)
+            embedArray[embedArray.length - 1].fields.push({ name: "Top 6 average", value: `__${parseInt(top6.reduce((a, b) => a + b.mmr, 0) / top6.length)}__`, inline: true })
+            interaction.editReply({ embeds: embedArray })
+        } else if (i === ids.length - 1) {
+            interaction.editReply({
+                embeds: [
+                    {
+                        title: "Error",
+                        description: "No player found",
+                        color: 0xff0000,
+                    }
+                ]
+            })
+        }
     }
 }
 
 export async function teamFCs(team_id, interaction) {
-    fetch(`https://www.mariokartcentral.com/mkc/api/registry/teams/${team_id}?order=NA`).then((r) => {
-        return r.text()
-    }).then((r) => {
-        let json = JSON.parse(r)
-        let ids = []
-        json.rosters[json.team_category].members.forEach((player) => { ids.push(player.custom_field) })
-        let embed =
-        {
-            title: "Average MMR ",
-            description: json.team_tag + " - " + json.team_name,
-            color: 15514131,
-            fields: [
-            ],
-            thumbnail: {
-                url: "https://www.mariokartcentral.com/mkc/storage/" + json.team_logo
-            }
+    let json
+    try {
+        json = await (await fetch(`https://www.mariokartcentral.com/mkc/api/registry/teams/${team_id}`)).json()
+    } catch (e) {
+        return error_embed(interaction, "Team not found")
+    }
+    if (json.rosters.length === 0) return error_embed(interaction, "This team has no members")
+    let ids = []
+    json.rosters[json.team_category].members.forEach((player) => { ids.push(player.custom_field) })
+    let embed =
+    {
+        title: "Average MMR ",
+        description: json.team_tag + " - " + json.team_name,
+        color: 15514131,
+        fields: [
+        ],
+        thumbnail: {
+            url: "https://www.mariokartcentral.com/mkc/storage/" + json.team_logo
         }
-
-        let mmrArray = []
-        let jsonArray = []
-        let embedArray = []
-        interaction.reply({ embeds: [embed] }).then(async () => {
-            averageMmr("fc", ids, embed, interaction, embedArray, jsonArray, mmrArray)
-        })
+    }
+    await interaction.reply({ embeds: [embed] }).then(async () => {
+        averageMmr("fc", ids, embed, interaction, [], [], [])
     })
 }
