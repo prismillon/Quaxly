@@ -77,7 +77,15 @@ export async function error_embed(interaction, error) {
 
 export async function averageMmr(searchType, ids, embed, interaction, embedArray, jsonArray, mmrArray) {
     for (let i = 0; i < ids.length; i++) {
-        let json = await (await fetch("https://www.mk8dx-lounge.com/api/player?" + searchType + "=" + ids[i])).json()
+        let json
+        try {
+            json = await (await fetch("https://www.mk8dx-lounge.com/api/player?" + searchType + "=" + ids[i])).json()
+        } catch (e) {
+            const owner = await client.users.fetch("169497208406802432");
+            owner.send(`An error occurred: \`\`\`${e}\`\`\``).Catch(() => {
+                console.log("Error while sending error to owner\n\n" + e)
+            });
+        }
         if (json.name != undefined && json.mmr != undefined) {
             mmrArray.push(parseInt(json.mmr))
             jsonArray.push(json)
