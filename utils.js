@@ -108,7 +108,6 @@ export async function averageMmr(searchType, ids, embed, interaction, embedArray
         if (i === ids.length - 1 && embedArray[embedArray.length - 1] != undefined) {
             embedArray.forEach(array => {
                 array.fields.sort(function (a, b) { return parseInt(b.value.split('> ([')[1].split(']')[0]) - parseInt(a.value.split('> ([')[1].split(']')[0]); })
-                console.log(array.fields)
             })
             embedArray[embedArray.length - 1].fields.push({ name: '\u200B', value: '\u200B' })
             embedArray[embedArray.length - 1].fields.push({ name: "MMR average", value: `__${parseInt(mmrArray.reduce((a, b) => a + b, 0) / mmrArray.length)}__`, inline: true })
