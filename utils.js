@@ -137,7 +137,7 @@ export async function teamFCs(team_id, interaction) {
     let embed =
     {
         title: "Average MMR ",
-        description: json.team_tag + " - " + json.team_name,
+        description: `[${json.team_tag} - ${json.team_name}](https://www.mariokartcentral.com/mkc/registry/teams/${team_id})`,
         color: 15514131,
         fields: [
         ],
