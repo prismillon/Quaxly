@@ -18,37 +18,41 @@ export const CommandHandler = async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
     if (interaction.guildId == null) return error_embed(interaction, "sorry, but this bot can only be used in a server")
 
-    if (interaction.commandName === "save_time") {
-        commands.save_time(interaction)
-    }
-    if (interaction.commandName === "delete_time") {
-        commands.delete_time(interaction)
-    }
-    if (interaction.commandName === "import_times") {
-        commands.import_times(interaction)
-    }
-    if (interaction.commandName === "display_time") {
-        commands.display_time(interaction)
-    }
-    if (interaction.commandName == "help") {
-        commands.help(interaction)
-    }
-    if (interaction.commandName == "register_user") {
-        commands.register_user(interaction)
-    }
-    if (interaction.commandName == "remove_user") {
-        commands.remove_user(interaction)
-    }
-    if (interaction.commandName === "team_mmr") {
-        commands.team_mmr(interaction)
-    }
-    if (interaction.commandName === "name_history") {
-        commands.name_history(interaction)
-    }
-    if (interaction.commandName === "lineup") {
-        commands.lineup(interaction)
-    }
-    if (interaction.commandName === "tracks") {
-        commands.tracks(interaction)
+    switch (interaction.commandName) {
+        case 'save_time':
+            commands.save_time(interaction);
+            break;
+        case 'delete_time':
+            commands.delete_time(interaction);
+            break;
+        case 'import_times':
+            commands.import_times(interaction);
+            break;
+        case 'display_time':
+            commands.display_time(interaction);
+            break;
+        case 'help':
+            commands.help(interaction);
+            break;
+        case 'register_user':
+            commands.register_user(interaction);
+            break;
+        case 'remove_user':
+            commands.remove_user(interaction);
+            break;
+        case 'team_mmr':
+            commands.team_mmr(interaction);
+            break;
+        case 'name_history':
+            commands.name_history(interaction);
+            break;
+        case 'lineup':
+            commands.lineup(interaction);
+            break;
+        case 'tracks':
+            commands.tracks(interaction);
+            break;
+        default:
+            break;
     }
 }
