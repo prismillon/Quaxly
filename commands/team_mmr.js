@@ -21,8 +21,8 @@ export const team_mmr = async (interaction) => {
                     if (ids.length > 300) return error_embed(interaction, "Your role have too many members. Please retry with less than 300 members.");
                     else if (ids.length == 0) return error_embed(interaction, "Your role have no members. Please retry with another role with more than 0 members.");
                     else {
-                        interaction.reply({ embeds: [embed] }).then(async () => {
-                            averageMmr("discordid", ids, embed, interaction, [], [], [])
+                        await interaction.reply({ embeds: [embed] }).then(async () => {
+                            await averageMmr("discordid", ids, embed, interaction, [], [], [])
                         })
                     }
                 });
@@ -43,8 +43,8 @@ export const team_mmr = async (interaction) => {
             if (ids.length > 300) return error_embed(interaction, "Your command have too many users. Please retry with less than 300 users.");
             else if (ids.length == 0) return error_embed(interaction, "Your command have no users. Please retry with more than 0 users.");
             else {
-                interaction.reply({ embeds: [embed] }).then(async () => {
-                    averageMmr("discordid", ids, embed, interaction, [], [], [])
+                await interaction.reply({ embeds: [embed] }).then(async () => {
+                    await averageMmr("discordid", ids, embed, interaction, [], [], [])
                 })
             }
             break
@@ -55,7 +55,7 @@ export const team_mmr = async (interaction) => {
             let json = await (await fetch("https://www.mariokartcentral.com/mkc/api/registry/teams/category/150cc")).json()
             const team_name = interaction.options.get("group").value.toLowerCase()
             if (json.data.find(el => el.team_name.toLowerCase() == team_name) !== undefined) {
-                teamFCs(json.data.find(el => el.team_name.toLowerCase() == team_name).team_id, interaction)
+                await teamFCs(json.data.find(el => el.team_name.toLowerCase() == team_name).team_id, interaction)
             }
             else return error_embed(interaction, "Wrong option format: mention a role, multiple users, a team url or a team name.");
             break;
