@@ -9,12 +9,11 @@ export const lineup = async (interaction) => {
     let tag = interaction.options.get("tag").value
     let time = interaction.options.get("time").value
     let ennemy_tag = interaction.options.get("ennemy_tag").value
-    if (interaction.options.get("host").value.includes('<@')) {
-        await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + interaction.options.get("host").value.replace(/\D/g, '')).then(r => {
-            return r.text()
-        }).then(r => {
-            host = `${JSON.parse(r).switchFc} (${interaction.options.get("host").value})`
-        })
+    let json = await (await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host)).json()
+    if (json.switchFc != undefined) host = `${json.switchFc} (<@${host}>)`
+    else {
+        json = await (await fetch("https://www.mk8dx-lounge.com/api/player?fc=" + host)).json()
+        if (json.discordId != undefined) host = `${host} (<@${json.discordId}>)`
     }
     let embed = {
         title: `Clan war | ${tag} vs ${ennemy_tag}`,
@@ -138,9 +137,14 @@ export const lineup = async (interaction) => {
                     i.fields.getTextInputValue('input_host') ? host = i.fields.getTextInputValue('input_host') : host = host
                     i.fields.getTextInputValue('input_ennemy_tag') ? ennemy_tag = i.fields.getTextInputValue('input_ennemy_tag') : ennemy_tag = ennemy_tag
                     i.fields.getTextInputValue('input_tag') ? tag = i.fields.getTextInputValue('input_tag') : tag = tag
-                    if (i.fields.getTextInputValue('input_host')) await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host).then(r => r.json()).then(r => {
-                        if (r.switchFc != undefined) host = `${r.switchFc} (<@${host}>)`
-                    })
+                    if (i.fields.getTextInputValue('input_host')) {
+                        let json = await (await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host)).json()
+                        if (json.switchFc != undefined) host = `${json.switchFc} (<@${json.discordId}>)`
+                        else {
+                            json = await (await fetch("https://www.mk8dx-lounge.com/api/player?fc=" + host)).json()
+                            if (json.discordId != undefined) host = `${json.switchFc} (<@${json.discordId}>)`
+                        }
+                    }
                     embed.fields[1].value = '`' + time + '`'
                     embed.fields[2].value = host
                     embed.title = `Clan war | ${tag} vs ${ennemy_tag}`
