@@ -10,3 +10,4 @@ bdd_backup.json
 user_list.json
 user_list_backup.json
 config.js
+.DS_Store

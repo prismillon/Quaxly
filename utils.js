@@ -75,9 +75,9 @@ export async function error_embed(interaction, error) {
     await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
-export async function averageMmr(ids, embed, interaction, embedArray, jsonArray, mmrArray) {
+export async function averageMmr(searchType, ids, embed, interaction, embedArray, jsonArray, mmrArray) {
     for (let i = 0; i < ids.length; i++) {
-        await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + ids[i]).then(r => {
+        await fetch("https://www.mk8dx-lounge.com/api/player?" + searchType + "=" + ids[i]).then(r => {
             return r.text()
         }).then(r => {
             let json = JSON.parse(r)
@@ -107,4 +107,32 @@ export async function averageMmr(ids, embed, interaction, embedArray, jsonArray,
             }
         })
     }
+}
+
+export async function teamFCs(team_id, interaction) {
+    fetch(`https://www.mariokartcentral.com/mkc/api/registry/teams/${team_id}?order=NA`).then((r) => {
+        return r.text()
+    }).then((r) => {
+        let json = JSON.parse(r)
+        let ids = []
+        json.rosters[json.team_category].members.forEach((player) => { ids.push(player.custom_field) })
+        let embed =
+        {
+            title: "Average MMR ",
+            description: json.team_tag + " - " + json.team_name,
+            color: 15514131,
+            fields: [
+            ],
+            thumbnail: {
+                url: "https://www.mariokartcentral.com/mkc/storage/" + json.team_logo
+            }
+        }
+
+        let mmrArray = []
+        let jsonArray = []
+        let embedArray = []
+        interaction.reply({ embeds: [embed] }).then(async () => {
+            averageMmr("fc", ids, embed, interaction, embedArray, jsonArray, mmrArray)
+        })
+    })
 }

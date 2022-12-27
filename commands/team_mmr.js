@@ -1,15 +1,15 @@
-import { error_embed, averageMmr } from "../utils.js";
+import { error_embed, averageMmr, teamFCs } from "../utils.js";
 
 export const team_mmr = async (interaction) => {
-    if (interaction.options.get("player").value.includes('<@&')) {
+    if (interaction.options.get("group").value.includes('<@&')) {
         interaction.guild.members.fetch()
             .then(async members => {
-                const role = interaction.options.get("player").value.replace(/\D/g, '');
+                const role = interaction.options.get("group").value.replace(/\D/g, '');
                 const ids = members.filter(mmbr => mmbr.roles.cache.get(role)).map(m => m.user.id)
                 let embed =
                 {
                     title: "Average MMR ",
-                    description: interaction.options.get("player").value,
+                    description: interaction.options.get("group").value,
                     color: 15514131,
                     fields: [
                     ],
@@ -31,14 +31,14 @@ export const team_mmr = async (interaction) => {
                 }
                 else {
                     interaction.reply({ embeds: [embed] }).then(async () => {
-                        averageMmr(ids, embed, interaction, embedArray, jsonArray, mmrArray)
+                        averageMmr("discordid", ids, embed, interaction, embedArray, jsonArray, mmrArray)
 
                     })
                 }
             });
     }
-    else if (interaction.options.get("player").value.replace(/[0-9 ]/g, '').includes('<@><@>')) {
-        let ids = interaction.options.get("player").value.replace(/[<> ]/g, '').split('@')
+    else if (interaction.options.get("group").value.replace(/[0-9 ]/g, '').includes('<@><@>')) {
+        let ids = interaction.options.get("group").value.replace(/[<> ]/g, '').split('@')
         ids.shift()
         let embed =
         {
@@ -64,10 +64,26 @@ export const team_mmr = async (interaction) => {
         }
         else {
             interaction.reply({ embeds: [embed] }).then(async () => {
-                averageMmr(ids, embed, interaction, embedArray, jsonArray, mmrArray)
+                averageMmr("discordid", ids, embed, interaction, embedArray, jsonArray, mmrArray)
 
             })
         }
     }
-    else return error_embed(interaction, "Wrong option format: mention one role or multiple users");
+    else if (interaction.options.get("group").value.includes('https://www.mariokartcentral.com/mkc/registry/teams/') || interaction.options.get("group").value.match(/^[0-9]+$/) != null) {
+        const team_id = interaction.options.get("group").value.replace(/\D/g, '')
+        teamFCs(team_id, interaction)
+    }
+    else {
+        fetch("https://www.mariokartcentral.com/mkc/api/registry/teams/category/150cc")
+            .then((r) => {
+                return r.text()
+            }).then((r) => {
+                let json = JSON.parse(r.toLowerCase())
+                const team_name = interaction.options.get("group").value.toLowerCase()
+                if (json.data.find(el => el.team_name == team_name) !== undefined) {
+                    teamFCs(json.data.find(el => el.team_name == team_name).team_id, interaction)
+                }
+                else return error_embed(interaction, "Wrong option format: mention one role or multiple users");
+            })
+    }
 }
