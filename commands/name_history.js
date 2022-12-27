@@ -7,6 +7,7 @@ export const name_history = async (interaction) => {
             return r.text()
         }).then(r => {
             const currentName = JSON.parse(r).name
+            const loungeId = JSON.parse(r).id
             fetch("https://www.mk8dx-lounge.com/api/player/details?name=" + currentName).then(r => {
                 return r.text()
             }).then(r => {
@@ -23,12 +24,10 @@ export const name_history = async (interaction) => {
                 let embed =
                 {
                     title: currentName + "'s name history",
+                    url: `https://www.mk8dx-lounge.com/PlayerDetails/${loungeId}`,
                     description: nextChange,
                     color: 15514131,
-                    fields: [],
-                    thumbnail: {
-                        url: "https://cdn.discordapp.com/icons/445404006177570829/a_8fd213e4469496c5da086d02b195f4ff.gif?size=96"
-                    }
+                    fields: []
                 }
                 json.nameHistory.forEach(function (nameArray) {
                     embed.fields.push({ name: nameArray.name, value: 'Changed on: <t:' + Math.floor(new Date(nameArray.changedOn).getTime() / 1000) + '>', inline: false })
