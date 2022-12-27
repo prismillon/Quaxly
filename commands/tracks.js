@@ -296,7 +296,7 @@ export const tracks = async (interaction) => {
     const collector = interaction.channel.createMessageComponentCollector({
         time: 600000
     })
-    collector.on("end", async () => {
+    collector.on('end', async () => {
         await interaction.editReply({
             components: []
         })
