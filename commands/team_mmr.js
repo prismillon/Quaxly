@@ -15,7 +15,7 @@ export const team_mmr = async (interaction) => {
                         fields: [
                         ],
                         thumbnail: {
-                            url: "https://cdn.discordapp.com/icons/445404006177570829/a_8fd213e4469496c5da086d02b195f4ff.gif?size=96"
+                            url: interaction.guild.iconURL()
                         }
                     }
                     if (ids.length > 300) return error_embed(interaction, "Your role have too many members. Please retry with less than 300 members.");
@@ -37,7 +37,7 @@ export const team_mmr = async (interaction) => {
                 fields: [
                 ],
                 thumbnail: {
-                    url: "https://cdn.discordapp.com/icons/445404006177570829/a_8fd213e4469496c5da086d02b195f4ff.gif?size=96"
+                    url: interaction.guild.iconURL()
                 }
             }
             if (ids.length > 300) return error_embed(interaction, "Your command have too many users. Please retry with less than 300 users.");
