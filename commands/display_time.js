@@ -20,6 +20,7 @@ export const display_time = async (interaction) => {
         let best_times_string = '';
         let best_time_object = {};
         for (let i = 0; i < track_list.length; i++) {
+            if (Object.values(best_time_object).length > 0 && !interaction.deferred) await interaction.deferReply();
             for (let j = 0; j < user_list[interaction.guild.id].length; j++) {
                 if (bdd[user_list[interaction.guild.id][j]] == undefined) {
                     user_list[interaction.guild.id].splice(j, 1);
@@ -51,7 +52,7 @@ export const display_time = async (interaction) => {
         if (best_times_string == '') {
             return error_embed(interaction, `no times found for this category`);
         }
-        interaction.reply({
+        interaction.editReply({
             embeds: [
                 new EmbedBuilder()
                     .setTitle(`${speed}cc ${item}`)
@@ -98,6 +99,7 @@ export const display_time = async (interaction) => {
             }
             catch (e) {
             }
+            if (best_time_object.length > 0 && !interaction.deferred) await interaction.deferReply();
         }
         best_time_object.sort((a, b) => {
             if (a["time"] < b["time"]) return -1;
@@ -110,7 +112,7 @@ export const display_time = async (interaction) => {
         if (best_times_string == '') {
             return error_embed(interaction, `sorry, but no one has registered any time for this category`);
         }
-        interaction.reply({
+        interaction.editReply({
             embeds: [
                 new EmbedBuilder()
                     .setTitle(`${speed}cc ${item}`)
@@ -173,6 +175,7 @@ export const display_time = async (interaction) => {
             else {
                 as_time_on_all_tracks = false;
             }
+            if (track_rank.length > 0 && !interaction.deferred) await interaction.deferReply();
         }
         if (time_list == '') {
             return error_embed(interaction, "sorry, but this user has not registered any time for this category");
@@ -199,7 +202,7 @@ export const display_time = async (interaction) => {
         else {
             total_string = `\n**Saved times**: ${nb_track_played}/${track_list.length}\n**Total time**: *complete all tracks to get a total time*`;
         }
-        interaction.reply({
+        interaction.editReply({
             embeds: [
                 new EmbedBuilder()
                     .setTitle(`${user.displayName}  ${speed}cc ${item}`)
