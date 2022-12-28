@@ -80,13 +80,14 @@ export async function averageMmr(searchType, ids, embed, interaction, embedArray
     for (let i = 0; i < ids.length; i++) {
         let json
         try {
-            json = await (await fetch("https://www.mk8dx-lounge.com/api/player?" + searchType + "=" + ids[i])).json()
+            json = await (await fetch("https://www.mk8dx-lounge.com/api/player?" + searchType + "=" + ids[i] + "&quaxly=true")).json()
         } catch (e) {
             console.log(interaction);
             const owner = await client.users.fetch("169497208406802432");
             owner.send(`An error occurred: \`\`\`${e}\`\`\`\n\n\`\`\`${interaction}\`\`\`\n\n\`\`\`${searchType}\`\`\`\n\n\`\`\`${ids[i]}\`\`\``).Catch(() => {
                 console.log("Error while sending error to owner\n\n" + e + "\n\n" + interaction + "\n\n" + searchType + "\n\n" + ids[i])
             });
+            continue;
         }
         if (json.name != undefined && json.mmr != undefined) {
             mmrArray.push(parseInt(json.mmr))
