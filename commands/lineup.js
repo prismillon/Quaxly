@@ -9,11 +9,11 @@ export const lineup = async (interaction) => {
     let tag = interaction.options.get("tag").value
     let time = interaction.options.get("time").value
     let ennemy_tag = interaction.options.get("ennemy_tag").value
-    let json = await (await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host + "&quaxly=true")).json()
-    if (json.switchFc != undefined) host = `${json.switchFc} (<@${host}>)`
+    let json = await (await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host.replace(/[^0-9-]/g, '') + "&quaxly=true")).json()
+    if (json.switchFc != undefined) host = `${json.switchFc} (<@${json.discordId}>)`
     else {
         json = await (await fetch("https://www.mk8dx-lounge.com/api/player?fc=" + host + "&quaxly=true")).json()
-        if (json.discordId != undefined) host = `${host} (<@${json.discordId}>)`
+        if (json.discordId != undefined) host = `${json.switchFc} (<@${json.discordId}>)`
     }
     let embed = {
         title: `Clan war | ${tag} vs ${ennemy_tag}`,
