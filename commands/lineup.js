@@ -85,6 +85,7 @@ export const lineup = async (interaction) => {
             await interaction.editReply({ content: '', embeds: [embed], components: [] })
         } catch (error) {
         }
+        collector.stop();
     })
     collector.on('collect', async i => {
         if (i.customId === 'edit_lineup') {

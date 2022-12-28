@@ -300,6 +300,7 @@ export const tracks = async (interaction) => {
         await interaction.editReply({
             components: []
         })
+        collector.stop();
     })
     collector.on("collect", async (button) => {
         try {

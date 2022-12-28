@@ -37,6 +37,7 @@ export const delete_time = async (interaction) => {
                             .setDescription(`you didn't answer in time, the command has been canceled`)
                     ], components: []
                 })
+                collector.stop();
             })
             collector.on("collect", async (i) => {
                 if (i.customId == "Yes") {
@@ -96,6 +97,7 @@ export const delete_time = async (interaction) => {
                         .setDescription(`you didn't answer in time, the command has been canceled`)
                 ], components: []
             })
+            collector.stop();
         })
         collector.on("collect", async (i) => {
             if (i.customId == "Yes") {
@@ -144,6 +146,7 @@ export const delete_time = async (interaction) => {
                         .setDescription(`you didn't answer in time, the command has been canceled`)
                 ], components: []
             })
+            collector.stop();
         })
         collector.on("collect", async (i) => {
             if (i.customId == "Yes") {
@@ -196,6 +199,7 @@ export const delete_time = async (interaction) => {
                         .setDescription(`you didn't answer in time, the command has been canceled`)
                 ], components: []
             })
+            collector.stop();
         })
         collector.on("collect", async (i) => {
             if (i.customId == "Yes") {
@@ -246,6 +250,7 @@ export const delete_time = async (interaction) => {
                         .setDescription(`you didn't answer in time, the command has been canceled`)
                 ], components: []
             })
+            collector.stop();
         })
         collector.on("collect", async (i) => {
             if (i.customId == "Yes") {
@@ -301,6 +306,7 @@ export const delete_time = async (interaction) => {
                         .setDescription(`you didn't answer in time, the command has been canceled`)
                 ], components: []
             })
+            collector.stop();
         })
         collector.on("collect", async (i) => {
             if (i.customId == "Yes") {
@@ -352,6 +358,7 @@ export const delete_time = async (interaction) => {
                         .setDescription(`you didn't answer in time, the command has been canceled`)
                 ], components: []
             })
+            collector.stop();
         })
         collector.on("collect", async (i) => {
             if (i.customId == "Yes") {
@@ -408,6 +415,7 @@ export const delete_time = async (interaction) => {
                         .setDescription(`you didn't answer in time, the command has been canceled`)
                 ], components: []
             })
+            collector.stop();
         })
         collector.on("collect", async (i) => {
             if (i.customId == "Yes") {
