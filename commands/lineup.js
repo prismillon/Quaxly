@@ -9,10 +9,10 @@ export const lineup = async (interaction) => {
     let tag = interaction.options.get("tag").value
     let time = interaction.options.get("time").value
     let ennemy_tag = interaction.options.get("ennemy_tag").value
-    let json = await (await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host)).json()
+    let json = await (await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host + "&quaxly=true")).json()
     if (json.switchFc != undefined) host = `${json.switchFc} (<@${host}>)`
     else {
-        json = await (await fetch("https://www.mk8dx-lounge.com/api/player?fc=" + host)).json()
+        json = await (await fetch("https://www.mk8dx-lounge.com/api/player?fc=" + host + "&quaxly=true")).json()
         if (json.discordId != undefined) host = `${host} (<@${json.discordId}>)`
     }
     let embed = {
@@ -138,10 +138,10 @@ export const lineup = async (interaction) => {
                     i.fields.getTextInputValue('input_ennemy_tag') ? ennemy_tag = i.fields.getTextInputValue('input_ennemy_tag') : ennemy_tag = ennemy_tag
                     i.fields.getTextInputValue('input_tag') ? tag = i.fields.getTextInputValue('input_tag') : tag = tag
                     if (i.fields.getTextInputValue('input_host')) {
-                        let json = await (await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host)).json()
+                        let json = await (await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host + "&quaxly=true")).json()
                         if (json.switchFc != undefined) host = `${json.switchFc} (<@${json.discordId}>)`
                         else {
-                            json = await (await fetch("https://www.mk8dx-lounge.com/api/player?fc=" + host)).json()
+                            json = await (await fetch("https://www.mk8dx-lounge.com/api/player?fc=" + host + "&quaxly=true")).json()
                             if (json.discordId != undefined) host = `${json.switchFc} (<@${json.discordId}>)`
                         }
                     }

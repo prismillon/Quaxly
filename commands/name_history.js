@@ -3,12 +3,12 @@ import { error_embed } from "../utils.js";
 export const name_history = async (interaction) => {
     const discordId = interaction.options.get("player").value.replace(/\D/g, '');
     if (discordId.length === 18) {
-        fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + discordId).then(r => {
+        fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + discordId + "&quaxly=true").then(r => {
             return r.text()
         }).then(r => {
             const currentName = JSON.parse(r).name
             const loungeId = JSON.parse(r).id
-            fetch("https://www.mk8dx-lounge.com/api/player/details?name=" + currentName).then(r => {
+            fetch("https://www.mk8dx-lounge.com/api/player/details?name=" + currentName + "&quaxly=true").then(r => {
                 return r.text()
             }).then(r => {
                 const json = JSON.parse(r)
