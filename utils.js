@@ -84,7 +84,7 @@ export async function averageMmr(searchType, ids, embed, interaction, embedArray
         } catch (e) {
             console.log(interaction);
             const owner = await client.users.fetch("169497208406802432");
-            owner.send(`An error occurred: \`\`\`${e}\`\`\`\n\n\`\`\`${interaction}\`\`\`\n\n\`\`\`${searchType}\`\`\`\n\n\`\`\`${ids[i]}\`\`\``).Catch(() => {
+            owner.send(`An error occurred: \`\`\`${e}\`\`\`\n\n\`\`\`${interaction}\`\`\`\n\n\`\`\`${searchType}\`\`\`\n\n\`\`\`${ids[i]}\`\`\``).catch(() => {
                 console.log("Error while sending error to owner\n\n" + e + "\n\n" + interaction + "\n\n" + searchType + "\n\n" + ids[i])
             });
             continue;
