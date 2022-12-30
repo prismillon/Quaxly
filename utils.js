@@ -73,7 +73,11 @@ export async function error_embed(interaction, error) {
         .setTitle("Error")
         .setDescription(error)
         .setColor(0xff0000)
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    if (interaction.replied) {
+        await interaction.editReply({ embeds: [embed], components: [] });
+    } else {
+        await interaction.reply({ embeds: [embed], ephemeral: true });
+    }
 }
 
 export async function averageMmr(searchType, ids, embed, interaction, embedArray, jsonArray, mmrArray) {
