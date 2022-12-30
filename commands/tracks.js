@@ -319,11 +319,11 @@ export const tracks = async (interaction) => {
                 components: emoji_buttons
             })
         } catch (e) {
-            await button.reply({
-                content: "You've clicked too fast, for the bot to respond. Please dm pierre#1111 if you think this is a bug",
+            await button.channel.send({
+                content: "You've clicked too fast for the bot to respond. Please dm pierre#1111 if you think this is a bug",
                 ephemeral: true
             }).catch((e) => {
-                console.log(e)
+                console.log(e, interaction)
             })
         }
     })
