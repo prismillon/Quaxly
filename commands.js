@@ -16,6 +16,7 @@ const commands = { save_time, delete_time, import_times, display_time, help, reg
 
 export const CommandHandler = async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
+    if (interaction.acknowledged) return;
     if (interaction.guildId == null) return error_embed(interaction, "sorry, but this bot can only be used in a server")
 
     try {
