@@ -283,48 +283,52 @@ let emoji_buttons = [{
 }]
 
 export const tracks = async (interaction) => {
-    await interaction.reply({
-        embeds: [
-            new EmbedBuilder()
-                .setTitle("Tracks")
-                .setColor(0x47e0ff)
-                .setDescription("Here is the list of all the cups in Mario Kart 8 Deluxe")
-                .setThumbnail(interaction.guild.iconURL())
-        ],
-        components: emoji_buttons
-    })
-    const collector = interaction.channel.createMessageComponentCollector({
-        time: 600000
-    })
-    collector.on('end', async () => {
-        await interaction.editReply({
-            components: []
+    try {
+        await interaction.reply({
+            embeds: [
+                new EmbedBuilder()
+                    .setTitle("Tracks")
+                    .setColor(0x47e0ff)
+                    .setDescription("Here is the list of all the cups in Mario Kart 8 Deluxe")
+                    .setThumbnail(interaction.guild.iconURL())
+            ],
+            components: emoji_buttons
         })
-        collector.stop();
-    })
-    collector.on("collect", async (button) => {
-        try {
-            const tracks = getTracks(button.customId).join(",   ")
-            await button.update({
-                embeds: [
-                    {
-                        Title: `Tracks in the ${button.customId.replace(/_/g, " ")}`,
-                        Description: `\`\`\`${tracks}\`\`\``,
-                        Color: 0x47e0ff,
-                        thumbnail: {
-                            url: emoji_to_links[button.customId]
+        const collector = interaction.channel.createMessageComponentCollector({
+            time: 600000
+        })
+        collector.on('end', async () => {
+            await interaction.editReply({
+                components: []
+            })
+            collector.stop();
+        })
+        collector.on("collect", async (button) => {
+            try {
+                const tracks = getTracks(button.customId).join(",   ")
+                await button.update({
+                    embeds: [
+                        {
+                            Title: `Tracks in the ${button.customId.replace(/_/g, " ")}`,
+                            Description: `\`\`\`${tracks}\`\`\``,
+                            Color: 0x47e0ff,
+                            thumbnail: {
+                                url: emoji_to_links[button.customId]
+                            }
                         }
-                    }
-                ],
-                components: emoji_buttons
-            })
-        } catch (e) {
-            await button.channel.send({
-                content: "You've clicked too fast for the bot to respond. Please dm pierre#1111 if you think this is a bug",
-                ephemeral: true
-            }).catch((e) => {
-                console.log(e, interaction)
-            })
-        }
-    })
+                    ],
+                    components: emoji_buttons
+                })
+            } catch (e) {
+                await button.channel.send({
+                    content: "You've clicked too fast for the bot to respond. Please dm pierre#1111 if you think this is a bug",
+                    ephemeral: true
+                }).catch((e) => {
+                    console.log(e, interaction)
+                })
+            }
+        })
+    } catch (e) {
+        throw e;
+    }
 }
