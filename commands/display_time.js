@@ -19,6 +19,7 @@ export const display_time = async (interaction) => {
         }
         let best_times_string = '';
         let best_time_object = {};
+        let user;
         for (let i = 0; i < track_list.length; i++) {
             if (Object.values(best_time_object).length > 0 && !interaction.deferred) await interaction.deferReply();
             for (let j = 0; j < user_list[interaction.guild.id].length; j++) {
@@ -28,7 +29,14 @@ export const display_time = async (interaction) => {
                     j--;
                     continue;
                 }
-                const user = await interaction.guild.members.fetch(user_list[interaction.guild.id][j]);
+                try {
+                    user = await interaction.guild.members.fetch(user_list[interaction.guild.id][j]);
+                } catch (error) {
+                    user_list[interaction.guild.id].splice(j, 1);
+                    save_user_list();
+                    j--;
+                    continue;
+                }
                 if (user == undefined) {
                     user_list[interaction.guild.id].splice(j, 1);
                     save_user_list();
