@@ -73,10 +73,12 @@ export async function error_embed(interaction, error) {
         .setTitle("Error")
         .setDescription(error)
         .setColor(0xff0000)
-    if (interaction.replied) {
+    if (interaction.isDeferred()) {
         await interaction.editReply({ embeds: [embed], components: [] });
-    } else {
+    } else if (!interaction.replied) {
         await interaction.reply({ embeds: [embed], ephemeral: true });
+    } else {
+        await interaction.followUp({ embeds: [embed], ephemeral: true });
     }
 }
 
