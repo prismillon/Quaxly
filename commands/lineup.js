@@ -10,14 +10,21 @@ export const lineup = async (interaction) => {
         let tag = interaction.options.get("tag").value
         let time = interaction.options.get("time").value
         let ennemy_tag = interaction.options.get("ennemy_tag").value
-
+        let json
         if (host.includes('-') && host.replaceAll(' ', '').length == 14) {
-            let json = await (await fetch("https://www.mk8dx-lounge.com/api/player?fc=" + host + "&quaxly=true")).json()
-            if (json.discordId != undefined) host = `${json.switchFc} (<@${json.discordId}>)`
+            try {
+                json = await (await fetch("https://www.mk8dx-lounge.com/api/player?fc=" + host + "&quaxly=true")).json()
+                if (json.discordId != undefined) host = `${json.switchFc} (<@${json.discordId}>)`
+            } catch (error) {
+            }
         }
         else {
-            let json = await (await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host.replace(/[^0-9-]/g, '') + "&quaxly=true")).json()
-            if (json.switchFc != undefined) host = `${json.switchFc} (<@${json.discordId}>)`
+            try {
+                json = await (await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host.replace(/[^0-9-]/g, '') + "&quaxly=true")).json()
+                if (json.switchFc != undefined) host = `${json.switchFc} (<@${json.discordId}>)`
+            }
+            catch (error) {
+            }
         }
         let embed = {
             title: `Clan war | ${tag} vs ${ennemy_tag}`,
@@ -78,7 +85,10 @@ export const lineup = async (interaction) => {
             interaction.editReply({ content: '', embeds: [embed], components: [button] })
         })
         const collector = interaction.channel.createMessageComponentCollector({
-            filter: i => i.user.id === interaction.user.id,
+            filter: i => {
+                if (i.user.id != interaction.user.id) i.reply({ content: `You can\'t use this button`, ephemeral: true })
+                return i.user.id === interaction.user.id
+            },
             time: 28800000,
         })
         collector.on('end', async () => {
