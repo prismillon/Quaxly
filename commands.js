@@ -7,12 +7,12 @@ import { import_times } from './commands/import_times.js';
 import { register_user } from './commands/register_user.js';
 import { remove_user } from './commands/remove_user.js';
 import { save_time } from './commands/save_time.js';
-import { team_mmr } from './commands/team_mmr.js';
+import { team_stats } from './commands/team_stats.js';
 import { name_history } from './commands/name_history.js';
 import { lineup } from './commands/lineup.js';
 import { tracks } from './commands/tracks.js';
 
-const commands = { save_time, delete_time, import_times, display_time, help, register_user, remove_user, team_mmr, name_history, lineup, tracks }
+const commands = { save_time, delete_time, import_times, display_time, help, register_user, remove_user, team_stats, name_history, lineup, tracks }
 
 export const CommandHandler = async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
@@ -42,8 +42,8 @@ export const CommandHandler = async (interaction) => {
             case 'remove_user':
                 commands.remove_user(interaction);
                 break;
-            case 'team_mmr':
-                commands.team_mmr(interaction);
+            case 'team_stats':
+                commands.team_stats(interaction);
                 break;
             case 'name_history':
                 commands.name_history(interaction);
