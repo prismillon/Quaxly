@@ -192,8 +192,14 @@ export const team_stats = async (interaction) => {
                         teamFCs(interaction.options.get("group").value.replace(/\D/g, ''), interaction)
                         break
                     default:
-                        let json = await (await fetch("https://www.mariokartcentral.com/mkc/api/registry/teams/category/150cc")).json()
-                        const team_name = interaction.options.get("group").value.toLowerCase()
+                        let json
+                        let team_name
+                        try {
+                            json = await (await fetch("https://www.mariokartcentral.com/mkc/api/registry/teams/category/150cc")).json()
+                            team_name = interaction.options.get("group").value.toLowerCase()
+                        } catch (error) {
+                            return error_embed(interaction, "mariokartcentral.com looks to be down or too slow to respond. Please retry later.")
+                        }
                         try {
                             if (json.data.find(el => el.team_name.toLowerCase() == team_name) !== undefined) {
                                 await teamFCs(json.data.find(el => el.team_name.toLowerCase() == team_name).team_id, interaction)

@@ -1,4 +1,4 @@
-import { TextInputBuilder, ModalBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder } from 'discord.js'
+import { TextInputBuilder, ModalBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, InteractionCollector } from 'discord.js'
 import { error_embed } from '../utils.js'
 
 export const lineup = async (interaction) => {
@@ -89,7 +89,7 @@ export const lineup = async (interaction) => {
                 if (i.user.id != interaction.user.id) i.reply({ content: `You can\'t use this button`, ephemeral: true })
                 return i.user.id === interaction.user.id
             },
-            time: 28800000,
+            time: 10800000,
         })
         collector.on('end', async () => {
             try {
@@ -145,27 +145,33 @@ export const lineup = async (interaction) => {
                     .addComponents(input_tag)
                 modal_edit_lineup.addComponents(first_row, second_row, third_row, fourth_row)
                 i.showModal(modal_edit_lineup)
-                const filter = (interaction) => interaction.customId === 'modal_edit_lineup';
-                i.awaitModalSubmit({ filter, time: 600000 }).then(async i => {
-                    try {
-                        i.fields.getTextInputValue('input_time') ? time = i.fields.getTextInputValue('input_time') : time = time
-                        i.fields.getTextInputValue('input_host') ? host = i.fields.getTextInputValue('input_host') : host = host
-                        i.fields.getTextInputValue('input_ennemy_tag') ? ennemy_tag = i.fields.getTextInputValue('input_ennemy_tag') : ennemy_tag = ennemy_tag
-                        i.fields.getTextInputValue('input_tag') ? tag = i.fields.getTextInputValue('input_tag') : tag = tag
-                        if (i.fields.getTextInputValue('input_host')) {
-                            let json = await (await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host + "&quaxly=true")).json()
-                            if (json.switchFc != undefined) host = `${json.switchFc} (<@${json.discordId}>)`
-                            else {
-                                json = await (await fetch("https://www.mk8dx-lounge.com/api/player?fc=" + host + "&quaxly=true")).json()
-                                if (json.discordId != undefined) host = `${json.switchFc} (<@${json.discordId}>)`
+                const modal_collect = new InteractionCollector(interaction.client, {
+                    time: 600000,
+                })
+                modal_collect.on('collect', async edit_lineup => {
+                    if (edit_lineup.customId === 'modal_edit_lineup') {
+                        try {
+                            edit_lineup.fields.getTextInputValue('input_time') ? time = edit_lineup.fields.getTextInputValue('input_time') : time = time
+                            edit_lineup.fields.getTextInputValue('input_host') ? host = edit_lineup.fields.getTextInputValue('input_host') : host = host
+                            edit_lineup.fields.getTextInputValue('input_ennemy_tag') ? ennemy_tag = edit_lineup.fields.getTextInputValue('input_ennemy_tag') : ennemy_tag = ennemy_tag
+                            edit_lineup.fields.getTextInputValue('input_tag') ? tag = edit_lineup.fields.getTextInputValue('input_tag') : tag = tag
+                            if (edit_lineup.fields.getTextInputValue('input_host')) {
+                                let json = await (await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + host + "&quaxly=true")).json()
+                                if (json.switchFc != undefined) host = `${json.switchFc} (<@${json.discordId}>)`
+                                else {
+                                    json = await (await fetch("https://www.mk8dx-lounge.com/api/player?fc=" + host + "&quaxly=true")).json()
+                                    if (json.discordId != undefined) host = `${json.switchFc} (<@${json.discordId}>)`
+                                }
                             }
+                            embed.fields[1].value = '`' + time + '`'
+                            embed.fields[2].value = host
+                            embed.title = `Clan war | ${tag} vs ${ennemy_tag}`
+                            await edit_lineup.update({ embeds: [embed] })
                         }
-                        embed.fields[1].value = '`' + time + '`'
-                        embed.fields[2].value = host
-                        embed.title = `Clan war | ${tag} vs ${ennemy_tag}`
-                        await i.update({ embeds: [embed] })
-                    } catch (error) {
+                        catch (error) {
+                        }
                     }
+                    modal_collect.stop();
                 })
             }
             if (i.customId === 'add_player') {
@@ -184,23 +190,28 @@ export const lineup = async (interaction) => {
                     .addComponents(input_player)
                 modal_add_player.addComponents(first_row)
                 i.showModal(modal_add_player)
-                const filter = (interaction) => interaction.customId === 'modal_add_player';
-                i.awaitModalSubmit({ filter, time: 60000 }).then(async i => {
-                    try {
-                        await i.guild.members.fetch(i.fields.getTextInputValue('input_player')).then(async () => {
-                            if (!players.includes('<@' + i.fields.getTextInputValue('input_player') + '>')) {
-                                players = players + ' - <@' + i.fields.getTextInputValue('input_player') + '>'
-                                embed.fields[0].value = players
-                                button = embed.fields[0].value.split(' - ').length == 6 ? buttonFull : buttonDefault
-                                await i.update({ embeds: [embed], components: [button] })
-                            } else {
-                                await error_embed(i, `<@${i.fields.getTextInputValue('input_player')}> is already in the lineup`)
-                            }
-                        }).catch(async () => {
-                            await error_embed(i, 'Player not found in this server, double check the id')
-                        })
-                    } catch (error) {
+                const modal_collect = new InteractionCollector(interaction.client, {
+                    time: 60000,
+                })
+                modal_collect.on('collect', async add_player => {
+                    if (add_player.customId === 'modal_add_player') {
+                        try {
+                            await add_player.guild.members.fetch(add_player.fields.getTextInputValue('input_player')).then(async () => {
+                                if (!players.includes('<@' + add_player.fields.getTextInputValue('input_player') + '>')) {
+                                    players = players + ' - <@' + add_player.fields.getTextInputValue('input_player') + '>'
+                                    embed.fields[0].value = players
+                                    button = embed.fields[0].value.split(' - ').length == 6 ? buttonFull : buttonDefault
+                                    await add_player.update({ embeds: [embed], components: [button] })
+                                } else {
+                                    await error_embed(add_player, `<@${add_player.fields.getTextInputValue('input_player')}> is already in the lineup`)
+                                }
+                            })
+                        }
+                        catch (error) {
+                            await error_embed(add_player, `<@${add_player.fields.getTextInputValue('input_player')}> is not a valid player`)
+                        }
                     }
+                    modal_collect.stop();
                 })
             }
             if (i.customId === 'remove_player') {
@@ -219,21 +230,30 @@ export const lineup = async (interaction) => {
                     .addComponents(input_player)
                 modal_remove_player.addComponents(first_row)
                 i.showModal(modal_remove_player)
-                const filter = (interaction) => interaction.customId === 'modal_remove_player';
-                i.awaitModalSubmit({ filter, time: 60000 }).then(async i => {
-                    try {
-                        if (players.includes('<@' + i.fields.getTextInputValue('input_player') + '>')) {
-                            players = players.replace(' - <@' + i.fields.getTextInputValue('input_player') + '>', '')
-                            players = players.replace('<@' + i.fields.getTextInputValue('input_player') + '> - ', '')
-                            players = players.replace('<@' + i.fields.getTextInputValue('input_player') + '>', '')
-                            embed.fields[0].value = players
-                            button = embed.fields[0].value.split(' - ').length == 6 ? buttonFull : buttonDefault
-                            await i.update({ embeds: [embed], components: [button] })
-                        } else {
-                            await error_embed(i, 'Player is not in the lineup, double check the id')
+                const modal_collect = new InteractionCollector(interaction.client, {
+                    time: 60000,
+                })
+                modal_collect.on('collect', async remove_player => {
+                    if (remove_player.customId === 'modal_remove_player') {
+                        try {
+                            await remove_player.guild.members.fetch(remove_player.fields.getTextInputValue('input_player')).then(async () => {
+                                if (players.includes('<@' + remove_player.fields.getTextInputValue('input_player') + '>')) {
+                                    players = players.replace(' - <@' + remove_player.fields.getTextInputValue('input_player') + '>', '')
+                                    players = players.replace('<@' + remove_player.fields.getTextInputValue('input_player') + '> - ', '')
+                                    players = players.replace('<@' + remove_player.fields.getTextInputValue('input_player') + '>', '')
+                                    embed.fields[0].value = players
+                                    button = embed.fields[0].value.split(' - ').length == 6 ? buttonFull : buttonDefault
+                                    await remove_player.update({ embeds: [embed], components: [button] })
+                                } else {
+                                    await error_embed(remove_player, `<@${remove_player.fields.getTextInputValue('input_player')}> is not in the lineup`)
+                                }
+                            })
                         }
-                    } catch (error) {
+                        catch (error) {
+                            await error_embed(remove_player, `<@${remove_player.fields.getTextInputValue('input_player')}> is not a valid player`)
+                        }
                     }
+                    modal_collect.stop();
                 })
             }
         })
