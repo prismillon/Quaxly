@@ -1,9 +1,11 @@
-import { bdd, is_track_init, user_and_server_id_check, player_update, get_track_formated, save_bdd, error_embed, yes_no_buttons } from "../utils.js";
+import { bdd, is_track_init, user_and_server_id_check, player_update, get_track_formated, save_bdd, error_embed } from "../utils.js";
 
 import { EmbedBuilder, } from "discord.js";
 
 export const save_time = async (interaction) => {
     try {
+        let uuid = Date.now()
+        const yes_no_buttons = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("Yes" + uuid).setLabel("Yes").setStyle(ButtonStyle.Success), new ButtonBuilder().setCustomId("No" + uuid).setLabel("No").setStyle(ButtonStyle.Danger));
         user_and_server_id_check(interaction.user.id, interaction.guild.id)
         const speed = interaction.options.get("speed").value;
         let track = get_track_formated(interaction.options.get("track").value)
@@ -35,11 +37,21 @@ export const save_time = async (interaction) => {
                     components: [yes_no_buttons],
                 });
                 const collector = interaction.channel.createMessageComponentCollector({
-                    filter: (i) => i.user.id === interaction.user.id,
+                    filter: (i) => i.customId.replace(/[^0-9]/gm, '') == uuid && i.user.id === interaction.user.id,
                     max: 1,
                     time: 15000,
                 });
+                collector.on('end', async () => {
+                    await interaction.editReply({
+                        embeds: [
+                            new EmbedBuilder().setTitle(`Canceled`).setColor(0x00ff00)
+                                .setDescription(`you didn't answer in time, the command has been canceled`)
+                        ], components: []
+                    })
+                    collector.stop();
+                })
                 collector.on("collect", async (i) => {
+                    i.customId = i.customId.replace(/[0-9]/gm, '')
                     if (i.customId == "No") {
                         await i.update({
                             embeds: [
