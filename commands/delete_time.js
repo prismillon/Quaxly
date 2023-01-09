@@ -1,9 +1,11 @@
-import { bdd, is_track_init, user_and_server_id_check, get_track_formated, save_bdd, error_embed, yes_no_buttons } from "../utils.js";
+import { bdd, is_track_init, user_and_server_id_check, get_track_formated, save_bdd, error_embed } from "../utils.js";
 
 import { EmbedBuilder, } from "discord.js";
 
 export const delete_time = async (interaction) => {
     try {
+        let uuid = '' + Date.now()
+        const yes_no_buttons = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("Yes" + uuid).setLabel("Yes").setStyle(ButtonStyle.Success), new ButtonBuilder().setCustomId("No" + uuid).setLabel("No").setStyle(ButtonStyle.Danger));
         user_and_server_id_check(interaction.user.id, interaction.guild.id)
         const args = interaction.options.data;
         if (args.length == 3) {
@@ -27,7 +29,7 @@ export const delete_time = async (interaction) => {
                     components: [yes_no_buttons],
                 });
                 const collector = interaction.channel.createMessageComponentCollector({
-                    filter: (i) => i.user.id === interaction.user.id,
+                    filter: (i) => i.customId.replace(/[^0-9]/gm, '') == uuid && i.user.id === interaction.user.id,
                     max: 1,
                     time: 15000,
                 });
@@ -41,6 +43,7 @@ export const delete_time = async (interaction) => {
                     collector.stop();
                 })
                 collector.on("collect", async (i) => {
+                    i.customId = i.customId.replace(/[0-9]/gm, '')
                     if (i.customId == "Yes") {
                         item = "NI";
                         if (interaction.options.get("item").value == 1) {
@@ -87,7 +90,7 @@ export const delete_time = async (interaction) => {
                 components: [yes_no_buttons],
             });
             const collector = interaction.channel.createMessageComponentCollector({
-                filter: (i) => i.user.id === interaction.user.id,
+                filter: (i) => i.customId.replace(/[^0-9]/gm, '') == uuid && i.user.id === interaction.user.id,
                 max: 1,
                 time: 15000,
             });
@@ -101,6 +104,7 @@ export const delete_time = async (interaction) => {
                 collector.stop();
             })
             collector.on("collect", async (i) => {
+                i.customId = i.customId.replace(/[0-9]/gm, '')
                 if (i.customId == "Yes") {
                     delete bdd[interaction.user.id];
                     if (save_bdd() == 0) {
@@ -136,7 +140,7 @@ export const delete_time = async (interaction) => {
                 components: [yes_no_buttons],
             });
             const collector = interaction.channel.createMessageComponentCollector({
-                filter: (i) => i.user.id === interaction.user.id,
+                filter: (i) => i.customId.replace(/[^0-9]/gm, '') == uuid && i.user.id === interaction.user.id,
                 max: 1,
                 time: 15000,
             });
@@ -150,6 +154,7 @@ export const delete_time = async (interaction) => {
                 collector.stop();
             })
             collector.on("collect", async (i) => {
+                i.customId = i.customId.replace(/[0-9]/gm, '')
                 if (i.customId == "Yes") {
                     bdd[interaction.user.id][speed].Shroom = {};
                     bdd[interaction.user.id][speed].NI = {};
@@ -189,7 +194,7 @@ export const delete_time = async (interaction) => {
                 components: [yes_no_buttons],
             });
             const collector = interaction.channel.createMessageComponentCollector({
-                filter: (i) => i.user.id === interaction.user.id,
+                filter: (i) => i.customId.replace(/[^0-9]/gm, '') == uuid && i.user.id === interaction.user.id,
                 max: 1,
                 time: 15000,
             });
@@ -203,6 +208,7 @@ export const delete_time = async (interaction) => {
                 collector.stop();
             })
             collector.on("collect", async (i) => {
+                i.customId = i.customId.replace(/[0-9]/gm, '')
                 if (i.customId == "Yes") {
                     bdd[interaction.user.id][150][item] = {};
                     bdd[interaction.user.id][200][item] = {};
@@ -240,7 +246,7 @@ export const delete_time = async (interaction) => {
                 components: [yes_no_buttons],
             });
             const collector = interaction.channel.createMessageComponentCollector({
-                filter: (i) => i.user.id === interaction.user.id,
+                filter: (i) => i.customId.replace(/[^0-9]/gm, '') == uuid && i.user.id === interaction.user.id,
                 max: 1,
                 time: 15000,
             });
@@ -254,6 +260,7 @@ export const delete_time = async (interaction) => {
                 collector.stop();
             })
             collector.on("collect", async (i) => {
+                i.customId = i.customId.replace(/[0-9]/gm, '')
                 if (i.customId == "Yes") {
                     bdd[interaction.user.id][150].Shroom[track] = {};
                     bdd[interaction.user.id][150].NI[track] = {};
@@ -296,7 +303,7 @@ export const delete_time = async (interaction) => {
                 components: [yes_no_buttons],
             });
             const collector = interaction.channel.createMessageComponentCollector({
-                filter: (i) => i.user.id === interaction.user.id,
+                filter: (i) => i.customId.replace(/[^0-9]/gm, '') == uuid && i.user.id === interaction.user.id,
                 max: 1,
                 time: 15000,
             });
@@ -310,6 +317,7 @@ export const delete_time = async (interaction) => {
                 collector.stop();
             })
             collector.on("collect", async (i) => {
+                i.customId = i.customId.replace(/[0-9]/gm, '')
                 if (i.customId == "Yes") {
                     bdd[interaction.user.id][speed][item] = {};
                     if (save_bdd() == 0) {
@@ -348,7 +356,7 @@ export const delete_time = async (interaction) => {
                 components: [yes_no_buttons],
             });
             const collector = interaction.channel.createMessageComponentCollector({
-                filter: (i) => i.user.id === interaction.user.id,
+                filter: (i) => i.customId.replace(/[^0-9]/gm, '') == uuid && i.user.id === interaction.user.id,
                 max: 1,
                 time: 15000,
             });
@@ -362,6 +370,7 @@ export const delete_time = async (interaction) => {
                 collector.stop();
             })
             collector.on("collect", async (i) => {
+                i.customId = i.customId.replace(/[0-9]/gm, '')
                 if (i.customId == "Yes") {
                     delete bdd[interaction.user.id][speed].Shroom[track];
                     delete bdd[interaction.user.id][speed].NI[track];
@@ -405,7 +414,7 @@ export const delete_time = async (interaction) => {
                 components: [yes_no_buttons],
             });
             const collector = interaction.channel.createMessageComponentCollector({
-                filter: (i) => i.user.id === interaction.user.id,
+                filter: (i) => i.customId.replace(/[^0-9]/gm, '') == uuid && i.user.id === interaction.user.id,
                 max: 1,
                 time: 15000,
             });
@@ -419,6 +428,7 @@ export const delete_time = async (interaction) => {
                 collector.stop();
             })
             collector.on("collect", async (i) => {
+                i.customId = i.customId.replace(/[0-9]/gm, '')
                 if (i.customId == "Yes") {
                     delete bdd[interaction.user.id][150][item][track];
                     delete bdd[interaction.user.id][200][item][track];

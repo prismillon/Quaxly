@@ -63,226 +63,226 @@ const emoji_to_links = {
     "moon_cup": "https://cdn.discordapp.com/attachments/1055130165782515803/1055131264975384657/MK8D_BCP_Moon_Emblem.png",
 }
 
-let emoji_buttons = [{
-    "type": 1,
-    "components": [
-        {
-            "style": 2,
-            "custom_id": `mushroom_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103822671925298`,
-                "name": `MK8_MushroomCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-        {
-            "style": 2,
-            "custom_id": `flower_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103818968346705`,
-                "name": `MK8_FlowerCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-        {
-            "style": 2,
-            "custom_id": `star_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055104114238955592`,
-                "name": `MK8_StarCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-        {
-            "style": 2,
-            "custom_id": `special_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103822671925298`,
-                "name": `MK8_SpecialCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-        {
-            "style": 2,
-            "custom_id": `shell_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103823577878650`,
-                "name": `MK8_ShellCup`,
-                "animated": false
-            },
-            "type": 2
-        }
-    ]
-},
-{
-    "type": 1,
-    "components": [
-        {
-            "style": 2,
-            "custom_id": `banana_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103812588806154`,
-                "name": `MK8_BananaCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-        {
-            "style": 2,
-            "custom_id": `leaf_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103820268585020`,
-                "name": `MK8_LeafCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-        {
-            "style": 2,
-            "custom_id": `lightning_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103821455564851`,
-                "name": `MK8_LightningCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-        {
-            "style": 2,
-            "custom_id": `egg_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103817424834580`,
-                "name": `MK8_EggCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-        {
-            "style": 2,
-            "custom_id": `crossing_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103816070090772`,
-                "name": `MK8_CrossingCup`,
-                "animated": false
-            },
-            "type": 2
-        }
-    ]
-},
-{
-    "type": 1,
-    "components": [
-        {
-            "style": 2,
-            "custom_id": `triforce_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103826811699250`,
-                "name": `MK8_TriforceCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-        {
-            "style": 2,
-            "custom_id": `bell_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103814438494319`,
-                "name": `MK8_BellCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-        {
-            "style": 2,
-            "custom_id": `golden_dash_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103948345835582`,
-                "name": `MK8_GoldenDashCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-        {
-            "style": 2,
-            "custom_id": `lucky_cat_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103946911399976`,
-                "name": `MK8_LuckyCatCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-        {
-            "style": 2,
-            "custom_id": `turnip_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103834189463573`,
-                "name": `MK8_TurnipCup`,
-                "animated": false
-            },
-            "type": 2
-        }
-    ]
-},
-{
-    "type": 1,
-    "components": [
-        {
-            "style": 2,
-            "custom_id": `propeller_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103943161696276`,
-                "name": `MK8_PropellerCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-        {
-            "style": 2,
-            "custom_id": `rock_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103941345558609`,
-                "name": `MK8_RockCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-        {
-            "style": 2,
-            "custom_id": `moon_cup`,
-            "disabled": false,
-            "emoji": {
-                "id": `1055103830263595028`,
-                "name": `MK8_MoonCup`,
-                "animated": false
-            },
-            "type": 2
-        },
-    ]
-}]
-
 export const tracks = async (interaction) => {
+    let uuid = '' + Date.now()
+    let emoji_buttons = [{
+        "type": 1,
+        "components": [
+            {
+                "style": 2,
+                "custom_id": `mushroom_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103822671925298`,
+                    "name": `MK8_MushroomCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `flower_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103818968346705`,
+                    "name": `MK8_FlowerCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `star_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055104114238955592`,
+                    "name": `MK8_StarCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `special_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103822671925298`,
+                    "name": `MK8_SpecialCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `shell_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103823577878650`,
+                    "name": `MK8_ShellCup`,
+                    "animated": false
+                },
+                "type": 2
+            }
+        ]
+    },
+    {
+        "type": 1,
+        "components": [
+            {
+                "style": 2,
+                "custom_id": `banana_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103812588806154`,
+                    "name": `MK8_BananaCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `leaf_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103820268585020`,
+                    "name": `MK8_LeafCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `lightning_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103821455564851`,
+                    "name": `MK8_LightningCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `egg_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103817424834580`,
+                    "name": `MK8_EggCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `crossing_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103816070090772`,
+                    "name": `MK8_CrossingCup`,
+                    "animated": false
+                },
+                "type": 2
+            }
+        ]
+    },
+    {
+        "type": 1,
+        "components": [
+            {
+                "style": 2,
+                "custom_id": `triforce_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103826811699250`,
+                    "name": `MK8_TriforceCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `bell_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103814438494319`,
+                    "name": `MK8_BellCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `golden_dash_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103948345835582`,
+                    "name": `MK8_GoldenDashCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `lucky_cat_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103946911399976`,
+                    "name": `MK8_LuckyCatCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `turnip_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103834189463573`,
+                    "name": `MK8_TurnipCup`,
+                    "animated": false
+                },
+                "type": 2
+            }
+        ]
+    },
+    {
+        "type": 1,
+        "components": [
+            {
+                "style": 2,
+                "custom_id": `propeller_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103943161696276`,
+                    "name": `MK8_PropellerCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `rock_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103941345558609`,
+                    "name": `MK8_RockCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `moon_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1055103830263595028`,
+                    "name": `MK8_MoonCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+        ]
+    }]
     try {
         await interaction.reply({
             embeds: [
@@ -295,6 +295,7 @@ export const tracks = async (interaction) => {
             components: emoji_buttons
         })
         const collector = interaction.channel.createMessageComponentCollector({
+            filter: i => i.customId.replace(/[^0-9]/gm, '') == uuid,
             time: 600000
         })
         collector.on('end', async () => {
@@ -304,6 +305,7 @@ export const tracks = async (interaction) => {
             collector.stop();
         })
         collector.on("collect", async (button) => {
+            button.customId = button.customId.replace(/[0-9]/gm, '')
             try {
                 const tracks = getTracks(button.customId).join(",   ")
                 await button.update({

@@ -1,9 +1,9 @@
 import { TextInputBuilder, ModalBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, InteractionCollector } from 'discord.js'
-import { client } from '../Quaxly.js'
 import { error_embed } from '../utils.js'
 
 export const lineup = async (interaction) => {
     try {
+        let uuid = '' + Date.now()
         let player_id_list = interaction.options.get("players").value.split('<@').filter(e => e != '').map(e => e.replace(/[^0-9]/g, ''))
         player_id_list = [...new Set(player_id_list)]
         let player_objects_list = Array.from((await interaction.guild.members.fetch()).filter(i => player_id_list.includes(i.user.id)), ([key, value]) => value).sort((a, b) => {
@@ -58,31 +58,31 @@ export const lineup = async (interaction) => {
         const buttonDefault = new ActionRowBuilder()
             .addComponents(
                 new ButtonBuilder()
-                    .setCustomId('button_edit')
+                    .setCustomId('button_edit' + uuid)
                     .setLabel('Edit')
                     .setStyle('Secondary'),
                 new ButtonBuilder()
-                    .setCustomId('button_add')
+                    .setCustomId('button_add' + uuid)
                     .setLabel('Add player')
                     .setStyle('Secondary'),
                 new ButtonBuilder()
-                    .setCustomId('button_del')
+                    .setCustomId('button_del' + uuid)
                     .setLabel('Remove player')
                     .setStyle('Secondary')
             )
         const buttonFull = new ActionRowBuilder()
             .addComponents(
                 new ButtonBuilder()
-                    .setCustomId('button_edit')
+                    .setCustomId('button_edit' + uuid)
                     .setLabel('Edit')
                     .setStyle('Secondary'),
                 new ButtonBuilder()
-                    .setCustomId('button_add')
+                    .setCustomId('button_add' + uuid)
                     .setLabel('Add player')
                     .setStyle('Secondary')
                     .setDisabled(true),
                 new ButtonBuilder()
-                    .setCustomId('button_del')
+                    .setCustomId('button_del' + uuid)
                     .setLabel('Remove player')
                     .setStyle('Secondary')
             )
@@ -92,8 +92,11 @@ export const lineup = async (interaction) => {
         })
         const collector = new InteractionCollector(interaction.client, {
             filter: i => {
-                if (i.user.id != interaction.user.id) i.reply({ content: `You can\'t use this button`, ephemeral: true })
-                return i.user.id === interaction.user.id
+                if (i.customId !== undefined && i.customId.replace(/[^0-9]/gm, '') == uuid) {
+                    if (i.user.id != interaction.user.id) i.reply({ content: `You can\'t use this button`, ephemeral: true })
+                    return i.user.id === interaction.user.id
+                }
+                return false
             },
             time: 10800000,
         })
@@ -105,6 +108,7 @@ export const lineup = async (interaction) => {
             collector.stop();
         })
         collector.on('collect', async i => {
+            i.customId = i.customId.replace(/[0-9]/gm, '')
             if (i.customId === 'modal_edit_lineup') {
                 try {
                     i.fields.getTextInputValue('input_time') ? time = i.fields.getTextInputValue('input_time') : time = time
@@ -169,7 +173,7 @@ export const lineup = async (interaction) => {
             }
             if (i.customId === 'button_edit') {
                 const modal_edit_lineup = new ModalBuilder()
-                    .setCustomId('modal_edit_lineup')
+                    .setCustomId('modal_edit_lineup' + uuid)
                     .setTitle('You have 10 minute to edit')
                 const input_host = new TextInputBuilder()
                     .setCustomId('input_host')
@@ -216,7 +220,7 @@ export const lineup = async (interaction) => {
             }
             if (i.customId === 'button_add') {
                 const modal_add_player = new ModalBuilder()
-                    .setCustomId('modal_add_player')
+                    .setCustomId('modal_add_player' + uuid)
                     .setTitle('add player')
                 const input_player = new TextInputBuilder()
                     .setCustomId('input_player')
@@ -233,7 +237,7 @@ export const lineup = async (interaction) => {
             }
             if (i.customId === 'button_del') {
                 const modal_remove_player = new ModalBuilder()
-                    .setCustomId('modal_remove_player')
+                    .setCustomId('modal_remove_player' + uuid)
                     .setTitle('remove player')
                 const input_player = new TextInputBuilder()
                     .setCustomId('input_player')
@@ -250,6 +254,7 @@ export const lineup = async (interaction) => {
             }
         })
     } catch (e) {
+        console.log(e);
         throw e;
     }
 }

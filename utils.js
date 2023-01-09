@@ -1,7 +1,6 @@
-import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, isJSONEncodable, } from "discord.js";
+import { EmbedBuilder } from "discord.js";
 import { client } from "./Quaxly.js";
 import fs from "fs";
-export const yes_no_buttons = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("Yes").setLabel("Yes").setStyle(ButtonStyle.Success), new ButtonBuilder().setCustomId("No").setLabel("No").setStyle(ButtonStyle.Danger));
 export const track_list = fs.readFileSync("./tracklist.txt", "utf-8").replace(/^(?=\n)$|^\s|\s$|\n\n+/gm, "").split(/\r?\n/);
 export var bdd = JSON.parse(fs.readFileSync("./bdd.json", "utf8"));
 export var user_list = JSON.parse(fs.readFileSync("./user_list.json", "utf8"));
