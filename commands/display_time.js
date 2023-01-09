@@ -197,10 +197,8 @@ export const display_time = async (interaction) => {
             })
             collector.on('collect', async i => {
                 i.customId = i.customId.replace(/_[0-9]+$/g, '')
-                console.log(i.customId, item, speed);
-                time_button[0].components[1].disabled = true ? item = "NI" : item = "Shroom"
-                time_button[0].components[2].disabled = true ? speed = "150" : speed = "200"
-                console.log(i.customId, item, speed);
+                time_button[0].components[1].disabled == true ? item = "NI" : item = "Shroom"
+                time_button[0].components[2].disabled == true ? speed = "150" : speed = "200"
                 switch (i.customId) {
                     case "150":
                         speed = "150"
