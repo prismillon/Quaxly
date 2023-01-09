@@ -1,11 +1,17 @@
 import { TextInputBuilder, ModalBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, InteractionCollector } from 'discord.js'
+import { client } from '../Quaxly.js'
 import { error_embed } from '../utils.js'
 
 export const lineup = async (interaction) => {
     try {
         let player_id_list = interaction.options.get("players").value.split('<@').filter(e => e != '').map(e => e.replace(/[^0-9]/g, ''))
         player_id_list = [...new Set(player_id_list)]
-        let players = player_id_list.map(e => `<@${e}>`).join(' - ')
+        let player_objects_list = Array.from((await interaction.guild.members.fetch()).filter(i => player_id_list.includes(i.user.id)), ([key, value]) => value).sort((a, b) => {
+            if (a.user.username.toLowerCase() > b.user.username.toLowerCase()) return 1
+            if (a.user.username.toLowerCase() < b.user.username.toLowerCase()) return -1
+            return 0
+        })
+        let players = player_objects_list.map(e => `<@${e.user.id}>`).join(' - ')
         let host = interaction.options.get("host").value
         let tag = interaction.options.get("tag").value
         let time = interaction.options.get("time").value
@@ -124,12 +130,10 @@ export const lineup = async (interaction) => {
             if (i.customId === 'modal_remove_player') {
                 try {
                     await i.guild.members.fetch(i.fields.getTextInputValue('input_player')).then(async () => {
-                        if (players.includes('<@' + i.fields.getTextInputValue('input_player') + '>')) {
-                            players = players.replace(' - <@' + i.fields.getTextInputValue('input_player') + '>', '')
-                            players = players.replace('<@' + i.fields.getTextInputValue('input_player') + '> - ', '')
-                            players = players.replace('<@' + i.fields.getTextInputValue('input_player') + '>', '')
-                            embed.fields[0].value = players
-                            button = embed.fields[0].value.split(' - ').length == 6 ? buttonFull : buttonDefault
+                        if (player_objects_list.some(obj => obj.user.id == i.fields.getTextInputValue('input_player'))) {
+                            player_objects_list = player_objects_list.filter(obj => obj.user.id !== i.fields.getTextInputValue('input_player'))
+                            embed.fields[0].value = player_objects_list.map(e => `<@${e.user.id}>`).join(' - ')
+                            button = player_objects_list.length > 5 ? buttonFull : buttonDefault
                             await i.update({ embeds: [embed], components: [button] })
                         } else {
                             await error_embed(i, `<@${i.fields.getTextInputValue('input_player')}> is not in the lineup`)
@@ -143,10 +147,16 @@ export const lineup = async (interaction) => {
             if (i.customId === 'modal_add_player') {
                 try {
                     await i.guild.members.fetch(i.fields.getTextInputValue('input_player')).then(async () => {
-                        if (!players.includes('<@' + i.fields.getTextInputValue('input_player') + '>')) {
-                            players = players + ' - <@' + i.fields.getTextInputValue('input_player') + '>'
-                            embed.fields[0].value = players
-                            button = embed.fields[0].value.split(' - ').length == 6 ? buttonFull : buttonDefault
+                        if (!player_objects_list.some(obj => obj.user.id == i.fields.getTextInputValue('input_player'))) {
+                            let user = await interaction.guild.members.fetch(i.fields.getTextInputValue('input_player'))
+                            player_objects_list.push(user)
+                            player_objects_list = player_objects_list.sort((a, b) => {
+                                if (a.user.username.toLowerCase() > b.user.username.toLowerCase()) return 1
+                                if (a.user.username.toLowerCase() < b.user.username.toLowerCase()) return -1
+                                return 0
+                            })
+                            embed.fields[0].value = player_objects_list.map(e => `<@${e.user.id}>`).join(' - ')
+                            button = player_objects_list.length > 5 ? buttonFull : buttonDefault
                             await i.update({ embeds: [embed], components: [button] })
                         } else {
                             await error_embed(i, `<@${i.fields.getTextInputValue('input_player')}> is already in the lineup`)
