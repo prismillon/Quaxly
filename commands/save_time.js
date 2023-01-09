@@ -1,6 +1,5 @@
 import { bdd, is_track_init, user_and_server_id_check, player_update, get_track_formated, save_bdd, error_embed } from "../utils.js";
-
-import { EmbedBuilder, } from "discord.js";
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 
 export const save_time = async (interaction) => {
     try {
@@ -37,17 +36,18 @@ export const save_time = async (interaction) => {
                     components: [yes_no_buttons],
                 });
                 const collector = interaction.channel.createMessageComponentCollector({
-                    filter: (i) => i.customId.replace(/[^0-9]/gm, '') == uuid && i.user.id === interaction.user.id,
-                    max: 1,
+                    filter: (i) => i.customId !== undefined && i.customId.replace(/[^0-9]/gm, '') == uuid && i.user.id === interaction.user.id,
                     time: 15000,
                 });
-                collector.on('end', async () => {
-                    await interaction.editReply({
-                        embeds: [
-                            new EmbedBuilder().setTitle(`Canceled`).setColor(0x00ff00)
-                                .setDescription(`you didn't answer in time, the command has been canceled`)
-                        ], components: []
-                    })
+                collector.on('end', async (_, reason) => {
+                    if (reason == "time") {
+                        await interaction.editReply({
+                            embeds: [
+                                new EmbedBuilder().setTitle(`Canceled`).setColor(0x00ff00)
+                                    .setDescription(`you didn't answer in time, the command has been canceled`)
+                            ], components: []
+                        })
+                    }
                     collector.stop();
                 })
                 collector.on("collect", async (i) => {
@@ -80,6 +80,7 @@ export const save_time = async (interaction) => {
                         });
 
                     }
+                    collector.stop()
                 });
                 return;
             }
