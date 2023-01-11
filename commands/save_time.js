@@ -85,7 +85,7 @@ export const save_time = async (interaction) => {
                 return;
             }
             else if (bdd[interaction.user.id][speed][item][track] == time) {
-                return error_embed(interaction, `you already have \`${bdd[interaction.user.id][speed][item][track]}\` on this track`);
+                return await error_embed(interaction, `you already have \`${bdd[interaction.user.id][speed][item][track]}\` on this track`);
             }
         }
         player_update(interaction.user.id);
@@ -115,7 +115,7 @@ export const save_time = async (interaction) => {
         }
         bdd[interaction.user.id][speed][item][track] = time;
         if (save_bdd() == 0) {
-            return error_embed(interaction, "could not save the new time");
+            return await error_embed(interaction, "could not save the new time");
         }
         const embed = new EmbedBuilder()
             .setTitle(`Time saved`)
