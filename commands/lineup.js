@@ -104,6 +104,7 @@ export const lineup = async (interaction) => {
             try {
                 await interaction.editReply({ content: '', embeds: [embed], components: [] })
             } catch (error) {
+                console.log(error);
             }
             collector.stop();
         })
