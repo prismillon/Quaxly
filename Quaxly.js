@@ -33,8 +33,8 @@ client.on('error', async (error) => {
 });
 
 client.on('messageCreate', async (message) => {
-    if (message.content.replace(' ', '').includes("<@&1054422658193825835>antifraud")) {
-        let array = message.content.replace('<@&1054422658193825835>', '').replace('antifraud ', '').split(", ")
+    if (message.content.replace(' ', '').includes("<@726933780677394532>antifraud")) {
+        let array = message.content.replace('<@726933780677394532>', '').replace('antifraud ', '').split(", ")
         let param = array.length > 1 ? array[0] + "&season=" + array[1] : array[0]
         let json = await (await fetch(`https://www.mk8dx-lounge.com/api/player/details?name=${param}&quaxly=true`)).json()
         let totalScores = 0
