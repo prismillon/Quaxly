@@ -41,38 +41,41 @@ client.on('messageCreate', async (message) => {
         let totalPartnerScores = 0
         let divider = 0
         let partnerDivider = 0
-        json.mmrChanges.filter((tab) => { return tab.tier !== "SQ" }).filter((tab) => { return tab.score !== undefined }).forEach((tab, index) => {
-            totalScores += tab.score
-            divider += 1
-            if (tab.partnerScores.length > 0) {
-                tab.partnerScores.forEach((array) => {
-                    totalPartnerScores += array
-                    partnerDivider += 1
-                })
-            }
-            if (index == json.mmrChanges.filter((tab) => { return tab.tier !== "SQ" }).filter((tab) => { return tab.score !== undefined }).length - 1) {
-                let embed =
-                {
-                    title: "S" + json.season + " | " + json.name + "'s no SQ stats",
-                    color: 15514131,
-                    fields: [
-                        {
-                            name: "Events",
-                            value: `${json.eventsPlayed} => __${index}__`
-                        },
-                        {
-                            name: "Avg. Score",
-                            value: `${json.averageScore.toFixed(1)} => __${(totalScores / divider).toFixed(1)}__`
-                        },
-                        {
-                            name: "Partner Avg.",
-                            value: `${json.partnerAverage.toFixed(1)} => __${(totalPartnerScores / partnerDivider).toFixed(1)}__`
-                        }
-                    ]
+        if (json.mmrChanges !== undefined) {
+            json.mmrChanges.filter((tab) => { return tab.tier !== "SQ" }).filter((tab) => { return tab.score !== undefined }).forEach((tab, index) => {
+                totalScores += tab.score
+                divider += 1
+                if (tab.partnerScores.length > 0) {
+                    tab.partnerScores.forEach((array) => {
+                        totalPartnerScores += array
+                        partnerDivider += 1
+                    })
                 }
-                message.reply({ embeds: [embed] })
-            }
-        })
+                if (index == json.mmrChanges.filter((tab) => { return tab.tier !== "SQ" }).filter((tab) => { return tab.score !== undefined }).length - 1) {
+                    let embed =
+                    {
+                        title: "S" + json.season + " | " + json.name + "'s no SQ stats",
+                        color: 15514131,
+                        fields: [
+                            {
+                                name: "Events",
+                                value: `${json.eventsPlayed} => __${index}__`
+                            },
+                            {
+                                name: "Avg. Score",
+                                value: `${json.averageScore.toFixed(1)} => __${(totalScores / divider).toFixed(1)}__`
+                            },
+                            {
+                                name: "Partner Avg.",
+                                value: `${json.partnerAverage.toFixed(1)} => __${(totalPartnerScores / partnerDivider).toFixed(1)}__`
+                            }
+                        ]
+                    }
+                    message.reply({ embeds: [embed] })
+                }
+            })
+
+        }
     }
 })
 
