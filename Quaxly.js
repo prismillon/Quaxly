@@ -23,13 +23,4 @@ import { CommandHandler } from "./commands.js";
 
 client.on("interactionCreate", CommandHandler);
 
-client.on('error', async (error) => {
-    try {
-        const owner = await client.users.fetch("169497208406802432");
-        owner.send(`An error occurred: \`\`\`${error}\`\`\``);
-    } catch (error) {
-        console.error(error);
-    }
-});
-
 client.login(config.token);
