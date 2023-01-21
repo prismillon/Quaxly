@@ -1,7 +1,6 @@
 import { error_embed } from "../utils.js";
 
 export const name_history = async (interaction) => {
-
     const discordId = interaction.options.get("player") != undefined ? interaction.options.get("player").value.replace(/[<>@]/gm, '') : interaction.user.id
     let json = (/^\d+$/.test(discordId)) ?
         await (await fetch("https://www.mk8dx-lounge.com/api/player/details?name=" + (await (await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + discordId + "&quaxly=true")).json().catch()).name + "&quaxly=true")).json().catch()
@@ -12,10 +11,10 @@ export const name_history = async (interaction) => {
     let nextChange
     nameDate.setDate(nameDate.getDate() + 60)
     if (nameDate < new Date()) {
-        nextChange = "✅ User can change their name since <t:" + Math.floor(nameDate.getTime() / 1000) + '>'
+        nextChange = "✅ User can change name since <t:" + Math.floor(nameDate.getTime() / 1000) + '>'
     }
     else {
-        nextChange = "⏳ User will be able to change their name on <t:" + Math.floor(nameDate.getTime() / 1000) + '>'
+        nextChange = "⏳ User will be able to change name on <t:" + Math.floor(nameDate.getTime() / 1000) + '>'
     }
     let embed =
     {
