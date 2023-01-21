@@ -1,40 +1,32 @@
 import { error_embed } from "../utils.js";
 
 export const name_history = async (interaction) => {
-    const discordId = interaction.options.get("player").value.replace(/\D/g, '');
-    if (discordId.length === 18) {
-        fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + discordId + "&quaxly=true").then(r => {
-            return r.text()
-        }).then(r => {
-            const currentName = JSON.parse(r).name
-            const loungeId = JSON.parse(r).id
-            fetch("https://www.mk8dx-lounge.com/api/player/details?name=" + currentName + "&quaxly=true").then(r => {
-                return r.text()
-            }).then(r => {
-                const json = JSON.parse(r)
-                let nameDate = new Date(json.nameHistory[0].changedOn)
-                let nextChange
-                nameDate.setDate(nameDate.getDate() + 60)
-                if (nameDate < new Date()) {
-                    nextChange = "✅ User can change their name since <t:" + Math.floor(nameDate.getTime() / 1000) + '>'
-                }
-                else {
-                    nextChange = "⏳ User will be able to change their name on <t:" + Math.floor(nameDate.getTime() / 1000) + '>'
-                }
-                let embed =
-                {
-                    title: currentName + "'s name history",
-                    url: `https://www.mk8dx-lounge.com/PlayerDetails/${loungeId}`,
-                    description: nextChange,
-                    color: 15514131,
-                    fields: []
-                }
-                json.nameHistory.forEach(function (nameArray) {
-                    embed.fields.push({ name: nameArray.name, value: 'Changed on: <t:' + Math.floor(new Date(nameArray.changedOn).getTime() / 1000) + '>', inline: false })
-                })
-                interaction.reply({ embeds: [embed] })
-            })
-        })
+
+    const discordId = interaction.options.get("player") != undefined ? interaction.options.get("player").value.replace(/[<>@]/gm, '') : interaction.user.id
+    let json = (/^\d+$/.test(discordId)) ?
+        await (await fetch("https://www.mk8dx-lounge.com/api/player/details?name=" + (await (await fetch("https://www.mk8dx-lounge.com/api/player?discordid=" + discordId + "&quaxly=true")).json().catch()).name + "&quaxly=true")).json().catch()
+        : await (await fetch("https://www.mk8dx-lounge.com/api/player/details?name=" + discordId + "&quaxly=true")).json().catch()
+    if (json.status == 404) return error_embed(interaction, "Please use a lounge name, @user or ID");
+    const loungeId = json.playerId
+    let nameDate = new Date(json.nameHistory[0].changedOn)
+    let nextChange
+    nameDate.setDate(nameDate.getDate() + 60)
+    if (nameDate < new Date()) {
+        nextChange = "✅ User can change their name since <t:" + Math.floor(nameDate.getTime() / 1000) + '>'
     }
-    else return error_embed(interaction, "Please use a @user or ID");
+    else {
+        nextChange = "⏳ User will be able to change their name on <t:" + Math.floor(nameDate.getTime() / 1000) + '>'
+    }
+    let embed =
+    {
+        title: json.name + "'s name history",
+        url: `https://www.mk8dx-lounge.com/PlayerDetails/${loungeId}`,
+        description: nextChange,
+        color: 15514131,
+        fields: []
+    }
+    json.nameHistory.forEach(function (nameArray) {
+        embed.fields.push({ name: nameArray.name, value: 'Changed on: <t:' + Math.floor(new Date(nameArray.changedOn).getTime() / 1000) + '>', inline: false })
+    })
+    interaction.reply({ embeds: [embed] })
 }
