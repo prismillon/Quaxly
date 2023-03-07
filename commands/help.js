@@ -1,25 +1,14 @@
-import { track_list } from "../utils.js";
 
 import { EmbedBuilder, } from "discord.js";
 
 export const help = async (interaction) => {
-    let new_tracks = track_list.slice(-8);
-    let new_tracks_string = "";
-    for (let i = 0; i < new_tracks.length; i++) {
-        new_tracks_string += `\`${new_tracks[i]}\` `;
-    }
     interaction.reply({
         embeds: [
             new EmbedBuilder()
                 .setTitle("Help menu")
                 .setColor(0x47e0ff)
-                .setThumbnail("https://archives.bulbagarden.net/media/upload/4/49/Quaxly.png")
                 .setFooter({ text: "Made by pierre#1111, feel free to contact me if you have any questions" })
-                .addFields({
-                    name: "/ping",
-                    value: "Returns the bot's latency",
-
-                },
+                .addFields(
                     {
                         name: "/save_time",
                         value: "Saves your time in the chosen category",
@@ -45,9 +34,17 @@ export const help = async (interaction) => {
                         value: "Remove the user selected from the server",
                     },
                     {
-                        name: "Last 8 dlc tracks names in order:",
-                        value: new_tracks_string,
-                    }
+                        name: "/tracks",
+                        value: "Give buttons to select cups that then show tracks name to use with the bot",
+                    },
+                    {
+                        name: "/name_history",
+                        value: "Show the past name of the user and if he can change name or not (if you change uppercase this is likely to be broken this is not a lounge official tool)",
+                    },
+                    {
+                        name: "/team_stats",
+                        value: "Show stats and average of a group it can be from a discord role or an mkc roaster and can show events mmr or peak mmr",
+                    },
                 )
         ],
     })
