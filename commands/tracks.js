@@ -39,6 +39,10 @@ function getTracks(cup) {
             return track_list.filter((_, i) => i >= 64 && i < 68)
         case "moon_cup":
             return track_list.filter((_, i) => i >= 68 && i < 72)
+        case "fruit_cup":
+            return track_list.filter((_, i) => i >= 72 && i < 76)
+        case "boomerang_cup":
+            return track_list.filter((_, i) => i >= 76 && i < 80)
     }
 }
 
@@ -61,6 +65,8 @@ const emoji_to_links = {
     "propeller_cup": "https://cdn.discordapp.com/attachments/1055130165782515803/1055131126563340379/MK8D_BCP_Propeller_Emblem.png",
     "rock_cup": "https://cdn.discordapp.com/attachments/1055130165782515803/1055131250362437632/MK8D_BCP_Rock_Emblem.png",
     "moon_cup": "https://cdn.discordapp.com/attachments/1055130165782515803/1055131264975384657/MK8D_BCP_Moon_Emblem.png",
+    "fruit_cup": "https://cdn.discordapp.com/attachments/1055130165782515803/1081260640330592356/MK8D_BCP_Fruit_Emblem.png",
+    "boomerang_cup": "https://cdn.discordapp.com/attachments/1055130165782515803/1081260687235498115/MK8D_BCP_Boomerang_Emblem.png"
 }
 
 export const tracks = async (interaction) => {
@@ -277,6 +283,28 @@ export const tracks = async (interaction) => {
                 "emoji": {
                     "id": `1055103830263595028`,
                     "name": `MK8_MoonCup`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `fruit_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1081261071412777051`,
+                    "name": `MK8D_BCP_Fruit_Emblem`,
+                    "animated": false
+                },
+                "type": 2
+            },
+            {
+                "style": 2,
+                "custom_id": `boomerang_cup` + uuid,
+                "disabled": false,
+                "emoji": {
+                    "id": `1081261068506112060`,
+                    "name": `MK8D_BCP_Boomerang_Emblem`,
                     "animated": false
                 },
                 "type": 2
