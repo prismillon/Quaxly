@@ -100,11 +100,6 @@ export const lineup = async (interaction) => {
         time: 10800000,
     })
     collector.on('end', async () => {
-        try {
-            await interaction.editReply({ content: '', embeds: [embed], components: [] })
-        } catch (error) {
-            console.log(error);
-        }
         collector.stop();
     })
     collector.on('collect', async i => {
