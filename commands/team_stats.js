@@ -1,6 +1,7 @@
 import { error_embed, averageMmr, averagePeakMmr, teamEvents, teamFCs } from "../utils.js";
 
 export const team_stats = async (interaction) => {
+    interaction.deferReply()
     let season = interaction.options.get("season") && interaction.options.get("season").value != undefined ? "Season " + interaction.options.get("season").value + " " : ""
     switch (true) {
         case !interaction.options.get("stat") || interaction.options.get("stat").value === "average":
@@ -25,7 +26,7 @@ export const team_stats = async (interaction) => {
                             if (ids.length > 300) return error_embed(interaction, "Your role have too many members. Please retry with less than 300 members.");
                             else if (ids.length == 0) return error_embed(interaction, "Your role have no members. Please retry with another role with more than 0 members.");
                             else {
-                                await interaction.reply({ embeds: [embed] }).then(async () => {
+                                await interaction.editReply({ embeds: [embed] }).then(async () => {
                                     await averageMmr("discordid", ids, embed, interaction, [], [], [])
                                 })
                             }
@@ -47,7 +48,7 @@ export const team_stats = async (interaction) => {
                     if (ids.length > 300) return error_embed(interaction, "Your command have too many users. Please retry with less than 300 users.");
                     else if (ids.length == 0) return error_embed(interaction, "Your command have no users. Please retry with more than 0 users.");
                     else {
-                        await interaction.reply({ embeds: [embed] }).then(async () => {
+                        await interaction.editReply({ embeds: [embed] }).then(async () => {
                             await averageMmr("discordid", ids, embed, interaction, [], [], [])
                         })
                     }
@@ -91,7 +92,7 @@ export const team_stats = async (interaction) => {
                             if (ids.length > 300) return error_embed(interaction, "Your role have too many members. Please retry with less than 300 members.");
                             else if (ids.length == 0) return error_embed(interaction, "Your role have no members. Please retry with another role with more than 0 members.");
                             else {
-                                await interaction.reply({ embeds: [embed] }).then(async () => {
+                                await interaction.editReply({ embeds: [embed] }).then(async () => {
                                     await averagePeakMmr("discordid", ids, embed, interaction, [], [], [])
                                 })
                             }
@@ -113,7 +114,7 @@ export const team_stats = async (interaction) => {
                     if (ids.length > 300) return error_embed(interaction, "Your command have too many users. Please retry with less than 300 users.");
                     else if (ids.length == 0) return error_embed(interaction, "Your command have no users. Please retry with more than 0 users.");
                     else {
-                        await interaction.reply({ embeds: [embed] }).then(async () => {
+                        await interaction.editReply({ embeds: [embed] }).then(async () => {
                             await averagePeakMmr("discordid", ids, embed, interaction, [], [], [])
                         })
                     }
@@ -159,7 +160,7 @@ export const team_stats = async (interaction) => {
                             if (ids.length > 300) return error_embed(interaction, "Your role have too many members. Please retry with less than 300 members.");
                             else if (ids.length == 0) return error_embed(interaction, "Your role have no members. Please retry with another role with more than 0 members.");
                             else {
-                                await interaction.reply({ embeds: [embed] }).then(async () => {
+                                await interaction.editReply({ embeds: [embed] }).then(async () => {
                                     await teamEvents("discordid", ids, embed, interaction, [], [], [])
                                 })
                             }
@@ -182,7 +183,7 @@ export const team_stats = async (interaction) => {
                     if (ids.length > 300) return error_embed(interaction, "Your command have too many users. Please retry with less than 300 users.");
                     else if (ids.length == 0) return error_embed(interaction, "Your command have no users. Please retry with more than 0 users.");
                     else {
-                        await interaction.reply({ embeds: [embed] }).then(async () => {
+                        await interaction.editReply({ embeds: [embed] }).then(async () => {
                             await teamEvents("discordid", ids, embed, interaction, [], [], [])
                         })
                     }

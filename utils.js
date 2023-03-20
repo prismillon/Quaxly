@@ -277,19 +277,19 @@ export async function teamFCs(team_id, interaction) {
     }
     if (!interaction.options.get("stat") || interaction.options.get("stat").value === "average") {
         embed.title = season + "Average MMR"
-        await interaction.reply({ embeds: [embed] }).then(async () => {
+        await interaction.editReply({ embeds: [embed] }).then(async () => {
             await averageMmr("fc", ids, embed, interaction, [], [], [])
         })
     }
     else if (interaction.options.get("stat").value === "peak") {
         embed.title = season + "Average peak MMR"
-        await interaction.reply({ embeds: [embed] }).then(async () => {
+        await interaction.editReply({ embeds: [embed] }).then(async () => {
             await averagePeakMmr("fc", ids, embed, interaction, [], [], [])
         })
     }
     else if (interaction.options.get("stat").value === "events") {
         embed.title = season + "Team Events"
-        await interaction.reply({ embeds: [embed] }).then(async () => {
+        await interaction.editReply({ embeds: [embed] }).then(async () => {
             await teamEvents("fc", ids, embed, interaction, [], [], [])
         })
     }
