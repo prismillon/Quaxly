@@ -1,7 +1,7 @@
 import { error_embed, averageMmr, averagePeakMmr, teamEvents, teamFCs } from "../utils.js";
 
 export const team_stats = async (interaction) => {
-    interaction.deferReply()
+    await interaction.deferReply()
     let season = interaction.options.get("season") && interaction.options.get("season").value != undefined ? "Season " + interaction.options.get("season").value + " " : ""
     switch (true) {
         case !interaction.options.get("stat") || interaction.options.get("stat").value === "average":
