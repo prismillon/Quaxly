@@ -9,7 +9,7 @@ export const register_user = async (interaction) => {
     }
     var user_id = interaction.options.get("user").value.replace(/[^0-9]/g, '');
     if (bdd[user_id] == undefined) {
-        return error_embed(interaction, "sorry, but the user you provided is invalid or not registered in the database");
+        return error_embed(interaction, "sorry, but the user you provided is invalid or as not registered any time in the bot yet");
     }
     let user
     try {
