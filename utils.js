@@ -90,12 +90,7 @@ export async function teamEvents(searchType, ids, embed, interaction, embedArray
             nameJson = await (await fetch("https://www.mk8dx-lounge.com/api/player?" + searchType + "=" + ids[i] + "&quaxly=true")).json()
             json = await (await fetch("https://www.mk8dx-lounge.com/api/player/details?name=" + nameJson.name + season + "&quaxly=true")).json()
         } catch (e) {
-            console.log(interaction);
-            const owner = await client.users.fetch("169497208406802432");
-            owner.send(`An error occurred: \`\`\`${e}\`\`\`\n\n\`\`\`${interaction}\`\`\`\n\n\`\`\`${searchType}\`\`\`\n\n\`\`\`${ids[i]}\`\`\``).catch(() => {
-                console.log("Error while sending error to owner\n\n" + e + "\n\n" + interaction + "\n\n" + searchType + "\n\n" + ids[i])
-            });
-            continue;
+            console.log(interaction, e);
         }
         if (json.eventsPlayed != undefined && json.eventsPlayed > 0) {
             eventsArray.push(json.eventsPlayed)

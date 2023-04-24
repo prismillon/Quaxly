@@ -25,7 +25,7 @@ export const CommandHandler = async (interaction) => {
     let command_options = []
 
     for (let i = 0; i < interaction.options._hoistedOptions.length; i++) {
-        command_options.push({ name: interaction.options._hoistedOptions[i].name, value: interaction.options._hoistedOptions[i].value })
+        command_options.push({ name: interaction.options._hoistedOptions[i].name, value: interaction.options._hoistedOptions[i].value.length > 1024 ? "Too many chars to display" : interaction.options._hoistedOptions[i].value })
     }
 
     const commandLogEmbed = new EmbedBuilder()
