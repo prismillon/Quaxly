@@ -1,4 +1,4 @@
-import { error_embed } from './utils.js';
+import { error_embed, track_list, playerList } from './utils.js';
 import { client } from './Quaxly.js';
 import { delete_time } from './commands/delete_time.js';
 import { display_time } from './commands/display_time.js';
@@ -18,6 +18,30 @@ const commands = { save_time, delete_time, import_times, display_time, help, reg
 const server_commands = ['time', 'user', 'lineup', 'tracks']
 
 export const CommandHandler = async (interaction) => {
+
+    if (interaction.isAutocomplete()) {
+        let focusedValue = interaction.options.getFocused(true)
+
+        switch (focusedValue.name) {
+            case "track":
+                const tracks = track_list
+                let f_tracks = tracks.filter(track => track.toLowerCase().startsWith(focusedValue.value.toLowerCase()))
+                return await interaction.respond(
+                    f_tracks.map(track => ({ name: track, value: track })).slice(0, 25),
+                )
+
+            case "player":
+                const players = playerList
+                let f_player = players.filter(player => player.toLowerCase().startsWith(focusedValue.value.toLowerCase()))
+                return await interaction.respond(
+                    f_player.map(player => ({ name: player, value: player })).slice(0, 25),
+                )
+
+            default:
+                return
+        }
+    }
+
     if (!interaction.isChatInputCommand()) return;
     if (interaction.acknowledged) return;
     if (interaction.guildId == null && server_commands.some(s_cmd => interaction.commandName.includes(s_cmd))) return error_embed(interaction, "sorry, but this bot can only be used in a server")

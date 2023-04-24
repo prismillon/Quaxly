@@ -1,9 +1,20 @@
 import { EmbedBuilder } from "discord.js";
 import { client } from "./Quaxly.js";
 import fs from "fs";
+
 export const track_list = fs.readFileSync("./tracklist.txt", "utf-8").replace(/^(?=\n)$|^\s|\s$|\n\n+/gm, "").split(/\r?\n/);
 export var bdd = JSON.parse(fs.readFileSync("./bdd.json", "utf8"));
 export var user_list = JSON.parse(fs.readFileSync("./user_list.json", "utf8"));
+export let playerList = []
+
+
+export async function updatePlayerList() {
+    let playerObjectList = await (await fetch("https://www.mk8dx-lounge.com/api/player/list")).json()
+    playerList = []
+    playerObjectList.players.forEach(el => {
+        playerList.push(el.name)
+    })
+}
 
 export function is_track_init(user_id, speed, item, track) {
     if (bdd[user_id] != undefined && bdd[user_id][speed] != undefined && bdd[user_id][speed][item] != undefined && bdd[user_id][speed][item][track] != undefined) {
