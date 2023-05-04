@@ -153,12 +153,7 @@ export async function averagePeakMmr(searchType, ids, embed, interaction, embedA
             nameJson = await (await fetch("https://www.mk8dx-lounge.com/api/player?" + searchType + "=" + ids[i] + "&quaxly=true")).json()
             json = await (await fetch("https://www.mk8dx-lounge.com/api/player/details?name=" + nameJson.name + season + "&quaxly=true")).json()
         } catch (e) {
-            console.log(interaction);
-            const owner = await client.users.fetch("169497208406802432");
-            owner.send(`An error occurred: \`\`\`${e}\`\`\`\n\n\`\`\`${interaction}\`\`\`\n\n\`\`\`${searchType}\`\`\`\n\n\`\`\`${ids[i]}\`\`\``).catch(() => {
-                console.log("Error while sending error to owner\n\n" + e + "\n\n" + interaction + "\n\n" + searchType + "\n\n" + ids[i])
-            });
-            continue;
+            console.log(interaction, e);
         }
         if (json.name != undefined && json.mmr) {
             let mmrValue = json.maxMmr != undefined ? json.maxMmr : json.mmr
@@ -210,12 +205,7 @@ export async function averageMmr(searchType, ids, embed, interaction, embedArray
         try {
             json = await (await fetch("https://www.mk8dx-lounge.com/api/player?" + searchType + "=" + ids[i] + season + "&quaxly=true")).json()
         } catch (e) {
-            console.log(interaction);
-            const owner = await client.users.fetch("169497208406802432");
-            owner.send(`An error occurred: \`\`\`${e}\`\`\`\n\n\`\`\`${interaction}\`\`\`\n\n\`\`\`${searchType}\`\`\`\n\n\`\`\`${ids[i]}\`\`\``).catch(() => {
-                console.log("Error while sending error to owner\n\n" + e + "\n\n" + interaction + "\n\n" + searchType + "\n\n" + ids[i])
-            });
-            continue;
+            console.log(interaction, e);
         }
         if (json.name != undefined && json.mmr != undefined) {
             mmrArray.push(parseInt(json.mmr))
