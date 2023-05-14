@@ -18,7 +18,6 @@ const commands = { save_time, delete_time, import_times, display_time, help, reg
 const server_commands = ['time', 'user', 'lineup', 'tracks']
 
 export const CommandHandler = async (interaction) => {
-
     if (interaction.isAutocomplete()) {
         let focusedValue = interaction.options.getFocused(true)
 
@@ -44,7 +43,7 @@ export const CommandHandler = async (interaction) => {
 
     if (!interaction.isChatInputCommand()) return;
     if (interaction.acknowledged) return;
-    if (interaction.guildId == null && server_commands.some(s_cmd => interaction.commandName.includes(s_cmd))) return error_embed(interaction, "sorry, but this bot can only be used in a server")
+    if (interaction.guildId == null && server_commands.some(s_cmd => interaction.commandName.includes(s_cmd))) return error_embed(interaction, "sorry, but this command can only be used in a server")
 
     let command_options = []
 
@@ -52,50 +51,52 @@ export const CommandHandler = async (interaction) => {
         command_options.push({ name: interaction.options._hoistedOptions[i].name, value: interaction.options._hoistedOptions[i].value.length > 1024 ? "Too many chars to display" : interaction.options._hoistedOptions[i].value })
     }
 
-    const commandLogEmbed = new EmbedBuilder()
+    let commandLogEmbed = new EmbedBuilder()
         .setAuthor({ name: interaction.user.username + '#' + interaction.user.discriminator, iconURL: interaction.user.avatarURL() })
         .setTitle('/' + interaction.commandName)
         .setTimestamp()
-        .setFooter({ text: interaction.user.id })
+        .setFooter({ text: interaction.guild != undefined ? interaction.guild.name : "direct message", iconURL: interaction.guild != undefined ? interaction.guild.iconURL() : null })
         .addFields(command_options)
 
-    client.channels.cache.get(`1065611483897147502`).send({ embeds: [commandLogEmbed] });
+    let logs_message = await client.channels.cache.get(`1065611483897147502`).send({ embeds: [commandLogEmbed] });
 
     switch (interaction.commandName) {
         case 'save_time':
-            commands.save_time(interaction);
+            await commands.save_time(interaction);
             break;
         case 'delete_time':
-            commands.delete_time(interaction);
+            await commands.delete_time(interaction);
             break;
         case 'import_times':
-            commands.import_times(interaction);
+            await commands.import_times(interaction);
             break;
         case 'display_time':
-            commands.display_time(interaction);
+            await commands.display_time(interaction);
             break;
         case 'help':
-            commands.help(interaction);
+            await commands.help(interaction);
             break;
         case 'register_user':
-            commands.register_user(interaction);
+            await commands.register_user(interaction);
             break;
         case 'remove_user':
-            commands.remove_user(interaction);
+            await commands.remove_user(interaction);
             break;
         case 'team_stats':
-            commands.team_stats(interaction);
+            await commands.team_stats(interaction);
             break;
         case 'name_history':
-            commands.name_history(interaction);
+            await commands.name_history(interaction);
             break;
         case 'lineup':
-            commands.lineup(interaction);
+            await commands.lineup(interaction);
             break;
         case 'tracks':
-            commands.tracks(interaction);
+            await commands.tracks(interaction);
             break;
         default:
             break;
     }
+    commandLogEmbed.setColor(0xb4ffb1)
+    logs_message.edit({ embeds: [commandLogEmbed] })
 }
