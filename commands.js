@@ -18,6 +18,7 @@ const commands = { save_time, delete_time, import_times, display_time, help, reg
 const server_commands = ['time', 'user', 'lineup', 'tracks']
 
 export const CommandHandler = async (interaction) => {
+    let time = new Date().getTime()
     if (interaction.isAutocomplete()) {
         let focusedValue = interaction.options.getFocused(true)
 
@@ -98,5 +99,6 @@ export const CommandHandler = async (interaction) => {
             break;
     }
     commandLogEmbed.setColor(0xb4ffb1)
+    commandLogEmbed.setTitle('/' + interaction.commandName + ' ``(' + ((new Date().getTime() - time)/ 1000)+ 's)``')
     logs_message.edit({ embeds: [commandLogEmbed] })
 }
