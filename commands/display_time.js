@@ -61,7 +61,7 @@ export const display_time = async (interaction) => {
         let best_time_object = {};
         let user;
         for (let i = 0; i < track_list.length; i++) {
-            if (Object.values(best_time_object).length > 0 && !interaction.deferred) await interaction.deferReply();
+            if (!interaction.deferred) await interaction.deferReply();
             for (let j = 0; j < user_list[interaction.guild.id].length; j++) {
                 if (bdd[user_list[interaction.guild.id][j]] == undefined) {
                     user_list[interaction.guild.id].splice(j, 1);
