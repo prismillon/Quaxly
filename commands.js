@@ -59,7 +59,7 @@ export const CommandHandler = async (interaction) => {
         .setFooter({ text: interaction.guild != undefined ? interaction.guild.name : "direct message", iconURL: interaction.guild != undefined ? interaction.guild.iconURL() : null })
         .addFields(command_options)
 
-    let logs_message = await client.channels.cache.get(`1065611483897147502`).send({ embeds: [commandLogEmbed] });
+    let logs_message = client.channels.cache.get(`1065611483897147502`).send({ embeds: [commandLogEmbed] });
 
     switch (interaction.commandName) {
         case 'save_time':
@@ -100,5 +100,6 @@ export const CommandHandler = async (interaction) => {
     }
     commandLogEmbed.setColor(0xb4ffb1)
     commandLogEmbed.setTitle('/' + interaction.commandName + ' ``(' + ((new Date().getTime() - time)/ 1000)+ 's)``')
+    logs_message = await Promise.resolve(logs_message)
     logs_message.edit({ embeds: [commandLogEmbed] })
 }
