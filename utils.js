@@ -6,14 +6,13 @@ export const track_list = fs.readFileSync("./tracklist.txt", "utf-8").replace(/^
 export var bdd = JSON.parse(fs.readFileSync("./bdd.json", "utf8"));
 export var user_list = JSON.parse(fs.readFileSync("./user_list.json", "utf8"));
 export let playerList = []
+export let teamList
 
 
 export async function updatePlayerList() {
     let playerObjectList = await (await fetch("https://www.mk8dx-lounge.com/api/player/list")).json()
-    playerList = []
-    playerObjectList.players.forEach(el => {
-        playerList.push(el.name)
-    })
+    playerList = playerObjectList.players
+    teamList = await (await fetch("https://www.mariokartcentral.com/mkc/api/registry/teams/category/150cc")).json()
 }
 
 export function is_track_init(user_id, speed, item, track) {
@@ -92,161 +91,67 @@ export async function error_embed(interaction, error) {
     }
 }
 
-export async function teamEvents(searchType, ids, embed, interaction, embedArray, jsonArray, eventsArray) {
-    for (let i = 0; i < ids.length; i++) {
-        let nameJson
-        let json
-        let season = interaction.options.get("season") && interaction.options.get("season").value != undefined ? "&season=" + interaction.options.get("season").value : ""
-        try {
-            nameJson = await (await fetch("https://www.mk8dx-lounge.com/api/player?" + searchType + "=" + ids[i] + "&quaxly=true")).json()
-            json = await (await fetch("https://www.mk8dx-lounge.com/api/player/details?name=" + nameJson.name + season + "&quaxly=true")).json()
-        } catch (e) {
-            console.log(interaction, e);
-        }
-        if (json.eventsPlayed != undefined && json.eventsPlayed > 0) {
-            eventsArray.push(json.eventsPlayed)
-            jsonArray.push(json)
-            if ((jsonArray.length - 1) % 21 === 0 && jsonArray.length > 1) {
-                embedArray.push({
-                    color: 15514131,
-                    fields: [
-                    ]
-                })
-            }
-            else if ((jsonArray.length - 1) % 21 === 0) {
-                embedArray.push(embed)
-            }
-            embedArray[Math.floor((jsonArray.length - 1) / 21)].fields.push({ name: json.name, value: `<@${nameJson.discordId}> ([${json.eventsPlayed}](https://www.mk8dx-lounge.com/PlayerDetails/${json.playerId}))`, inline: true })
-            embedArray[Math.floor((jsonArray.length - 1) / 21)].fields.sort(function (a, b) { return parseInt(b.value.split('> ([')[1].split(']')[0]) - parseInt(a.value.split('> ([')[1].split(']')[0]); })
-            await interaction.editReply({ embeds: embedArray })
+export async function playersStats(searchType, ids, embed, interaction) {
+    let season = interaction.options.get("season") && interaction.options.get("season").value != undefined ? "&season=" + interaction.options.get("season").value : "";
+    let type = interaction.options.get("stat") && interaction.options.get("stat").value != undefined ? interaction.options.get("stat").value : "average"
+    const stats = ids.map(el => fetch("https://www.mk8dx-lounge.com/api/player?" + searchType + "=" + el + season + "&quaxly=true"));
 
-        }
-        if (i === ids.length - 1 && embedArray[embedArray.length - 1] != undefined) {
-            embedArray.forEach(array => {
-                array.fields.sort(function (a, b) { return parseInt(b.value.split('> ([')[1].split(']')[0]) - parseInt(a.value.split('> ([')[1].split(']')[0]); })
-            })
-            embedArray[embedArray.length - 1].fields.push({ name: '\u200B', value: '\u200B' })
-            let sum = parseInt(eventsArray.reduce((a, b) => a + b, 0))
-            embedArray[embedArray.length - 1].fields.push({ name: "Total", value: `__${sum}__`, inline: true })
-            embedArray[embedArray.length - 1].fields.push({ name: "Average/player", value: `__${parseInt(sum / eventsArray.length)}__`, inline: true })
-            await interaction.editReply({ embeds: embedArray })
-        } else if (i === ids.length - 1) {
-            await interaction.editReply({
-                embeds: [
-                    {
-                        title: "Error",
-                        description: "No player found or wrong season",
-                        color: 0xff0000,
-                    }
-                ]
-            })
-        }
+    let data = await Promise.allSettled(stats)
+        .then(responses => {
+            const fulfilledResponses = responses.filter(response => response.status === "fulfilled" && response.value.status === 200);
+            const jsonPromises = fulfilledResponses.map(response => response.value.json());
+            return Promise.all(jsonPromises);
+        });
+    data = data.filter(el => el.mmr != undefined)
+    if (data.length == 0){
+        return await interaction.editReply({
+            embeds: [
+                {
+                    title: "Error",
+                    description: "No player found or wrong season",
+                    color: 0xff0000,
+                }
+            ]
+        })
     }
-}
+    switch (type) {
+        case "peak":
+            data.forEach(el => {
+                if (el.maxMmr != undefined) return el.target = el.maxMmr
+                return el.target = el.mmr
+            });
+            break;
+        case "events":
+            for (const bPlayer of playerList) {
+                const { name, eventsPlayed } = bPlayer
 
-export async function averagePeakMmr(searchType, ids, embed, interaction, embedArray, jsonArray, mmrArray) {
-    for (let i = 0; i < ids.length; i++) {
-        let nameJson
-        let json
-        let season = interaction.options.get("season") && interaction.options.get("season").value != undefined ? "&season=" + interaction.options.get("season").value : ""
-        try {
-            nameJson = await (await fetch("https://www.mk8dx-lounge.com/api/player?" + searchType + "=" + ids[i] + "&quaxly=true")).json()
-            json = await (await fetch("https://www.mk8dx-lounge.com/api/player/details?name=" + nameJson.name + season + "&quaxly=true")).json()
-        } catch (e) {
-            console.log(interaction, e);
-        }
-        if (json.name != undefined && json.mmr) {
-            let mmrValue = json.maxMmr != undefined ? json.maxMmr : json.mmr
-            mmrArray.push(parseInt(mmrValue))
-            jsonArray.push(json)
-            if ((jsonArray.length - 1) % 21 === 0 && jsonArray.length > 1) {
-                embedArray.push({
-                    color: 15514131,
-                    fields: [
-                    ]
-                })
-            }
-            else if ((jsonArray.length - 1) % 21 === 0) {
-                embedArray.push(embed)
-            }
-            embedArray[Math.floor((jsonArray.length - 1) / 21)].fields.push({ name: json.name, value: `<@${nameJson.discordId}> ([${mmrValue}](https://www.mk8dx-lounge.com/PlayerDetails/${json.playerId}))`, inline: true })
-            embedArray[Math.floor((jsonArray.length - 1) / 21)].fields.sort(function (a, b) { return parseInt(b.value.split('> ([')[1].split(']')[0]) - parseInt(a.value.split('> ([')[1].split(']')[0]); })
-            await interaction.editReply({ embeds: embedArray })
-
-        }
-        if (i === ids.length - 1 && embedArray[embedArray.length - 1] != undefined) {
-            embedArray.forEach(array => {
-                array.fields.sort(function (a, b) { return parseInt(b.value.split('> ([')[1].split(']')[0]) - parseInt(a.value.split('> ([')[1].split(']')[0]); })
-            })
-            embedArray[embedArray.length - 1].fields.push({ name: '\u200B', value: '\u200B' })
-            embedArray[embedArray.length - 1].fields.push({ name: "Average", value: `__${parseInt(mmrArray.reduce((a, b) => a + b, 0) / mmrArray.length)}__`, inline: true })
-            let top6 = jsonArray.sort((a, b) => (b.maxMmr != undefined ? b.maxMmr : b.mmr) - (a.maxMmr != undefined ? a.maxMmr : a.mmr)).slice(0, 6)
-            embedArray[embedArray.length - 1].fields.push({ name: "Top 6", value: `__${parseInt(top6.reduce((a, b) => a + (b.maxMmr != undefined ? b.maxMmr : b.mmr), 0) / top6.length)}__`, inline: true })
-            await interaction.editReply({ embeds: embedArray })
-        }
-        else if (i === ids.length - 1) {
-            await interaction.editReply({
-                embeds: [
-                    {
-                        title: "Error",
-                        description: "No player found or wrong season",
-                        color: 0xff0000,
+                for (const sPlayer of data) {
+                    if (sPlayer.name === name) {
+                        sPlayer.target = eventsPlayed
+                        break;
                     }
-                ]
-            })
-        }
-
-    }
-}
-export async function averageMmr(searchType, ids, embed, interaction, embedArray, jsonArray, mmrArray) {
-    for (let i = 0; i < ids.length; i++) {
-        let json
-        let season = interaction.options.get("season") && interaction.options.get("season").value != undefined ? "&season=" + interaction.options.get("season").value : ""
-        try {
-            json = await (await fetch("https://www.mk8dx-lounge.com/api/player?" + searchType + "=" + ids[i] + season + "&quaxly=true")).json()
-        } catch (e) {
-            console.log(interaction, e);
-        }
-        if (json.name != undefined && json.mmr != undefined) {
-            mmrArray.push(parseInt(json.mmr))
-            jsonArray.push(json)
-            if ((jsonArray.length - 1) % 21 === 0 && jsonArray.length > 1) {
-                embedArray.push({
-                    color: 15514131,
-                    fields: [
-                    ]
-                })
+                }
             }
-            else if ((jsonArray.length - 1) % 21 === 0) {
-                embedArray.push(embed)
-            }
-            embedArray[Math.floor((jsonArray.length - 1) / 21)].fields.push({ name: json.name, value: `<@${json.discordId}> ([${json.mmr}](https://www.mk8dx-lounge.com/PlayerDetails/${json.id}))`, inline: true })
-            embedArray[Math.floor((jsonArray.length - 1) / 21)].fields.sort(function (a, b) { return parseInt(b.value.split('> ([')[1].split(']')[0]) - parseInt(a.value.split('> ([')[1].split(']')[0]); })
-            await interaction.editReply({ embeds: embedArray })
-
-        }
-        if (i === ids.length - 1 && embedArray[embedArray.length - 1] != undefined) {
-            embedArray.forEach(array => {
-                array.fields.sort(function (a, b) { return parseInt(b.value.split('> ([')[1].split(']')[0]) - parseInt(a.value.split('> ([')[1].split(']')[0]); })
+            break;
+        default:
+            data.forEach(el => {
+                return el.target = el.mmr
             })
-            embedArray[embedArray.length - 1].fields.push({ name: '\u200B', value: '\u200B' })
-            embedArray[embedArray.length - 1].fields.push({ name: "Average", value: `__${parseInt(mmrArray.reduce((a, b) => a + b, 0) / mmrArray.length)}__`, inline: true })
-            let top6 = jsonArray.sort((a, b) => b.mmr - a.mmr).slice(0, 6)
-            embedArray[embedArray.length - 1].fields.push({ name: "Top 6", value: `__${parseInt(top6.reduce((a, b) => a + b.mmr, 0) / top6.length)}__`, inline: true })
-            await interaction.editReply({ embeds: embedArray })
-        } else if (i === ids.length - 1) {
-            await interaction.editReply({
-                embeds: [
-                    {
-                        title: "Error",
-                        description: "No player found or wrong season",
-                        color: 0xff0000,
-                    }
-                ]
-            })
-        }
+            break;
     }
+    data.sort((a, b) => b.target - a.target)
+    let embedArray = [embed]
+    data.forEach(el => {
+        embedArray[embedArray.length-1].fields.push({ name: el.name, value: `<@${el.discordId}> ([${el.target}](https://www.mk8dx-lounge.com/PlayerDetails/${el.id}))`, inline: true })
+        if (embedArray[embedArray.length-1].fields.length >= 21) embedArray.push({ color: 15514131, fields: [] })
+    })
+    embedArray[embedArray.length - 1].fields.push({ name: '\u200B', value: '\u200B' })
+    embedArray[embedArray.length - 1].fields.push({ name: "Average", value: `__${(data.reduce((a, b) => a + b.target, 0) / data.length).toFixed()}__`, inline: true })
+    let top6 = data.slice(0, 6)
+    embedArray[embedArray.length - 1].fields.push({ name: "Top 6", value: `__${(top6.reduce((a, b) => a + b.target, 0) / top6.length).toFixed()}__`, inline: true })
+    await interaction.editReply({ embeds: embedArray })
 }
+ 
 
 export async function teamFCs(team_id, interaction) {
     let json
@@ -271,22 +176,8 @@ export async function teamFCs(team_id, interaction) {
             url: "https://www.mariokartcentral.com/mkc/storage/" + json.team_logo
         }
     }
-    if (!interaction.options.get("stat") || interaction.options.get("stat").value === "average") {
-        embed.title = season + "Average MMR"
-        await interaction.editReply({ embeds: [embed] }).then(async () => {
-            await averageMmr("fc", ids, embed, interaction, [], [], [])
-        })
-    }
-    else if (interaction.options.get("stat").value === "peak") {
-        embed.title = season + "Average peak MMR"
-        await interaction.editReply({ embeds: [embed] }).then(async () => {
-            await averagePeakMmr("fc", ids, embed, interaction, [], [], [])
-        })
-    }
-    else if (interaction.options.get("stat").value === "events") {
-        embed.title = season + "Team Events"
-        await interaction.editReply({ embeds: [embed] }).then(async () => {
-            await teamEvents("fc", ids, embed, interaction, [], [], [])
-        })
-    }
+    if (!interaction.options.get("stat") || interaction.options.get("stat").value === "average") embed.title = season + "Average MMR"
+    else if (interaction.options.get("stat").value === "peak") embed.title = season + "Average peak MMR"
+    else if (interaction.options.get("stat").value === "events") embed.title = season + "Team Events"
+    await playersStats("fc", ids, embed, interaction)
 }

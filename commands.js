@@ -31,8 +31,7 @@ export const CommandHandler = async (interaction) => {
                 )
 
             case "player":
-                const players = playerList
-                let f_player = players.filter(player => player.toLowerCase().startsWith(focusedValue.value.toLowerCase()))
+                let f_player = playerList.map(function (el) { return el.name }).filter(player => player.toLowerCase().startsWith(focusedValue.value.toLowerCase()))
                 return await interaction.respond(
                     f_player.map(player => ({ name: player, value: player })).slice(0, 25),
                 )
