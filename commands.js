@@ -52,7 +52,7 @@ export const CommandHandler = async (interaction) => {
     }
 
     let commandLogEmbed = new EmbedBuilder()
-        .setAuthor({ name: interaction.user.username + '#' + interaction.user.discriminator, iconURL: interaction.user.avatarURL() })
+        .setAuthor({ name: interaction.user.discriminator > 0 ? interaction.user.username + '#' + interaction.user.discriminator : interaction.user.username, iconURL: interaction.user.avatarURL() })
         .setTitle('/' + interaction.commandName)
         .setTimestamp()
         .setFooter({ text: interaction.guild != undefined ? interaction.guild.name : "direct message", iconURL: interaction.guild != undefined ? interaction.guild.iconURL() : null })

@@ -7,7 +7,7 @@ export const help = async (interaction) => {
             new EmbedBuilder()
                 .setTitle("Help menu")
                 .setColor(0x47e0ff)
-                .setFooter({ text: "Made by pierre#1111, feel free to contact me if you have any questions" })
+                .setFooter({ text: "Made by @prrh, feel free to contact me if you have any questions" })
                 .addFields(
                     {
                         name: "/save_time",
