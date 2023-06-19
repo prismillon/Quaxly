@@ -2,7 +2,7 @@
 import { EmbedBuilder, } from "discord.js";
 
 export const help = async (interaction) => {
-    interaction.reply({
+    return await interaction.reply({
         embeds: [
             new EmbedBuilder()
                 .setTitle("Help menu")
