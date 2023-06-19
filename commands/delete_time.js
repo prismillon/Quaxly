@@ -269,10 +269,10 @@ export const delete_time = async (interaction) => {
         collector.on("collect", async (i) => {
             i.customId = i.customId.replace(/[0-9]/gm, '')
             if (i.customId == "Yes") {
-                bdd[interaction.user.id][150].Shroom[track] = {};
-                bdd[interaction.user.id][150].NI[track] = {};
-                bdd[interaction.user.id][200].Shroom[track] = {};
-                bdd[interaction.user.id][200].NI[track] = {};
+                delete bdd[interaction.user.id][150].Shroom[track];
+                delete bdd[interaction.user.id][150].NI[track];
+                delete bdd[interaction.user.id][200].Shroom[track];
+                delete bdd[interaction.user.id][200].NI[track];
                 if (save_bdd() == 0) {
                     return await error_embed(i, `could not save the file as expected`);
                 }
