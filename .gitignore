@@ -1,9 +1,7 @@
 config.json
-__pycache__/
 node_modules/
 package.json
 package-lock.json
-bot.py
 register_cmd.js
 bdd.json
 bdd_backup.json
@@ -11,3 +9,8 @@ user_list.json
 user_list_backup.json
 config.js
 .DS_Store
+config.py
+__pycache__
+mk.db
+db.py
+cups_emoji.py
