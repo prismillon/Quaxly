@@ -28,18 +28,16 @@ bot = MyClient()
 async def on_ready():
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{len(bot.guilds)} servers"))
 
-    for guild in bot.guilds:
-        members_id = [member.id async for member in guild.fetch_members(limit=None)]
-        for member in sql.get_all_users_from_server(guild.id):
-            if member[0] not in members_id:
-                sql.delete_player_from_server(member[0], guild.id)
-
     if not bot.api_list.is_running():
         bot.api_list.start()
 
 @bot.event
 async def on_guild_join(guild):
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{len(bot.guilds)} servers"))
+    members_id = [member.id async for member in guild.fetch_members(limit=None)]
+    for member in sql.get_all_users_from_server(guild.id):
+        if member[0] not in members_id:
+            sql.delete_player_from_server(member[0], guild.id)
 
 @bot.event
 async def on_guild_remove(guild):
