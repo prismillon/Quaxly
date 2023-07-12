@@ -117,7 +117,7 @@ async def lineup(ctx: discord.Interaction, players: str, time: str, host: str, e
     embed.add_field(name="open", value=f"`{time}`", inline=True)
     embed.add_field(name="host", value=host_string, inline=True)
 
-    view = editButtons(embed, ctx, ctx.user.id)
+    view = editButtons(embed, ctx.user.id)
 
     view.message = await ctx.response.send_message(content=f"lineup war {time} vs {ennemy_tag} || {member_string} ||", embed=embed, view=view)
     await ctx.edit_original_response(content=None)
