@@ -10,7 +10,7 @@ async def register_user(ctx: discord.Interaction, player: discord.Member = None)
     """register a user in the timetrial database of the server"""
 
     if not ctx.guild.chunked:
-        ctx.guild.chunk()
+        await ctx.guild.chunk()
 
     embed = discord.Embed(color=0x47e0ff, description="")
 
@@ -40,7 +40,7 @@ async def remove_user(ctx: discord.Interaction, player: discord.Member = None):
     """remove a user from the timetrial database of the server"""
 
     if not ctx.guild.chunked:
-        ctx.guild.chunk()
+        await ctx.guild.chunk()
 
     embed = discord.Embed(color=0x47e0ff, description="")
 

@@ -58,7 +58,7 @@ async def role_stats(ctx: discord.Interaction, role: discord.Role, stat: Choice[
     """check stats of a discord role"""
 
     if not ctx.guild.chunked:
-        ctx.guild.chunk()
+        await ctx.guild.chunk()
 
     await ctx.response.defer()
 
@@ -96,7 +96,7 @@ async def mkc_stats(ctx: discord.Interaction, team: str, stat: Choice[str] = Non
     """check stats of a mkc 150cc team"""
     
     if not ctx.guild.chunked:
-        ctx.guild.chunk()
+        await ctx.guild.chunk()
 
     await ctx.response.defer()
 
