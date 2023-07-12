@@ -23,7 +23,7 @@ async def name_history(ctx: discord.Interaction, player: str = None):
                     user_data = await response.json()
                     player = user_data['name']
                 else:
-                    user_data = None
+                    return await ctx.response.send_message(content="could not found your account in the lounge", ephemeral=True)
 
     async with aiohttp.ClientSession() as session:
         async with session.get("https://www.mk8dx-lounge.com/api/player/details?name="+player) as response:
