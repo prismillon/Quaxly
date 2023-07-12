@@ -39,7 +39,7 @@ class editLineup(discord.ui.View):
             return await ctx.response.send_message(content="only the owner can use this sorry", ephemeral=True)
         self.embed.remove_field(0)
         self.embed.insert_field_at(0, name="lineup", value=' - '.join(user.mention for user in sorted(users.values, key=lambda user: user.display_name.lower())), inline=False)
-        await ctx.response.edit_message(embed=self.embed, view=editButtons(self.embed, ctx, self.owner))
+        await ctx.response.edit_message(embed=self.embed, view=self.old_view)
         self.stop()
     
     async def on_timeout(self):
