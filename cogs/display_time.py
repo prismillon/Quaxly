@@ -16,7 +16,7 @@ async def display_time(ctx: discord.Interaction, speed: Choice[str], items: Choi
     """display a specific time, a category or even all times"""
 
     if not ctx.guild.chunked:
-        ctx.guild.chunk()
+        await ctx.guild.chunk()
 
     mode = items.value+speed.value
     embed = discord.Embed(color=0x47e0ff, description="")

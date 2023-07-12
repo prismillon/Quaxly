@@ -109,7 +109,7 @@ async def lineup(ctx: discord.Interaction, players: str, time: str, host: str, e
     """create a clan war line-up for your team"""
 
     if not ctx.guild.chunked:
-        ctx.guild.chunk()
+        await ctx.guild.chunk()
 
     embed = discord.Embed(color=0x47e0ff, title=f"clan war | {tag} vs {ennemy_tag}").set_thumbnail(url=ctx.guild.icon)
     member_string = ' - '.join(player.mention for player in sorted([ctx.guild.get_member(int(player)) for player in re.findall("[0-9]+", players) if ctx.guild.get_member(int(player))], key=lambda user: user.display_name.lower()))
