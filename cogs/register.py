@@ -9,6 +9,9 @@ from discord import app_commands
 async def register_user(ctx: discord.Interaction, player: discord.Member = None):
     """register a user in the timetrial database of the server"""
 
+    if not ctx.guild.chunked:
+        ctx.guild.chunk()
+
     embed = discord.Embed(color=0x47e0ff, description="")
 
     if not player:
@@ -35,6 +38,9 @@ async def register_user(ctx: discord.Interaction, player: discord.Member = None)
 @app_commands.describe(player="the player you want to remove")
 async def remove_user(ctx: discord.Interaction, player: discord.Member = None):
     """remove a user from the timetrial database of the server"""
+
+    if not ctx.guild.chunked:
+        ctx.guild.chunk()
 
     embed = discord.Embed(color=0x47e0ff, description="")
 

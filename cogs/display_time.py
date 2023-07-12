@@ -15,6 +15,9 @@ from autocomplete import track_autocomplete
 async def display_time(ctx: discord.Interaction, speed: Choice[str], items: Choice[str], track: str = None, player: discord.Member = None):
     """display a specific time, a category or even all times"""
 
+    if not ctx.guild.chunked:
+        ctx.guild.chunk()
+
     mode = items.value+speed.value
     embed = discord.Embed(color=0x47e0ff, description="")
     

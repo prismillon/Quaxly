@@ -57,6 +57,9 @@ async def fc_to_stat(fc: str, stat: Choice[str], season: int):
 async def role_stats(ctx: discord.Interaction, role: discord.Role, stat: Choice[str] = None, season: int = None):
     """check stats of a discord role"""
 
+    if not ctx.guild.chunked:
+        ctx.guild.chunk()
+
     await ctx.response.defer()
 
     if not stat:
@@ -92,6 +95,9 @@ async def role_stats(ctx: discord.Interaction, role: discord.Role, stat: Choice[
 async def mkc_stats(ctx: discord.Interaction, team: str, stat: Choice[str] = None, season: int = None):
     """check stats of a mkc 150cc team"""
     
+    if not ctx.guild.chunked:
+        ctx.guild.chunk()
+
     await ctx.response.defer()
 
     team = next((mkc_team for mkc_team in mkc_data.data if mkc_team['team_name'].lower() == team.lower()), None)
