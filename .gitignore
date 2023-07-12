@@ -15,3 +15,4 @@ mk.db
 db.py
 cups_emoji.py
 sql.py
+update_cups.py
