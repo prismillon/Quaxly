@@ -27,7 +27,7 @@ async def get_host_string(host: str, ctx: discord.Interaction):
 
 
 class editLineup(discord.ui.View):
-    def __init__(self, embed: discord.Embed, old_view: discord.View, owner: int):
+    def __init__(self, embed: discord.Embed, old_view: discord.ui.View, owner: int):
         super().__init__(timeout=90)
         self.old_view = old_view
         self.embed = embed
