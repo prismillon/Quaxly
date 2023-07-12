@@ -94,7 +94,7 @@ class editButtons(discord.ui.View):
     async def players(self, ctx: discord.Interaction, button: discord.ui.Button):
         if ctx.user.id != self.owner:
             return await ctx.response.send_message(content="you are not the owner of the message sorry", ephemeral=True)
-        await ctx.response.edit_message(view=editLineup(self.embed, ctx, self.owner))
+        await ctx.response.edit_message(view=editLineup(self.embed, self, self.owner))
 
     async def on_timeout(self):
         await self.message.edit(view=None)
