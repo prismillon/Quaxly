@@ -27,9 +27,9 @@ async def get_host_string(host: str, ctx: discord.Interaction):
 
 
 class editLineup(discord.ui.View):
-    def __init__(self, embed: discord.Embed, ctx: discord.Interaction, owner: int):
+    def __init__(self, embed: discord.Embed, old_view: discord.View, owner: int):
         super().__init__(timeout=90)
-        self.ctx = ctx
+        self.old_view = old_view
         self.embed = embed
         self.owner = owner
 
@@ -43,7 +43,7 @@ class editLineup(discord.ui.View):
         self.stop()
     
     async def on_timeout(self):
-        await self.ctx.edit_original_response(view=editButtons(self.embed, self.ctx, self.owner))
+        await self.old_view.message.edit(view=old_view)
 
 
 class editModal(discord.ui.Modal, title='edit lineup'):
@@ -78,9 +78,8 @@ class editModal(discord.ui.Modal, title='edit lineup'):
 
 
 class editButtons(discord.ui.View):
-    def __init__(self, embed: discord.Embed, ctx: discord.Interaction, owner: int):
+    def __init__(self, embed: discord.Embed, owner: int):
         super().__init__(timeout=7200)
-        self.ctx = ctx
         self.embed = embed
         self.owner = owner
 
@@ -96,10 +95,9 @@ class editButtons(discord.ui.View):
         if ctx.user.id != self.owner:
             return await ctx.response.send_message(content="you are not the owner of the message sorry", ephemeral=True)
         await ctx.response.edit_message(view=editLineup(self.embed, ctx, self.owner))
-        self.stop()
 
     async def on_timeout(self):
-        await self.ctx.edit_original_response(view=None)
+        await self.message.edit(view=None)
 
 
 @app_commands.command()
@@ -119,5 +117,7 @@ async def lineup(ctx: discord.Interaction, players: str, time: str, host: str, e
     embed.add_field(name="open", value=f"`{time}`", inline=True)
     embed.add_field(name="host", value=host_string, inline=True)
 
-    await ctx.response.send_message(content=f"lineup war {time} vs {ennemy_tag} || {member_string} ||", embed=embed, view=editButtons(embed, ctx, ctx.user.id))
+    view = editButtons(embed, ctx, ctx.user.id)
+
+    view.message = await ctx.response.send_message(content=f"lineup war {time} vs {ennemy_tag} || {member_string} ||", embed=embed, view=view)
     await ctx.edit_original_response(content=None)
