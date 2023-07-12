@@ -26,10 +26,10 @@ bot = MyClient()
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{len(bot.guilds)} servers"))
-
     if not bot.api_list.is_running():
         bot.api_list.start()
+
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{len(bot.guilds)} servers"))
 
 @bot.event
 async def on_guild_join(guild):
