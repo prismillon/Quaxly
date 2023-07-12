@@ -27,19 +27,23 @@ async def get_host_string(host: str, ctx: discord.Interaction):
 
 
 class editLineup(discord.ui.View):
-    def __init__(self, old_view: discord.ui.View):
-        super().__init__(timeout=60)
-        self.old_view = old_view
+    def __init__(self, embed: discord.Embed, ctx: discord.Interaction, owner: int):
+        super().__init__(timeout=90)
+        self.ctx = ctx
+        self.embed = embed
+        self.owner = owner
 
     @discord.ui.select(cls=discord.ui.UserSelect, min_values=1, max_values=6)
     async def edit_lineup(self, ctx: discord.Interaction, users: List[discord.Member]):
-        self.old_view.embed.remove_field(0)
-        self.old_view.embed.insert_field_at(0, name="lineup", value=' - '.join(user.mention for user in sorted(users.values, key=lambda user: user.display_name.lower())), inline=False)
-        await ctx.response.edit_message(embed=self.old_view.embed, view=self.old_view)
+        if ctx.user.id != self.owner:
+            return await ctx.response.send_message(content="only the owner can use this sorry", ephemeral=True)
+        self.embed.remove_field(0)
+        self.embed.insert_field_at(0, name="lineup", value=' - '.join(user.mention for user in sorted(users.values, key=lambda user: user.display_name.lower())), inline=False)
+        await ctx.response.edit_message(embed=self.embed, view=editButtons(self.embed, self.ctx, self.owner))
         self.stop()
     
     async def on_timeout(self):
-        await self.old_view.ctx.edit_original_response(view=self.old_view)
+        await self.ctx.edit_original_response(view=editButtons(self.embed, self.ctx, self.owner))
 
 
 class editModal(discord.ui.Modal, title='edit lineup'):
@@ -74,19 +78,25 @@ class editModal(discord.ui.Modal, title='edit lineup'):
 
 
 class editButtons(discord.ui.View):
-    def __init__(self, embed: discord.Embed, ctx: discord.Interaction):
-        super().__init__(timeout=21600)
+    def __init__(self, embed: discord.Embed, ctx: discord.Interaction, owner: int):
+        super().__init__(timeout=7200)
         self.ctx = ctx
         self.embed = embed
+        self.owner = owner
 
     @discord.ui.button(emoji='📝', style=discord.ButtonStyle.gray)
     async def edit(self, ctx: discord.Interaction, button: discord.ui.Button):
+        if ctx.user.id != self.owner:
+            return await ctx.response.send_message(content="you are not the owner of the message sorry", ephemeral=True)
         modal = editModal(self.embed)
         await ctx.response.send_modal(modal)
 
     @discord.ui.button(emoji='👥', style=discord.ButtonStyle.gray)
     async def players(self, ctx: discord.Interaction, button: discord.ui.Button):
+        if ctx.user.id != self.owner:
+            return await ctx.response.send_message(content="you are not the owner of the message sorry", ephemeral=True)
         await ctx.response.edit_message(view=editLineup(self))
+        self.stop()
 
     async def on_timeout(self):
         await self.ctx.edit_original_response(view=None)
@@ -106,5 +116,5 @@ async def lineup(ctx: discord.Interaction, players: str, time: str, host: str, e
     embed.add_field(name="open", value=f"`{time}`", inline=True)
     embed.add_field(name="host", value=host_string, inline=True)
 
-    await ctx.response.send_message(content=f"lineup war {time} vs {ennemy_tag} || {member_string} ||", embed=embed, view=editButtons(embed, ctx))
+    await ctx.response.send_message(content=f"lineup war {time} vs {ennemy_tag} || {member_string} ||", embed=embed, view=editButtons(embed, ctx, ctx.user.id))
     await ctx.edit_original_response(content=None)
