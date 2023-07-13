@@ -11,7 +11,7 @@ statChoices = [Choice(name='mmr', value='mmr'), Choice(name='peak', value='maxMm
 
 async def wait_for_chunk(ctx: discord.Interaction):
     await ctx.response.send_message(content="server is not loaded yet, please wait, this message will be edited when this server is ready")
-    message = ctx.original_response()
+    message = await ctx.original_response()
     await ctx.guild.chunk()
     await message.edit(content="server is now ready! ✅")
 
