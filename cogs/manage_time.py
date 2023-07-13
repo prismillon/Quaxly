@@ -39,7 +39,7 @@ async def save_time(ctx: discord.Interaction, speed: Choice[str], items: Choice[
     """save a time"""
 
     if not ctx.guild.chunked:
-        await ctx.guild.chunk()
+        return await utils.wait_for_chunk(ctx)
 
     mode = items.value+speed.value
     embed = discord.Embed(color=0x47e0ff, description="")
@@ -110,7 +110,7 @@ async def delete_time(ctx: discord.Interaction, speed: Choice[str] = None, items
     """delete a time"""
 
     if not ctx.guild.chunked:
-        await ctx.guild.chunk()
+        return await utils.wait_for_chunk(ctx)
 
     embed = discord.Embed(color=0x47e0ff, description="", title="deleting times")
     view = confirmButton()

@@ -7,7 +7,7 @@ import statistics
 from autocomplete import mkc_team_autocomplete
 from datetime import datetime
 from discord import app_commands
-from utils import lounge_data, statChoices, mkc_data
+from utils import lounge_data, statChoices, mkc_data, wait_for_chunk
 from discord.app_commands import Choice
 
 
@@ -58,7 +58,7 @@ async def role_stats(ctx: discord.Interaction, role: discord.Role, stat: Choice[
     """check stats of a discord role"""
 
     if not ctx.guild.chunked:
-        await ctx.guild.chunk()
+        return await wait_for_chunk(ctx)
 
     await ctx.response.defer()
 
@@ -96,7 +96,7 @@ async def mkc_stats(ctx: discord.Interaction, team: str, stat: Choice[str] = Non
     """check stats of a mkc 150cc team"""
     
     if not ctx.guild.chunked:
-        await ctx.guild.chunk()
+        return await wait_for_chunk(ctx)
 
     await ctx.response.defer()
 
