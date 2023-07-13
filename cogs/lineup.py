@@ -3,6 +3,7 @@ import aiohttp
 import datetime
 import re
 
+from utils import wait_for_chunk
 from typing import List
 from discord import app_commands
 
@@ -16,7 +17,7 @@ async def get_host_string(host: str, ctx: discord.Interaction):
                 json_data = await response.json()
         return f"{host} (<@{json_data['discordId']}>)"
 
-    elif ctx.guild.get_member(int(re.findall("[0-9]+", host)[0])) != None:
+    elif re.match("[0-9]+", host) and ctx.guild.get_member(int(re.findall("[0-9]+", host)[0])) != None:
         async with aiohttp.ClientSession() as session:
             async with session.get(f"{url}discordid={re.findall('[0-9]+', host)[0]}") as response:
                 json_data = await response.json()
@@ -107,7 +108,7 @@ async def lineup(ctx: discord.Interaction, players: str, time: str, host: str, e
     """create a clan war line-up for your team"""
 
     if not ctx.guild.chunked:
-        await ctx.guild.chunk()
+        return await wait_for_chunk(ctx)
 
     embed = discord.Embed(color=0x47e0ff, title=f"clan war | {tag} vs {ennemy_tag}").set_thumbnail(url=ctx.guild.icon)
     member_string = ' - '.join(player.mention for player in sorted([ctx.guild.get_member(int(player)) for player in re.findall("[0-9]+", players) if ctx.guild.get_member(int(player))], key=lambda user: user.display_name.lower()))
@@ -119,5 +120,6 @@ async def lineup(ctx: discord.Interaction, players: str, time: str, host: str, e
 
     view = editButtons(embed, ctx.user.id)
 
-    view.message = await ctx.response.send_message(content=f"lineup war {time} vs {ennemy_tag} || {member_string} ||", embed=embed, view=view)
+    await ctx.response.send_message(content=f"lineup war {time} vs {ennemy_tag} || {member_string} ||", embed=embed, view=view)
+    view.message = await ctx.original_response()
     await ctx.edit_original_response(content=None)

@@ -1,6 +1,7 @@
 import discord
 import sql
 
+from utils import wait_for_chunk
 from discord import app_commands
 
 @app_commands.command()
@@ -10,7 +11,7 @@ async def register_user(ctx: discord.Interaction, player: discord.Member = None)
     """register a user in the timetrial database of the server"""
 
     if not ctx.guild.chunked:
-        await ctx.guild.chunk()
+        return await wait_for_chunk(ctx)
 
     embed = discord.Embed(color=0x47e0ff, description="")
 
@@ -40,7 +41,7 @@ async def remove_user(ctx: discord.Interaction, player: discord.Member = None):
     """remove a user from the timetrial database of the server"""
 
     if not ctx.guild.chunked:
-        await ctx.guild.chunk()
+        return await wait_for_chunk(ctx)
 
     embed = discord.Embed(color=0x47e0ff, description="")
 
