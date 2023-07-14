@@ -94,9 +94,6 @@ async def role_stats(ctx: discord.Interaction, role: discord.Role, stat: Choice[
 @app_commands.describe(team="the team you want to check stats from", stat="the type of stats", season="the season you want this info from")
 async def mkc_stats(ctx: discord.Interaction, team: str, stat: Choice[str] = None, season: int = None):
     """check stats of a mkc 150cc team"""
-    
-    if not ctx.guild.chunked:
-        return await wait_for_chunk(ctx)
 
     await ctx.response.defer()
 

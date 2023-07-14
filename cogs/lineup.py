@@ -44,7 +44,7 @@ class editLineup(discord.ui.View):
         self.stop()
     
     async def on_timeout(self):
-        await self.old_view.message.edit(view=old_view)
+        await self.old_view.message.edit(view=self.old_view)
 
 
 class editModal(discord.ui.Modal, title='edit lineup'):
