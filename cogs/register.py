@@ -16,7 +16,7 @@ async def register_user(interaction: discord.Interaction, player: discord.Member
     embed = discord.Embed(color=0x47e0ff, description="")
 
     if not player:
-        player = interaction.guild.get_member(interaction.user.id)
+        player = interaction.user
 
     embed.set_thumbnail(url=player.avatar)
 
@@ -40,13 +40,10 @@ async def register_user(interaction: discord.Interaction, player: discord.Member
 async def remove_user(interaction: discord.Interaction, player: discord.Member = None):
     """remove a user from the timetrial database of the server"""
 
-    if not interaction.guild.chunked:
-        return await wait_for_chunk(interaction)
-
     embed = discord.Embed(color=0x47e0ff, description="")
 
     if not player:
-        player = interaction.guild.get_member(interaction.user.id)
+        player = interaction.user
 
     embed.set_thumbnail(url=player.avatar)
 
