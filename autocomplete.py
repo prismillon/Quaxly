@@ -1,17 +1,18 @@
 import discord
 import sql
+import os
 
 from discord.app_commands import Choice
 from typing import List
 from utils import lounge_data, mkc_data
 
 
-async def track_autocomplete(ctx: discord.Interaction, current: str) -> List[Choice[str]]:
+async def track_autocomplete(interaction: discord.Interaction, current: str) -> List[Choice[str]]:
     tracks = sql.get_track_names(current)
     return [Choice(name=track[0], value=track[0]) for track in tracks]
 
 
-async def time_autocomplete(ctx: discord.Interaction, current: str) -> List[Choice[str]]:
+async def time_autocomplete(interaction: discord.Interaction, current: str) -> List[Choice[str]]:
     if len(current) == 0:
         return [Choice(name="Format: 1:23.456", value="Format: 1:23.456")]
     elif len(current) == 6:
@@ -24,9 +25,13 @@ async def time_autocomplete(ctx: discord.Interaction, current: str) -> List[Choi
         return [Choice(name=current, value=current)]
 
 
-async def name_autocomplete(ctx: discord.Interaction, current: str) -> List[Choice[str]]:
+async def name_autocomplete(interaction: discord.Interaction, current: str) -> List[Choice[str]]:
     return [Choice(name=player['name'], value=player['name']) for player in filter(lambda player: player['name'].lower().startswith(current.lower()), lounge_data.data)][:25]
 
 
-async def mkc_team_autocomplete(ctx: discord.Interaction, current: str) -> List[Choice[str]]:
+async def mkc_team_autocomplete(interaction: discord.Interaction, current: str) -> List[Choice[str]]:
     return [Choice(name=team['team_name'], value=str(team['team_name'])) for team in filter(lambda team: team['team_name'].lower().startswith(current.lower()), mkc_data.data)][:25]
+
+
+async def cmd_autocomplete(interaction: discord.Interaction, current: str) -> List[Choice[str]]:
+    return [Choice(name=cmd[:-3], value=f"cogs.{cmd[:-3]}") for cmd in filter(lambda cmd: cmd.lower().startswith(current.lower()) and ".py" in cmd, os.listdir(f"{os.getcwd()}/cogs"))][:25]
