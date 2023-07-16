@@ -38,13 +38,10 @@ class confirmButton(discord.ui.View):
 async def save_time(interaction: discord.Interaction, speed: Choice[str], items: Choice[str], track: str, time: str):
     """save a time"""
 
-    if not interaction.guild.chunked:
-        return await utils.wait_for_chunk(interaction)
-
     mode = items.value+speed.value
     embed = discord.Embed(color=0x47e0ff, description="")
     track_check = sql.check_track_name(track)
-    player = interaction.guild.get_member(interaction.user.id)
+    player = interaction.user
 
     if mode not in utils.allowed_tables:
         return await interaction.response.send_message(content=":euh:")
@@ -108,9 +105,6 @@ async def save_time(interaction: discord.Interaction, speed: Choice[str], items:
 @app_commands.autocomplete(track=track_autocomplete)
 async def delete_time(interaction: discord.Interaction, speed: Choice[str] = None, items: Choice[str] = None, track: str = None):
     """delete a time"""
-
-    if not interaction.guild.chunked:
-        return await utils.wait_for_chunk(interaction)
 
     embed = discord.Embed(color=0x47e0ff, description="", title="deleting times")
     view = confirmButton()
