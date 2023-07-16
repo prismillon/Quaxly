@@ -43,7 +43,7 @@ async def fc_to_stat(fc: str, stat: Choice[str], season: int):
                             user_data = await response.json()
                             user_data['discordId'] = discord_id
                             user_data['id'] = user_data['playerId']
-                if 'mmr' not in user_data:
+                if 'mmr' not in user_data or not 'discordId' in user_data:
                     return None
                 if 'maxMmr' not in user_data:
                     user_data['maxMmr'] = user_data['mmr']
