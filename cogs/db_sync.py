@@ -10,6 +10,7 @@ class db_sync(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_available(self, guild: discord.Guild):
+        await guild.chunk()
         members_id = [member.id async for member in guild.fetch_members(limit=None)]
         for member in sql.get_all_users_from_server(guild.id):
             if member[0] not in members_id:
