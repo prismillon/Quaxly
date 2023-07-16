@@ -1,38 +1,54 @@
 import discord
 import config
-import cogs
 import sql
+import os
 
 from discord import app_commands
-from discord.ext import tasks
+from discord.ext import tasks, commands
 from utils import lounge_data, mkc_data
+from autocomplete import cmd_autocomplete
+from discord.app_commands import Choice
+from datetime import datetime
 
 
-class MyClient(discord.AutoShardedClient):
-    def __init__(self):
-        intents = discord.Intents.default()
-        intents.members = True
-        super().__init__(intents=intents)
-        self.tree = app_commands.CommandTree(self)
-        [self.tree.add_command(command) for command in cogs.commands]
+@tasks.loop(minutes=10)
+async def api_list():
+    await lounge_data.lounge_api_full()
+    await mkc_data.mkc_api_full()
 
-    @tasks.loop(minutes=10)
-    async def api_list(self):
-        await lounge_data.lounge_api_full()
-        await mkc_data.mkc_api_full()
 
-bot = MyClient()
+intents = discord.Intents.default()
+intents.members = True
+bot = commands.AutoShardedBot(command_prefix=commands.when_mentioned, intents=intents)
 
 
 @bot.event
-async def on_ready():
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="starting..."))
+async def setup_hook():
+    for cmd in filter(lambda cmd: ".py" in cmd, os.listdir(f"{os.getcwd()}/cogs")):
+        await bot.load_extension(f"cogs.{cmd[:-3]}") 
 
-    if not bot.api_list.is_running():
-        bot.api_list.start()
+@bot.event
+async def on_ready():
+    if not api_list.is_running():
+        api_list.start()
 
     await bot.wait_until_ready()
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{len(bot.guilds)} servers"))
+
+@bot.event
+async def on_app_command_completion(interaction: discord.Interaction, command: app_commands.Command):
+    embed = discord.Embed(color=0x47e0ff if not interaction.command_failed else 0xFF0000, title=f"/{command.name}")
+    embed.set_author(name=f"{interaction.user.display_name} ({interaction.user.name})", icon_url=interaction.user.display_avatar)
+    if interaction.guild_id:
+        embed.set_footer(text=interaction.guild.name, icon_url=interaction.guild.icon)
+    else:
+        embed.set_footer(text="dms")
+    embed.timestamp = datetime.now()
+    if "options" in interaction.data:
+        for option in interaction.data['options']:
+            embed.add_field(name=option['name'], value=option['value'])
+    await bot.get_channel(1065611483897147502).send(embed=embed)
+
 
 @bot.event
 async def on_guild_join(guild):
@@ -53,11 +69,53 @@ async def on_member_remove(member: discord.Member):
 
 @bot.tree.command()
 @app_commands.guilds(discord.Object(id=1044334030176403608))
-async def sync(ctx: discord.Interaction):
+async def sync(interaction: discord.Interaction):
     """sync global command"""
     synced = await bot.tree.sync(guild=discord.Object(id=1044334030176403608))
     syncedG = await bot.tree.sync()
-    await ctx.response.send_message(content=f"synced {len(syncedG)+len(synced)} commands")
+    await interaction.response.send_message(content=f"synced {len(syncedG)+len(synced)} commands")
+
+
+@bot.tree.command()
+@app_commands.autocomplete(command=cmd_autocomplete)
+@app_commands.describe(command="the command to make change on")
+@app_commands.guilds(discord.Object(id=1044334030176403608))
+async def load(interaction: discord.Interaction, command: str):
+    """load command into bot"""
+    try:
+        await bot.load_extension(command)
+    except Exception as error:
+        await interaction.response.send_message(content=error)
+    else:
+        await interaction.response.send_message(content=f"succesfully loaded '{command}'")
+
+
+@bot.tree.command()
+@app_commands.autocomplete(command=cmd_autocomplete)
+@app_commands.describe(command="the command to make change on")
+@app_commands.guilds(discord.Object(id=1044334030176403608))
+async def unload(interaction: discord.Interaction, command: str):
+    """unload command from bot"""
+    try:
+        await bot.reload_extension(command)
+    except Exception as error:
+        await interaction.response.send_message(content=error)
+    else:
+        await interaction.response.send_message(content=f"succesfully reloaded '{command}'")
+
+
+@bot.tree.command()
+@app_commands.autocomplete(command=cmd_autocomplete)
+@app_commands.describe(command="the command to make change on")
+@app_commands.guilds(discord.Object(id=1044334030176403608))
+async def reload(interaction: discord.Interaction, command: str):
+    """reload a command from the bot"""
+    try:
+        await bot.unload_extension(command)
+    except Exception as error:
+        await interaction.response.send_message(content=error)
+    else:
+        await interaction.response.send_message(content=f"succesfully loaded '{command}'")
 
 
 bot.run(config.TOKEN)

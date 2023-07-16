@@ -54,13 +54,13 @@ async def fc_to_stat(fc: str, stat: Choice[str], season: int):
 @app_commands.guild_only()
 @app_commands.choices(stat=statChoices)
 @app_commands.describe(role="the role you want to check stats from", stat="the type of stats", season="the season you want this info from")
-async def role_stats(ctx: discord.Interaction, role: discord.Role, stat: Choice[str] = None, season: int = None):
+async def role_stats(interaction: discord.Interaction, role: discord.Role, stat: Choice[str] = None, season: int = None):
     """check stats of a discord role"""
 
-    if not ctx.guild.chunked:
-        return await wait_for_chunk(ctx)
+    if not interaction.guild.chunked:
+        return await wait_for_chunk(interaction)
 
-    await ctx.response.defer()
+    await interaction.response.defer()
 
     if not stat:
         stat = statChoices[0]
@@ -71,7 +71,7 @@ async def role_stats(ctx: discord.Interaction, role: discord.Role, stat: Choice[
     user_data_array = sorted(list(filter(lambda user_data: user_data is not None, await asyncio.gather(*member_tasks))), key=lambda key: key[stat.value], reverse=True)
 
     if len(user_data_array) == 0:
-        return await ctx.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"no users found", description="could not find anyone in lounge from this role"))
+        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"no users found", description="could not find anyone in lounge from this role"))
 
     for index, user in enumerate(user_data_array):
         if index%21==0 and index != 0:
@@ -79,28 +79,28 @@ async def role_stats(ctx: discord.Interaction, role: discord.Role, stat: Choice[
         embeds[-1].add_field(name=user['name'], value=f"<@{user['discordId']}> ([{user[stat.value]}](https://www.mk8dx-lounge.com/PlayerDetails/{user['id']}))")
 
     if len(embeds)>10:
-        return await ctx.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"too many users", description="too many users in this role, please select less people"))
+        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"too many users", description="too many users in this role, please select less people"))
 
     embeds[-1].add_field(name='\u200B', value='\u200B', inline=False)
     embeds[-1].add_field(name='average', value=f"__{round(statistics.fmean([user[stat.value] for user in user_data_array]))}__")
     embeds[-1].add_field(name='top 6', value=f"__{round(statistics.fmean([user[stat.value] for user in user_data_array][:6]))}__")
 
-    await ctx.edit_original_response(embeds=embeds)
+    await interaction.edit_original_response(embeds=embeds)
 
 
 @app_commands.command()
 @app_commands.autocomplete(team=mkc_team_autocomplete)
 @app_commands.choices(stat=statChoices)
 @app_commands.describe(team="the team you want to check stats from", stat="the type of stats", season="the season you want this info from")
-async def mkc_stats(ctx: discord.Interaction, team: str, stat: Choice[str] = None, season: int = None):
+async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[str] = None, season: int = None):
     """check stats of a mkc 150cc team"""
 
-    await ctx.response.defer()
+    await interaction.response.defer()
 
     team = next((mkc_team for mkc_team in mkc_data.data if mkc_team['team_name'].lower() == team.lower()), None)
 
     if not team:
-        return await ctx.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"team not found", description="could not find the team you typed in the mkc database"))
+        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"team not found", description="could not find the team you typed in the mkc database"))
 
     async with aiohttp.ClientSession() as session:
         async with session.get("https://www.mariokartcentral.com/mkc/api/registry/teams/"+str(team['team_id'])) as response:
@@ -108,7 +108,7 @@ async def mkc_stats(ctx: discord.Interaction, team: str, stat: Choice[str] = Non
                 team_data = await response.json()
     
     if not team_data or not team_data['rosters']['150cc']:
-        return await ctx.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"team not found", description="could not find the team you typed in the mkc 150cc database"))
+        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"team not found", description="could not find the team you typed in the mkc 150cc database"))
 
     if not stat:
         stat = statChoices[0]
@@ -119,7 +119,7 @@ async def mkc_stats(ctx: discord.Interaction, team: str, stat: Choice[str] = Non
     user_data_array = sorted(list(filter(lambda user_data: user_data is not None, await asyncio.gather(*member_tasks))), key=lambda key: key[stat.value], reverse=True)
 
     if len(user_data_array) == 0:
-        return await ctx.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"no users found", description="could not find anyone in lounge from this role"))
+        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"no users found", description="could not find anyone in lounge from this role"))
 
     for index, user in enumerate(user_data_array):
         if index%21==0 and index != 0:
@@ -127,10 +127,15 @@ async def mkc_stats(ctx: discord.Interaction, team: str, stat: Choice[str] = Non
         embeds[-1].add_field(name=user['name'], value=f"<@{user['discordId']}> ([{user[stat.value]}](https://www.mk8dx-lounge.com/PlayerDetails/{user['id']}))")
 
     if len(embeds)>10:
-        return await ctx.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"too many users", description="too many users in this role, please select less people"))
+        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"too many users", description="too many users in this role, please select less people"))
 
     embeds[-1].add_field(name='\u200B', value='\u200B', inline=False)
     embeds[-1].add_field(name='average', value=f"__{round(statistics.fmean([user[stat.value] for user in user_data_array]))}__")
     embeds[-1].add_field(name='top 6', value=f"__{round(statistics.fmean([user[stat.value] for user in user_data_array][:6]))}__")
 
-    await ctx.edit_original_response(embeds=embeds)
+    await interaction.edit_original_response(embeds=embeds)
+
+
+async def setup(bot):
+    bot.tree.add_command(role_stats)
+    bot.tree.add_command(mkc_stats)

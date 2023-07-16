@@ -20,12 +20,12 @@ class confirmButton(discord.ui.View):
         self.answer = None
 
     @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
-    async def confirm(self, ctx: discord.Interaction, button: discord.ui.Button):
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.answer = True
         self.stop()
 
     @discord.ui.button(label='Cancel', style=discord.ButtonStyle.red)
-    async def cancel(self, ctx: discord.Interaction, button: discord.ui.Button):
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.answer = False
         self.stop()
 
@@ -35,39 +35,39 @@ class confirmButton(discord.ui.View):
 @app_commands.describe(speed="the mode you are playing in", items="are you using shrooms?", track="the track you are playing on", time="your time formated like this -> 1:23.456")
 @app_commands.choices(speed=utils.speedChoices, items=utils.itemChoices)
 @app_commands.autocomplete(track=track_autocomplete, time=time_autocomplete)
-async def save_time(ctx: discord.Interaction, speed: Choice[str], items: Choice[str], track: str, time: str):
+async def save_time(interaction: discord.Interaction, speed: Choice[str], items: Choice[str], track: str, time: str):
     """save a time"""
 
-    if not ctx.guild.chunked:
-        return await utils.wait_for_chunk(ctx)
+    if not interaction.guild.chunked:
+        return await utils.wait_for_chunk(interaction)
 
     mode = items.value+speed.value
     embed = discord.Embed(color=0x47e0ff, description="")
     track_check = sql.check_track_name(track)
-    player = ctx.guild.get_member(ctx.user.id)
+    player = interaction.guild.get_member(interaction.user.id)
 
     if mode not in utils.allowed_tables:
-        return await ctx.response.send_message(content=":euh:")
+        return await interaction.response.send_message(content=":euh:")
 
     if len(track_check) != 1:
         embed.title = "track not found :("
         embed.description = f"{track} was not found in the list of tracks"
-        return await ctx.response.send_message(embed=embed)
+        return await interaction.response.send_message(embed=embed)
     else:
         track = track_check[0][0]
 
     if not re.fullmatch("^[0-9]:[0-5][0-9]\\.[0-9]{3}$", time):
         embed.title = "bad time formating >:C"
         embed.description = f"{time} is not a valid formated time like this (1:23.456)"
-        return await ctx.response.send_message(embed=embed)
+        return await interaction.response.send_message(embed=embed)
 
     if len(sql.check_player(player.id)) == 0:
         sql.register_new_player(player.id)
 
-    if len(sql.check_player_server(player.id, ctx.guild_id)) == 0:
-        sql.register_user_in_server(player.id, ctx.guild_id)
+    if len(sql.check_player_server(player.id, interaction.guild_id)) == 0:
+        sql.register_user_in_server(player.id, interaction.guild_id)
 
-    previous_time = sql.get_user_track_time(mode, ctx.guild_id, track, player.id)
+    previous_time = sql.get_user_track_time(mode, interaction.guild_id, track, player.id)
 
     embed.set_thumbnail(url=track_check[0][1])
     embed.title = f"time saved in {speed.name} {items.name}"
@@ -84,7 +84,7 @@ async def save_time(ctx: discord.Interaction, speed: Choice[str], items: Choice[
         embed.title = f"conflict with previous time"
         embed.description = f"you already have ``{previous_time[0][2]}`` on this track do you still want to make this change?"
         view = confirmButton()
-        await ctx.response.send_message(embed=embed, view=view, ephemeral=True)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         await view.wait()
 
         if view.answer:
@@ -96,9 +96,9 @@ async def save_time(ctx: discord.Interaction, speed: Choice[str], items: Choice[
             embed.title = "action canceled"
             embed.description = "your previous time as not been changed"
 
-        return await ctx.edit_original_response(embed=embed, view=None)
+        return await interaction.edit_original_response(embed=embed, view=None)
 
-    return await ctx.response.send_message(embed=embed)
+    return await interaction.response.send_message(embed=embed)
 
 
 @app_commands.command()
@@ -106,11 +106,11 @@ async def save_time(ctx: discord.Interaction, speed: Choice[str], items: Choice[
 @app_commands.describe(speed="the mode you played in", items="did you use shrooms?", track="the track you played on")
 @app_commands.choices(speed=utils.speedChoices, items=utils.itemChoices)
 @app_commands.autocomplete(track=track_autocomplete)
-async def delete_time(ctx: discord.Interaction, speed: Choice[str] = None, items: Choice[str] = None, track: str = None):
+async def delete_time(interaction: discord.Interaction, speed: Choice[str] = None, items: Choice[str] = None, track: str = None):
     """delete a time"""
 
-    if not ctx.guild.chunked:
-        return await utils.wait_for_chunk(ctx)
+    if not interaction.guild.chunked:
+        return await utils.wait_for_chunk(interaction)
 
     embed = discord.Embed(color=0x47e0ff, description="", title="deleting times")
     view = confirmButton()
@@ -128,7 +128,7 @@ async def delete_time(ctx: discord.Interaction, speed: Choice[str] = None, items
     embed.description = "you are about to delete listed times, are you sure you want to do it?"
 
     for mode in filter(lambda table: table_identifier in table, utils.allowed_tables):
-        times = sql.get_user_times(mode, ctx.user.id, track_identifier)
+        times = sql.get_user_times(mode, interaction.user.id, track_identifier)
         if len(times) > 0:
             content = ""
             for time in times:
@@ -141,14 +141,14 @@ async def delete_time(ctx: discord.Interaction, speed: Choice[str] = None, items
     
     if len(embed.fields) == 0:
         embed.description = "No time to delete"
-        return await ctx.response.send_message(embed=embed, ephemeral=True)
+        return await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    await ctx.response.send_message(embed=embed, view=view, ephemeral=True)
+    await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
     await view.wait()
 
     if view.answer:
         for mode in filter(lambda table: table_identifier in table, utils.allowed_tables):
-            sql.delete_player_times(mode, ctx.user.id, track_identifier)
+            sql.delete_player_times(mode, interaction.user.id, track_identifier)
         embed.clear_fields()
         embed.description = "selected times have been deleted"
 
@@ -157,4 +157,9 @@ async def delete_time(ctx: discord.Interaction, speed: Choice[str] = None, items
         embed.clear_fields()
         embed.description = "your times have been left unchanged"
     
-    return await ctx.edit_original_response(embed=embed, view=None)
+    return await interaction.edit_original_response(embed=embed, view=None)
+
+
+async def setup(bot):
+    bot.tree.add_command(save_time)
+    bot.tree.add_command(delete_time)

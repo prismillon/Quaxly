@@ -11,19 +11,19 @@ from datetime import datetime, timedelta
 @app_commands.command()
 @app_commands.autocomplete(player=name_autocomplete)
 @app_commands.describe(player="The player you want to check lounge name history from")
-async def name_history(ctx: discord.Interaction, player: str = None):
+async def name_history(interaction: discord.Interaction, player: str = None):
     """lounge name history of a player"""
 
     embed = discord.Embed(color=0x47e0ff, title="name history")
 
     if not player:
         async with aiohttp.ClientSession() as session:
-            async with session.get("https://www.mk8dx-lounge.com/api/player?discordId="+str(ctx.user.id)) as response:
+            async with session.get("https://www.mk8dx-lounge.com/api/player?discordId="+str(interaction.user.id)) as response:
                 if response.status == 200:
                     user_data = await response.json()
                     player = user_data['name']
                 else:
-                    return await ctx.response.send_message(content="could not found your account in the lounge", ephemeral=True)
+                    return await interaction.response.send_message(content="could not found your account in the lounge", ephemeral=True)
 
     async with aiohttp.ClientSession() as session:
         async with session.get("https://www.mk8dx-lounge.com/api/player/details?name="+player) as response:
@@ -42,4 +42,8 @@ async def name_history(ctx: discord.Interaction, player: str = None):
             else:
                 embed.description = "player not found"
 
-    await ctx.response.send_message(embed=embed)
+    await interaction.response.send_message(embed=embed)
+
+
+async def setup(bot):
+    bot.tree.add_command(name_history)
