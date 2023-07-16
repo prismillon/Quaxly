@@ -57,6 +57,9 @@ async def fc_to_stat(fc: str, stat: Choice[str], season: int):
 async def role_stats(interaction: discord.Interaction, role: discord.Role, stat: Choice[str] = None, season: int = None):
     """check stats of a discord role"""
 
+    if not interaction.guild.chunked:
+        return await wait_for_chunk(interaction)
+
     await interaction.response.defer()
 
     if not stat:
