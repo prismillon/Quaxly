@@ -30,7 +30,7 @@ class extensions(commands.Cog):
     async def unload(self, interaction: discord.Interaction, command: str):
         """unload command from bot"""
         try:
-            await self.bot.reload_extension(command)
+            await self.bot.unload_extension(command)
         except Exception as error:
             await interaction.response.send_message(content=error)
         else:
@@ -44,7 +44,7 @@ class extensions(commands.Cog):
     async def reload(self, interaction: discord.Interaction, command: str):
         """reload a command from the bot"""
         try:
-            await self.bot.unload_extension(command)
+            await self.bot.reload_extension(command)
         except Exception as error:
             await interaction.response.send_message(content=error)
         else:
