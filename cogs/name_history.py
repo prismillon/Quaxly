@@ -30,7 +30,7 @@ async def name_history(interaction: discord.Interaction, player: str = None):
             if response.status == 200:
                 data = await response.json()
 
-                next_change = round(datetime.fromisoformat(data['nameHistory'][-1]['changedOn']).timestamp() + timedelta(days=60).total_seconds())
+                next_change = round(datetime.fromisoformat(data['nameHistory'][0]['changedOn']).timestamp() + timedelta(days=60).total_seconds())
                 embed.add_field(name="next change", value=f"<t:{next_change}:f> <t:{next_change}:R>", inline=False)
 
                 name_history_string = ""
