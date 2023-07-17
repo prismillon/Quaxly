@@ -13,11 +13,14 @@ class war_stats(commands.Cog):
         if not message.author.id == 177162177432649728:
             return
 
+        if "Started MK8DX 6v6" in message.content:
+            print("war as started")
+        elif "Stopped war." in message.content:
+            print("war as stoped")
+
         if len(message.embeds) >= 1:
             for embed in message.embeds:
                 print(embed.to_dict())
-        else:
-            print(f"toad said: {message.content}")
 
 
 async def setup(bot: commands.Bot):
