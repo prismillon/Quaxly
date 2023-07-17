@@ -40,6 +40,5 @@ class logging(commands.Cog):
         await self.bot.get_channel(1065611483897147502).send(embed=embed)
 
 
-
 async def setup(bot: commands.Bot):
     await bot.add_cog(logging(bot))
