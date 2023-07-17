@@ -48,11 +48,12 @@ class editLineup(discord.ui.View):
 
 
 class editModal(discord.ui.Modal, title='edit lineup'):
-    def __init__(self, embed: discord.Embed, ennemy_tag: str, tag: str):
+    def __init__(self, embed: discord.Embed, ennemy_tag: str, tag: str, view: discord.ui.View):
         super().__init__()
         self.embed = embed
         self.old_ennemy_tag = ennemy_tag
         self.old_tag = tag
+        self.view = view
 
     time = discord.ui.TextInput(label='time', required=False)
     host = discord.ui.TextInput(label='host', required=False)
@@ -71,10 +72,14 @@ class editModal(discord.ui.Modal, title='edit lineup'):
 
         if self.ennemy_tag.value != '' and self.tag.value != '':
             self.embed.title = f"clan war | {self.tag.value} vs {self.ennemy_tag.value}"
+            self.view.tag = self.tag.value
+            self.view.ennemy_tag = self.ennemy_tag.value
         elif self.ennemy_tag.value != '':
             self.embed.title = f"clan war | {self.old_tag} vs {self.ennemy_tag.value}"
+            self.view.ennemy_tag = self.ennemy_tag.value
         elif self.tag.value != '':
             self.embed.title = f"clan war | {self.tag.value} vs {self.old_ennemy_tag}"
+            self.view.tag = self.tag.value
         await interaction.response.edit_message(embed=self.embed)
 
 
@@ -90,7 +95,7 @@ class editButtons(discord.ui.View):
     async def edit(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id != self.owner:
             return await interaction.response.send_message(content="you are not the owner of the message sorry", ephemeral=True)
-        modal = editModal(self.embed, self.ennemy_tag, self.tag)
+        modal = editModal(self.embed, self.ennemy_tag, self.tag, self)
         await interaction.response.send_modal(modal)
 
     @discord.ui.button(emoji='👥', style=discord.ButtonStyle.gray)
