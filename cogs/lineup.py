@@ -48,9 +48,11 @@ class editLineup(discord.ui.View):
 
 
 class editModal(discord.ui.Modal, title='edit lineup'):
-    def __init__(self, embed: discord.Embed):
+    def __init__(self, embed: discord.Embed, ennemy_tag: str, tag: str):
         super().__init__()
         self.embed = embed
+        self.old_ennemy_tag = ennemy_tag
+        self.old_tag = tag
 
     time = discord.ui.TextInput(label='time', required=False)
     host = discord.ui.TextInput(label='host', required=False)
@@ -70,24 +72,25 @@ class editModal(discord.ui.Modal, title='edit lineup'):
         if self.ennemy_tag.value != '' and self.tag.value != '':
             self.embed.title = f"clan war | {self.tag.value} vs {self.ennemy_tag.value}"
         elif self.ennemy_tag.value != '':
-            self.embed.title = re.sub(r"(\|.*?vs\s+)(\S+)$", r"\1" + self.ennemy_tag.value, self.embed.title)
+            self.embed.title = f"clan war | {self.old_tag} vs {self.ennemy_tag.value}"
         elif self.tag.value != '':
-            self.embed.title = re.sub(r"(\| )(\S+)( vs \S+)$", r"\1" + self.tag.value + r"\3", self.embed.title)
-
+            self.embed.title = f"clan war | {self.tag.value} vs {self.old_ennemy_tag}"
         await interaction.response.edit_message(embed=self.embed)
 
 
 class editButtons(discord.ui.View):
-    def __init__(self, embed: discord.Embed, owner: int):
+    def __init__(self, embed: discord.Embed, owner: int, ennemy_tag: str, tag: str):
         super().__init__(timeout=7200)
         self.embed = embed
         self.owner = owner
+        self.ennemy_tag = ennemy_tag
+        self.tag = tag
 
     @discord.ui.button(emoji='📝', style=discord.ButtonStyle.gray)
     async def edit(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id != self.owner:
             return await interaction.response.send_message(content="you are not the owner of the message sorry", ephemeral=True)
-        modal = editModal(self.embed)
+        modal = editModal(self.embed, self.ennemy_tag, self.tag)
         await interaction.response.send_modal(modal)
 
     @discord.ui.button(emoji='👥', style=discord.ButtonStyle.gray)
@@ -117,7 +120,7 @@ async def lineup(interaction: discord.Interaction, players: str, time: str, host
     embed.add_field(name="open", value=f"`{time}`", inline=True)
     embed.add_field(name="host", value=host_string, inline=True)
 
-    view = editButtons(embed, interaction.user.id)
+    view = editButtons(embed, interaction.user.id, ennemy_tag, tag)
 
     await interaction.response.send_message(content=f"lineup war {time} vs {ennemy_tag} || {member_string} ||")
     view.message = await interaction.channel.send(embed=embed, view=view)
