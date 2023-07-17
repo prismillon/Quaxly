@@ -17,3 +17,5 @@ cups_emoji.py
 sql.py
 update_cups.py
 tables.sql
+tracks.json
+update_tracks.py
