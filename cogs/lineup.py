@@ -14,17 +14,20 @@ async def get_host_string(host: str, interaction: discord.Interaction):
     if re.match("^([0-9]{4}-){2}[0-9]{4}$", host):
         async with aiohttp.ClientSession() as session:
             async with session.get(f"{url}fc={host}") as response:
-                json_data = await response.json()
-        return f"{host} (<@{json_data['discordId']}>)"
+                if response.status == 200:
+                    json_data = await response.json()
+                    if "discordId" in json_data:
+                        return f"{host} (<@{json_data['discordId']}>)"
 
     elif re.match("[0-9<@> ]+", host) and interaction.guild.get_member(int(re.findall("[0-9]+", host)[0])) != None:
         async with aiohttp.ClientSession() as session:
             async with session.get(f"{url}discordid={re.findall('[0-9]+', host)[0]}") as response:
-                json_data = await response.json()
-        return f"{json_data['switchFc']} (<@{json_data['discordId']}>)" if response.status == 200 else host
+                if response.status == 200:
+                    json_data = await response.json()
+                    if "discordId" in json_data and "switchFc" in json_data:
+                        return f"{json_data['switchFc']} (<@{json_data['discordId']}>)"
 
-    else:
-        return host
+    return host
 
 
 class editLineup(discord.ui.View):
@@ -113,6 +116,9 @@ class editButtons(discord.ui.View):
 @app_commands.describe(players="List of the players for this lineup (you have to tag them)", time="The time of the war is schedueled for. Any format", host="Friend code or tag the host of the war", ennemy_tag="Name or tag of the ennemy team", tag="Name or tag of your team")
 async def lineup(interaction: discord.Interaction, players: str, time: str, host: str, ennemy_tag: str, tag: str):
     """create a clan war line-up for your team"""
+
+    if not interaction.app_permissions.send_messages:
+        return await interaction.response.send_message(content="this command need the permission to send message in channel to work properly")
 
     if not interaction.guild.chunked:
         return await wait_for_chunk(interaction)
