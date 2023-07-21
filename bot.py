@@ -16,4 +16,4 @@ async def setup_hook():
         await bot.load_extension(f"cogs.{cmd[:-3]}")
 
 
-bot.run(config.TOKEN)
+bot.run(config.TOKEN, root_logger=True)

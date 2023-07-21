@@ -1,4 +1,5 @@
 import discord
+import logging as logger
 
 from discord import app_commands
 from discord.ext import commands
@@ -8,6 +9,8 @@ from datetime import datetime
 class logging(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.bot.tree.on_error = self.on_error
+        self.log = logger.getLogger("discord.app_command.error")
 
     @commands.Cog.listener()
     async def on_app_command_completion(self, interaction: discord.Interaction, command: app_commands.Command):
@@ -22,6 +25,21 @@ class logging(commands.Cog):
             for option in interaction.data['options']:
                 embed.add_field(name=option['name'], value=option['value'])
         await self.bot.get_channel(1065611483897147502).send(embed=embed)
+
+    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
+        embed = discord.Embed(color=0xFF0000, title=f"/{interaction.command.name}", description=error)
+        embed.set_author(name=f"{interaction.user.display_name} ({interaction.user.name})", icon_url=interaction.user.display_avatar)
+        if interaction.guild_id:
+            embed.set_footer(text=interaction.guild.name, icon_url=interaction.guild.icon)
+        else:
+            embed.set_footer(text="dms")
+        embed.timestamp = datetime.now()
+        if "options" in interaction.data:
+            for option in interaction.data['options']:
+                embed.add_field(name=option['name'], value=option['value'])
+        msg = await self.bot.get_channel(1065611483897147502).send(content=f"{error} <@169497208406802432>", embed=embed)
+        self.log.error('Ignoring exception in command %r', interaction.command.name, exc_info=error)
+        await msg.edit(content="<@169497208406802432>")
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
