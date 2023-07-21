@@ -27,6 +27,7 @@ class logging(commands.Cog):
         await self.bot.get_channel(1065611483897147502).send(embed=embed)
 
     async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
+        await interaction.followup.send(content="An error occured in your command, please report this to the support server: https://discord.com/channels/1041775602576928809/1128795919945584801")
         embed = discord.Embed(color=0xFF0000, title=f"/{interaction.command.name}", description=error)
         embed.set_author(name=f"{interaction.user.display_name} ({interaction.user.name})", icon_url=interaction.user.display_avatar)
         if interaction.guild_id:
