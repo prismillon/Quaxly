@@ -34,8 +34,6 @@ class cupsButtons(discord.ui.View):
 async def tracks(interaction: discord.Interaction):
     """List of all the tracks in the game"""
 
-    await interaction.response.defer()
-
     embed = discord.Embed(color=0x47e0ff, description="Here is the list of all the cups in Mario Kart 8 Deluxe", title="Tracks")
     embed.set_thumbnail(url=interaction.guild.icon)
     view = cupsButtons(embed=embed, interaction=interaction)
