@@ -28,9 +28,9 @@ class war_stats(commands.Cog):
                 "date": date,
                 "tag": tag,
                 "ennemy_tag": ennemy_tag,
-                "spots": [[int]],
-                "diff": [int],
-                "tracks": [str]
+                "spots": [],
+                "diff": [],
+                "tracks": []
             }
             return
 
@@ -45,11 +45,26 @@ class war_stats(commands.Cog):
 
             if len(message.embeds) >= 1:
                 race_data = message.embeds[0].to_dict()
-                print(race_data)
+
                 if "Score for Race" in race_data['title']:
-                    spots = sorted([spot[:-2] for spot in race_data['fields'][0]['value'].split(", ")])
+                    spots = sorted([int(spot[:-2]) for spot in race_data['fields'][0]['value'].split(", ")])
                     track = race_data['fields'][4]['value'] if len(race_data['fields']) == 5 else "NULL"
                     diff = race_data['fields'][3]['value']
+                    race_id = race_data['title'].replace("Score for Race ", '')
+                    sql.new_race(race_id, self.active_war[message.channel.id]['war_id'], track, diff, spots)
+                    self.active_war[message.channel.id]['spots'].append(spots)
+                    self.active_war[message.channel.id]['diff'].append(diff)
+                    self.active_war[message.channel.id]['tracks'].append(track)
+                    return
+
+                if "Total Score after Race" in race_data['title']:
+                    race_id = int(race_data['title'].replace("Total Score after Race ", ''))
+                    for race in range(race_id, len(self.active_war[message.channel.id]['diff'])):
+                        sql.delete_this_race(race+1, self.active_war[message.channel.id]['war_id'])
+                    self.active_war[message.channel.id]['spots'] = self.active_war[message.channel.id]['spots'][:race_id]
+                    self.active_war[message.channel.id]['diff'] = self.active_war[message.channel.id]['diff'][:race_id]
+                    self.active_war[message.channel.id]['tracks'] = self.active_war[message.channel.id]['tracks'][:race_id]
+                    return
 
 
 async def setup(bot: commands.Bot):
