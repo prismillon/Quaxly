@@ -6,6 +6,7 @@ import re
 from utils import wait_for_chunk
 from typing import List
 from discord import app_commands
+from discord.ext import commands
 
 
 async def get_host_string(host: str, interaction: discord.Interaction):
@@ -67,7 +68,7 @@ class editModal(discord.ui.Modal, title='edit lineup'):
 
         if self.time.value != '':
             self.embed.remove_field(1)
-            self.embed.insert_field_at(1, name="open", value=f"`{self.time.value}`", inline=True)
+            self.embed.insert_field_at(1, name="open", value=f"`{self.time.value}`" if not "<t:" in self.time.value else self.time.value, inline=True)
 
         if self.host.value != '':
             self.embed.remove_field(2)
@@ -111,32 +112,42 @@ class editButtons(discord.ui.View):
         await self.message.edit(view=None)
 
 
-@app_commands.command()
-@app_commands.guild_only()
-@app_commands.describe(players="List of the players for this lineup (you have to tag them)", time="The time of the war is schedueled for. Any format", host="Friend code or tag the host of the war", ennemy_tag="Name or tag of the ennemy team", tag="Name or tag of your team")
-async def lineup(interaction: discord.Interaction, players: str, time: str, host: str, ennemy_tag: str, tag: str):
-    """create a clan war line-up for your team"""
+class lineup(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
 
-    if not interaction.app_permissions.send_messages:
-        return await interaction.response.send_message(content="this command need the permission to send message in channel to work properly")
+    @app_commands.command()
+    @app_commands.guild_only()
+    @app_commands.describe(players="List of the players for this lineup (you have to tag them)", time="The time of the war is schedueled for. Any format", host="Friend code or tag the host of the war", ennemy_tag="Name or tag of the ennemy team", tag="Name or tag of your team")
+    async def lineup(self, interaction: discord.Interaction, players: str, time: str, host: str, ennemy_tag: str, tag: str):
+        """create a clan war line-up for your team"""
 
-    if not interaction.guild.chunked:
-        return await wait_for_chunk(interaction)
 
-    embed = discord.Embed(color=0x47e0ff, title=f"clan war | {tag} vs {ennemy_tag}").set_thumbnail(url=interaction.guild.icon).set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar)
-    member_string = ' - '.join(player.mention for player in sorted(list(set([interaction.guild.get_member(int(player)) for player in re.findall("[0-9]+", players) if interaction.guild.get_member(int(player))])), key=lambda user: user.display_name.lower()))
-    host_string = await get_host_string(host, interaction)
+        if not interaction.guild.chunked:
+            return await wait_for_chunk(interaction)
 
-    embed.add_field(name="lineup", value=member_string, inline=False)
-    embed.add_field(name="open", value=f"`{time}`", inline=True)
-    embed.add_field(name="host", value=host_string, inline=True)
+        if not interaction.app_permissions.send_messages:
+            return await interaction.response.send_message(content="this command need the permission to send message in this channel to work properly")
 
-    view = editButtons(embed, interaction.user.id, ennemy_tag, tag)
+        botMember = interaction.guild.get_member(self.bot.user.id)
 
-    await interaction.response.send_message(content=f"lineup war {time} vs {ennemy_tag} || {member_string} ||")
-    view.message = await interaction.channel.send(embed=embed, view=view)
-    await interaction.delete_original_response()
+        if not interaction.channel.permissions_for(botMember).send_messages:
+            return await interaction.response.send_message(content="this command need the permission to send message in this channel to work properly")
+        
+        embed = discord.Embed(color=0x47e0ff, title=f"clan war | {tag} vs {ennemy_tag}").set_thumbnail(url=interaction.guild.icon).set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar)
+        member_string = ' - '.join(player.mention for player in sorted(list(set([interaction.guild.get_member(int(player)) for player in re.findall("[0-9]+", players) if interaction.guild.get_member(int(player))])), key=lambda user: user.display_name.lower()))
+        host_string = await get_host_string(host, interaction)
+
+        embed.add_field(name="lineup", value=member_string, inline=False)
+        embed.add_field(name="open", value=f"`{time}`" if not "<t:" in time else time, inline=True)
+        embed.add_field(name="host", value=host_string, inline=True)
+
+        view = editButtons(embed, interaction.user.id, ennemy_tag, tag)
+
+        await interaction.response.send_message(content=f"lineup war {time} vs {ennemy_tag} || {member_string} ||")
+        view.message = await interaction.channel.send(embed=embed, view=view)
+        await interaction.delete_original_response()
 
 
 async def setup(bot):
-    bot.tree.add_command(lineup)
+    await bot.add_cog(lineup(bot))
