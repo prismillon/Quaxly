@@ -74,12 +74,13 @@ class war_stats(commands.Cog):
     group = app_commands.Group(name="war", description="all command related to wars played with toad bot")
 
     @group.command()
-    async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel, min: app_commands.Range[int, 1] = 1) -> None:
+    async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel = None, min: app_commands.Range[int, 1] = 1) -> None:
         """check race stats in the specified channel"""
 
-        print(channel.id, channel.name)
+        if not channel:
+            channel = interaction.channel
+
         raw_stats = list(filter(lambda x: x[1] >= min, sql.get_wars_stats_from_channel(channel.id)))
-        print(raw_stats)
 
         if len(raw_stats) == 0:
             return await interaction.response.send_message(content="no stats registered in this channel", ephemeral=True)
