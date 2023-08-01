@@ -20,6 +20,8 @@ class logging(commands.Cog):
         embed.timestamp = datetime.now()
         if "options" in interaction.data:
             for option in interaction.data['options']:
+                if option['type'] == 1:
+                    option = option['options'][0]
                 embed.add_field(name=option['name'], value=option['value'])
         await self.bot.get_channel(1065611483897147502).send(embed=embed)
 

@@ -4,6 +4,7 @@ import sql
 from discord import app_commands
 from discord.ext import commands
 from datetime import datetime
+from discord.app_commands import Choice
 
 
 class war_stats(commands.Cog):
@@ -65,6 +66,19 @@ class war_stats(commands.Cog):
                     self.active_war[message.channel.id]['diff'] = self.active_war[message.channel.id]['diff'][:race_id]
                     self.active_war[message.channel.id]['tracks'] = self.active_war[message.channel.id]['tracks'][:race_id]
                     return
+
+    group = app_commands.Group(name="war", description="all command related to wars played with toad bot")
+
+    @group.command()
+    async def top(self, interaction: discord.Interaction, channel: discord.TextChannel, min: app_commands.Range[int, 1] = 1) -> None:
+        """check the top 10 best races stats in the specified channel"""
+        await interaction.response.send_message(channel, ephemeral=True)
+
+    @group.command()
+    @app_commands.choices(status=[Choice(name='on', value='on'), Choice(name='off', value='off')])
+    async def toggle(self, interaction: discord.Interaction, status: Choice[str]):
+        """enable or disable stat monitoring"""
+        await interaction.response.send_message(content=f"toad war monitoring have been {'enabled' if status.value == 'on' else 'disabled'}")
 
 
 async def setup(bot: commands.Bot):
