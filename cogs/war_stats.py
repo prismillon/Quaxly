@@ -1,5 +1,6 @@
 import importlib
 import discord
+import utils
 import sql
 
 from discord import app_commands
@@ -7,6 +8,8 @@ from discord.ext import commands
 from datetime import datetime
 from discord.app_commands import Choice
 
+
+formatNumber = lambda n: n if n%1 else int(n)
 
 class war_stats(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -71,20 +74,29 @@ class war_stats(commands.Cog):
     group = app_commands.Group(name="war", description="all command related to wars played with toad bot")
 
     @group.command()
-    async def top(self, interaction: discord.Interaction, channel: discord.TextChannel, min: app_commands.Range[int, 1] = 1) -> None:
-        """check the top 10 best races stats in the specified channel"""
+    async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel, min: app_commands.Range[int, 1] = 1) -> None:
+        """check race stats in the specified channel"""
 
-        raw_stats = list(filter(lambda x: x[1] >= min, sql.get_wars_stats_from_channel(channel.id)))[:10]
+        channel.id = 983812012561825834
+
+        raw_stats = list(filter(lambda x: x[1] >= min, sql.get_wars_stats_from_channel(channel.id)))
 
         if len(raw_stats) == 0:
             return await interaction.response.send_message(content="no stats registered in this channel", ephemeral=True)
         
-        max_length = max(raw_stats, key=lambda x: len(x[3]))[3]+1
-        embed = discord.Embed(color=0x47e0ff, description="", title="top 10 tracks")
-        stats = [f"{stat[3]}{' '*(max_length-len(stat[3]))}{stat[2]:+g}  |  {stat[1]}" for stat in raw_stats]
-        embed.description = "```\n"+"\n".join(stats)+"\n```"
+        max_name_l = len(max(raw_stats, key=lambda x: len(x[3]))[3])+1
+        max_diff = str(max(raw_stats, key=lambda x: len(str(x[2])) if float(x[2])<0 else len(str(x[2]))+1)[2])
+        max_diff_l = len(max_diff)+1 if float(max_diff)<0 else len(max_diff)+2
+        stats = [f"```{stat[3]}{' '*(max_name_l-len(stat[3]))}{stat[2]:+g}{' '*(max_diff_l-(len(str(formatNumber(stat[2]))) if stat[2]<0 else len(str(formatNumber(stat[2])))+1))} | {stat[1]}```" for stat in raw_stats]
+        
+        embeds = []
 
-        await interaction.response.send_message(embed=embed)
+        for index, stat in enumerate(stats):
+            if index%10==0:
+                embeds.append(discord.Embed(color=0x47e0ff, description="", title=f"best race {index+1} -> {index+10 if len(stats)>=10 else len(stats)}"))
+            embeds[-1].description += stat
+
+        await interaction.response.send_message(embed=embeds[0], view=utils.Paginator(interaction, embeds))
 
     @group.command()
     @app_commands.choices(status=[Choice(name='on', value='on'), Choice(name='off', value='off')])
@@ -95,4 +107,5 @@ class war_stats(commands.Cog):
 
 async def setup(bot: commands.Bot):
     importlib.reload(sql)
+    importlib.reload(utils)
     await bot.add_cog(war_stats(bot))

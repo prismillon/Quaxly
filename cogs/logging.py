@@ -12,7 +12,9 @@ class logging(commands.Cog):
     @commands.Cog.listener()
     async def on_app_command_completion(self, interaction: discord.Interaction, command: app_commands.Command):
         embed = discord.Embed(color=0x47e0ff, title=f"/{command.name}")
-        embed.set_author(name=f"{interaction.user.display_name} ({interaction.user.name})", icon_url=interaction.user.display_avatar)
+        if command.parent:
+            embed.title = f"/{command.parent.name} {embed.title[1:]}"
+        embed.set_author(name=f"{interaction.user.display_name} | {interaction.user.name}", icon_url=interaction.user.display_avatar)
         if interaction.guild_id:
             embed.set_footer(text=interaction.guild.name, icon_url=interaction.guild.icon)
         else:
