@@ -55,7 +55,7 @@ lounge_data = loungeData()
 
 class Paginator(discord.ui.View):
     def __init__(self, interaction: discord.Interaction, embeds: List[discord.Embed]):
-        super().__init__(timeout=10)
+        super().__init__(timeout=600)
         self.interaction = interaction
         self.embeds = embeds
         self.page_num = 1
