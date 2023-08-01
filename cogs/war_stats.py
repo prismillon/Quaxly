@@ -72,7 +72,10 @@ class war_stats(commands.Cog):
     @group.command()
     async def top(self, interaction: discord.Interaction, channel: discord.TextChannel, min: app_commands.Range[int, 1] = 1) -> None:
         """check the top 10 best races stats in the specified channel"""
-        await interaction.response.send_message(channel, ephemeral=True)
+
+        stats = list(filter(lambda x: x[1] >= min, sql.get_wars_stats_from_channel(channel.id)))
+
+        await interaction.response.send_message(stats)
 
     @group.command()
     @app_commands.choices(status=[Choice(name='on', value='on'), Choice(name='off', value='off')])
