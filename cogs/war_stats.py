@@ -79,7 +79,7 @@ class war_stats(commands.Cog):
             return await interaction.response.send_message(content="no stats registered in this channel", ephemeral=True)
         
         embed = discord.Embed(color=0x47e0ff, description="", title="top 10 tracks")
-        stats = [f"{stat[0]} `{stat[2]:+g}` | `{stat[1]}`" for stat in raw_stats]
+        stats = [f"{stat[3]} `{stat[2]:+g}` | `{stat[1]}`" for stat in raw_stats]
         embed.description = "\n".join(stats)
 
         await interaction.response.send_message(embed=embed)
