@@ -77,8 +77,6 @@ class war_stats(commands.Cog):
     async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel, min: app_commands.Range[int, 1] = 1) -> None:
         """check race stats in the specified channel"""
 
-        channel.id = 983812012561825834
-
         raw_stats = list(filter(lambda x: x[1] >= min, sql.get_wars_stats_from_channel(channel.id)))
 
         if len(raw_stats) == 0:
@@ -93,7 +91,7 @@ class war_stats(commands.Cog):
 
         for index, stat in enumerate(stats):
             if index%10==0:
-                embeds.append(discord.Embed(color=0x47e0ff, description="", title=f"best race {index+1} -> {index+10 if len(stats)>=10 else len(stats)}"))
+                embeds.append(discord.Embed(color=0x47e0ff, description="", title=f"race stats [ {index+1} -> {index+10 if len(stats)>=index+10 else len(stats)} ]"))
             embeds[-1].description += stat
 
         await interaction.response.send_message(embed=embeds[0], view=utils.Paginator(interaction, embeds))

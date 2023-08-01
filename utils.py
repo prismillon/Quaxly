@@ -55,7 +55,7 @@ lounge_data = loungeData()
 
 class Paginator(discord.ui.View):
     def __init__(self, interaction: discord.Interaction, embeds: List[discord.Embed]):
-        super().__init__()
+        super().__init__(timeout=10)
         self.interaction = interaction
         self.embeds = embeds
         self.page_num = 1
@@ -111,3 +111,10 @@ class Paginator(discord.ui.View):
         self.after.disabled = True
         self.last.disabled = True
         await interaction.response.edit_message(embed=self.embeds[self.page_num-1], view=self)
+
+    async def on_timeout(self):
+        self.first.disabled = True
+        self.before.disabled = True
+        self.after.disabled = True
+        self.last.disabled = True
+        await self.interaction.edit_original_response(view=self)
