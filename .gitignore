@@ -19,4 +19,4 @@ update_cups.py
 tables.sql
 tracks.json
 update_tracks.py
-logging.py
+cogs/logging.py
