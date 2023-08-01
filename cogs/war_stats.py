@@ -74,14 +74,15 @@ class war_stats(commands.Cog):
     async def top(self, interaction: discord.Interaction, channel: discord.TextChannel, min: app_commands.Range[int, 1] = 1) -> None:
         """check the top 10 best races stats in the specified channel"""
 
-        raw_stats = list(filter(lambda x: x[1] >= min, sql.get_wars_stats_from_channel(channel.id)))[10:]
+        raw_stats = list(filter(lambda x: x[1] >= min, sql.get_wars_stats_from_channel(channel.id)))[:10]
 
         if len(raw_stats) == 0:
             return await interaction.response.send_message(content="no stats registered in this channel", ephemeral=True)
         
+        max_length = max(raw_stats, lambda x: len(x[3]))+1
         embed = discord.Embed(color=0x47e0ff, description="", title="top 10 tracks")
-        stats = [f"{stat[3]} `{stat[2]:+g}` | `{stat[1]}`" for stat in raw_stats]
-        embed.description = "\n".join(stats)
+        stats = [f"{stat[3]}{' '*(max_length-len(stat[3]))}{stat[2]:+g}  |  {stat[1]}" for stat in raw_stats]
+        embed.description = "```\n"+"\n".join(stats)+"\n```"
 
         await interaction.response.send_message(embed=embed)
 
