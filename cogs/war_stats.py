@@ -79,9 +79,9 @@ class war_stats(commands.Cog):
         if len(raw_stats) == 0:
             return await interaction.response.send_message(content="no stats registered in this channel", ephemeral=True)
         
-        max_length = max(raw_stats, lambda x: len(x[3]))+1
+        max_length = max(raw_stats, lambda x: len(x[3]))
         embed = discord.Embed(color=0x47e0ff, description="", title="top 10 tracks")
-        stats = [f"{stat[3]}{' '*(max_length-len(stat[3]))}{stat[2]:+g}  |  {stat[1]}" for stat in raw_stats]
+        stats = [f"{stat[3]}{' '*(max_length+1-len(stat[3]))}{stat[2]:+g}  |  {stat[1]}" for stat in raw_stats]
         embed.description = "```\n"+"\n".join(stats)+"\n```"
 
         await interaction.response.send_message(embed=embed)
