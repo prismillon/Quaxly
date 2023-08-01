@@ -75,6 +75,13 @@ class war_stats(commands.Cog):
 
         stats = list(filter(lambda x: x[1] >= min, sql.get_wars_stats_from_channel(channel.id)))
 
+        if len(stats) == 0:
+            return await interaction.response.send_message(content="no stats registered in this channel", ephemeral=True)
+        
+        embed = discord.Embed(color=0x47e0ff, description="", title="top 10 tracks")
+
+        
+
         await interaction.response.send_message(stats)
 
     @group.command()
