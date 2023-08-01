@@ -35,7 +35,7 @@ class confirmButton(discord.ui.View):
 @app_commands.describe(speed="the mode you are playing in", items="are you using shrooms?", track="the track you are playing on", time="your time formated like this -> 1:23.456")
 @app_commands.choices(speed=utils.speedChoices, items=utils.itemChoices)
 @app_commands.autocomplete(track=track_autocomplete, time=time_autocomplete)
-async def save_time(interaction: discord.Interaction, speed: Choice[str], items: Choice[str], track: str, time: str):
+async def save_time(interaction: discord.Interaction, speed: Choice[str], items: Choice[str], track: str, time: app_commands.Range[str, 8, 8]):
     """save a time"""
 
     mode = items.value+speed.value
