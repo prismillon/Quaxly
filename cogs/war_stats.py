@@ -77,7 +77,9 @@ class war_stats(commands.Cog):
     async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel, min: app_commands.Range[int, 1] = 1) -> None:
         """check race stats in the specified channel"""
 
+        print(channel.id, channel.name)
         raw_stats = list(filter(lambda x: x[1] >= min, sql.get_wars_stats_from_channel(channel.id)))
+        print(raw_stats)
 
         if len(raw_stats) == 0:
             return await interaction.response.send_message(content="no stats registered in this channel", ephemeral=True)
