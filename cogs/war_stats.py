@@ -1,3 +1,4 @@
+import importlib
 import discord
 import sql
 
@@ -92,4 +93,5 @@ class war_stats(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
+    importlib.reload(sql)
     await bot.add_cog(war_stats(bot))
