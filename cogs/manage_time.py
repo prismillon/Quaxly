@@ -7,27 +7,12 @@ import re
 from discord import app_commands
 from discord.app_commands import Choice
 from autocomplete import track_autocomplete, time_autocomplete
+from utils import confirmButton
 
 
 def time_diff(new_time, previous_time):
     diff = datetime.datetime.strptime(previous_time, "%M:%S.%f") - datetime.datetime.strptime(new_time, "%M:%S.%f")
     return f"{diff.seconds // 60}:{diff.seconds % 60:02d}.{diff.microseconds // 1000:03d}"
-
-
-class confirmButton(discord.ui.View):
-    def __init__(self):
-        super().__init__()
-        self.answer = None
-
-    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
-    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.answer = True
-        self.stop()
-
-    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.red)
-    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.answer = False
-        self.stop()
 
 
 @app_commands.command()

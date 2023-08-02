@@ -118,3 +118,19 @@ class Paginator(discord.ui.View):
         self.after.disabled = True
         self.last.disabled = True
         await self.interaction.edit_original_response(view=self)
+
+
+class confirmButton(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+        self.answer = None
+
+    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.answer = True
+        self.stop()
+
+    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.red)
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.answer = False
+        self.stop()
