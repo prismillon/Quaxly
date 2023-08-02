@@ -110,7 +110,7 @@ class war_stats(commands.Cog):
         if not channel:
             channel = interaction.channel
         
-        raw_stats = sql.get_war_list_from_channel()
+        raw_stats = sql.get_war_list_from_channel(channel.id)
 
         if len(raw_stats) == 0:
             return await interaction.response.send_message(content="no wars registered in this channel", ephemeral=True)
