@@ -26,11 +26,11 @@ async def time_autocomplete(interaction: discord.Interaction, current: str) -> L
 
 
 async def name_autocomplete(interaction: discord.Interaction, current: str) -> List[Choice[str]]:
-    return [Choice(name=player['name'], value=player['name']) for player in filter(lambda player: player['name'].lower().startswith(current.lower()), lounge_data.data)][:25]
+    return [Choice(name=player['name'], value=player['name']) for player in filter(lambda player: player['name'].lower().startswith(current.lower()), lounge_data.data())][:25]
 
 
 async def mkc_team_autocomplete(interaction: discord.Interaction, current: str) -> List[Choice[str]]:
-    return [Choice(name=team['team_name'], value=str(team['team_name'])) for team in filter(lambda team: team['team_name'].lower().startswith(current.lower()), mkc_data.data)][:25]
+    return [Choice(name=team['team_name'], value=str(team['team_name'])) for team in filter(lambda team: team['team_name'].lower().startswith(current.lower()), mkc_data.data())][:25]
 
 
 async def cmd_autocomplete(interaction: discord.Interaction, current: str) -> List[Choice[str]]:
