@@ -29,7 +29,6 @@ class loungeData:
                     _data_full = await response.json()
                     self._data = [player for player in _data_full['players'] if "discordId" in player]
 
-    @property
     def data(self):
         return self._data
 
@@ -45,7 +44,6 @@ class mkcData:
                     _data_full = await response.json()
                     self._data = _data_full['data']
 
-    @property
     def data(self):
         return self._data
 

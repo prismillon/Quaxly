@@ -101,7 +101,7 @@ async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[st
 
     await interaction.response.defer()
 
-    team = next((mkc_team for mkc_team in mkc_data.data if mkc_team['team_name'].lower() == team.lower()), None)
+    team = next((mkc_team for mkc_team in mkc_data.data() if mkc_team['team_name'].lower() == team.lower()), None)
 
     if not team:
         return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"team not found", description="could not find the team you typed in the mkc database"))
