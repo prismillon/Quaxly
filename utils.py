@@ -50,9 +50,6 @@ class mkcData:
         return self._data
 
 
-mkc_data = mkcData()
-lounge_data = loungeData()
-
 class Paginator(discord.ui.View):
     def __init__(self, interaction: discord.Interaction, embeds: List[discord.Embed]):
         super().__init__(timeout=600)
@@ -134,3 +131,7 @@ class confirmButton(discord.ui.View):
     async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.answer = False
         self.stop()
+
+
+mkc_data = mkcData()
+lounge_data = loungeData()
