@@ -126,7 +126,10 @@ class war_stats(commands.Cog):
             embed.add_field(name="war id", value=f"```{war[0]}```", inline=True)
             race_text = "```\n"
             max_name_l = len(max(races, key=lambda x: len(x[2]))[2])+1
-            for race in races:
+            for index, race in enumerate(races):
+                if index == 20:
+                    race_text += "[...]\n"
+                    break
                 race_text += f"{race[0]}:{' ' if len(str(race[0]))==1 else ''} {race[2]}{' '*(max_name_l-len(race[2]))} {' ' if abs(race[3])<10 else ''}{race[3]:+}\n"
             embed.add_field(name="race list", value=f"{race_text}```", inline=False)
             embeds.append(embed)
@@ -194,14 +197,6 @@ class war_stats(commands.Cog):
                 embed.description = "data remained unchanged"
 
                 await interaction.edit_original_response(embed=embed, view=None)
-
-
-    @group.command()
-    @app_commands.guild_only()
-    @app_commands.choices(status=[Choice(name='on', value='on'), Choice(name='off', value='off')])
-    async def toggle(self, interaction: discord.Interaction, status: Choice[str]):
-        """enable or disable stat monitoring"""
-        await interaction.response.send_message(content=f"toad war monitoring have been {'enabled' if status.value == 'on' else 'disabled'}")
 
 
 async def setup(bot: commands.Bot):
