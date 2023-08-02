@@ -72,10 +72,10 @@ class war_stats(commands.Cog):
                     self.active_war[message.channel.id]['tracks'] = self.active_war[message.channel.id]['tracks'][:race_id]
                     return
 
-    group = app_commands.Group(name="war", description="all command related to wars played with toad bot")
+    group = app_commands.Group(name="war", description="all command related to wars played with toad bot", guild_only=True)
 
     @group.command()
-    @group.guild_only()
+    @app_commands.guild_only()
     @app_commands.describe(channel="the channel you want to check stats from", min="the minimum number of times the track has been played for it to count")
     async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel = None, min: app_commands.Range[int, 1] = 1) -> None:
         """check race stats in the specified channel"""
@@ -104,7 +104,7 @@ class war_stats(commands.Cog):
 
 
     @group.command(name="list")
-    @group.guild_only()
+    @app_commands.guild_only()
     @app_commands.describe(channel="the channel you want to check wars from")
     async def warlist(self, interaction: discord.interactions, channel: discord.TextChannel = None):
         """check the list of war that have been recorded"""
@@ -135,7 +135,7 @@ class war_stats(commands.Cog):
 
 
     @group.command()
-    @group.guild_only()
+    @app_commands.guild_only()
     @app_commands.describe()
     async def delete(self, interaction: discord.Interaction, channel: discord.TextChannel = None, war_id: app_commands.Range[int, 1] = None):
         """delete stats from a specific war or all stats"""
@@ -194,7 +194,7 @@ class war_stats(commands.Cog):
 
 
     @group.command()
-    @group.guild_only()
+    @app_commands.guild_only()
     @app_commands.choices(status=[Choice(name='on', value='on'), Choice(name='off', value='off')])
     async def toggle(self, interaction: discord.Interaction, status: Choice[str]):
         """enable or disable stat monitoring"""
