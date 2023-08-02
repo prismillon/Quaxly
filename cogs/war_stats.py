@@ -121,11 +121,11 @@ class war_stats(commands.Cog):
             embed = discord.Embed(color=0x47e0ff, title=f"{war[3]} vs {war[4]}", timestamp=datetime.fromisoformat(war[2]))
             races = sql.get_races_from_war(war[0])
             embed.add_field(name="final result", value=f"```{sum(race[3] for race in races):+}```", inline=True)
-            embed.add_field(name="war id", value=f"```{war[0]}```", inline=False)
+            embed.add_field(name="war id", value=f"```{war[0]}```", inline=True)
             race_text = "```\n"
             max_name_l = len(max(races, key=lambda x: len(x[2]))[2])+1
             for race in races:
-                race_text += f"{race[0]}:{' ' if len(str(race[0]))==1 else ''} {race[2]}{' '*(max_name_l-len(race[2]))} {race[3]:+}\n"
+                race_text += f"{race[0]}:{' ' if len(str(race[0]))==1 else ''} {race[2]}{' '*(max_name_l-len(race[2]))} {' ' if abs(race[3]<10) else ''}{race[3]:+}\n"
             embed.add_field(name="race list", value=f"{race_text}```", inline=False)
             embeds.append(embed)
 
