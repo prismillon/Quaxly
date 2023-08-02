@@ -144,7 +144,7 @@ class war_stats(commands.Cog):
             channel = interaction.channel
 
         if not war_id:
-            if len(sql.check_war_ownership('%', channel.id)) == 0:
+            if len(sql.get_war_list_from_channel(channel.id)) == 0:
                 return await interaction.response.send_message(content="this channel do not have any war stats", ephemeral=True)
 
             embed = discord.Embed(color=0x47e0ff, title="delete all war stats")
