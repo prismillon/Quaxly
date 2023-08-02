@@ -144,10 +144,13 @@ class war_stats(commands.Cog):
             channel = interaction.channel
 
         if not war_id:
+            if len(sql.check_war_ownership('%', channel.id)) == 0:
+                return await interaction.response.send_message(content="this channel do not have any war stats", ephemeral=True)
+
             embed = discord.Embed(color=0x47e0ff, title="delete all war stats")
             embed.description = f"you are about to delete {len(sql.get_war_list_from_channel(channel.id))} wars"
             view = confirmButton()
-            await interaction.response.send_message(embed=embed, view=view)
+            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
             await view.wait()
 
             if view.answer:
@@ -171,11 +174,11 @@ class war_stats(commands.Cog):
             if len(war) != 1:
                 return await interaction.response.send_message(content="this war does not exist or does not belong to this channel", ephemeral=True)
 
-            embed = discord.Embed(color=0x47e0ff, title=f"delete war n°{war[0]}")
+            embed = discord.Embed(color=0x47e0ff, title=f"delete war n°{war_id}")
             embed.description = f"you are about to delete this wars"
             view = confirmButton()
 
-            await interaction.response.send_message(embed=embed, view=view)
+            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
             await view.wait()
 
             if view.answer:
