@@ -17,6 +17,8 @@ async def id_to_stat(discord_id: int, stat: Choice[str], season: int):
         async with session.get("https://www.mk8dx-lounge.com/api/player?discordId="+str(discord_id)+season) as response:
             if response.status == 200:
                 user_data = await response.json()
+                if "discordId" not in user_data:
+                    return None
                 if stat.value == 'eventsPlayed':
                     async with session.get("https://www.mk8dx-lounge.com/api/player/details?name="+user_data['name']+season) as response:
                         if response.status == 200:
@@ -36,6 +38,8 @@ async def fc_to_stat(fc: str, stat: Choice[str], season: int):
         async with session.get("https://www.mk8dx-lounge.com/api/player?fc="+fc+season) as response:
             if response.status == 200:
                 user_data = await response.json()
+                if "discordId" not in user_data:
+                    return None
                 if stat.value == 'eventsPlayed':
                     async with session.get("https://www.mk8dx-lounge.com/api/player/details?name="+user_data['name']+season) as response:
                         if response.status == 200:
