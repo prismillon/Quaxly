@@ -26,7 +26,7 @@ async def register_user(interaction: discord.Interaction, player: discord.Member
     if len(sql.check_player_server(player.id, interaction.guild_id)) == 0:
         sql.register_user_in_server(player.id, interaction.guild_id)
         embed.title = "registered !"
-        embed.description = f"{player.display_name} has been added to the list"
+        embed.description = f"{player.display_name} as been added to the list"
     else:
         embed.title = "already in >:("
         embed.description = f"{player.display_name} is already in the list"
@@ -50,7 +50,7 @@ async def remove_user(interaction: discord.Interaction, player: discord.Member =
     if len(sql.check_player(player.id)) == 1 and len(sql.check_player_server(player.id, interaction.guild_id)) == 1:
         sql.delete_player_from_server(player.id, interaction.guild_id)
         embed.title = "removed !"
-        embed.description = f"{player.display_name} has been removed from the list"
+        embed.description = f"{player.display_name} as been removed from the list"
     else:
         embed.title = "not in >:("
         embed.description = f"{player.display_name} is not in the list"

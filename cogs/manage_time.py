@@ -7,6 +7,7 @@ import re
 from discord import app_commands
 from discord.app_commands import Choice
 from autocomplete import track_autocomplete, time_autocomplete
+from utils import confirmButton
 
 
 def time_diff(new_time, previous_time):
@@ -14,28 +15,12 @@ def time_diff(new_time, previous_time):
     return f"{diff.seconds // 60}:{diff.seconds % 60:02d}.{diff.microseconds // 1000:03d}"
 
 
-class confirmButton(discord.ui.View):
-    def __init__(self):
-        super().__init__()
-        self.answer = None
-
-    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
-    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.answer = True
-        self.stop()
-
-    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.red)
-    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.answer = False
-        self.stop()
-
-
 @app_commands.command()
 @app_commands.guild_only()
 @app_commands.describe(speed="the mode you are playing in", items="are you using shrooms?", track="the track you are playing on", time="your time formated like this -> 1:23.456")
 @app_commands.choices(speed=utils.speedChoices, items=utils.itemChoices)
 @app_commands.autocomplete(track=track_autocomplete, time=time_autocomplete)
-async def save_time(interaction: discord.Interaction, speed: Choice[str], items: Choice[str], track: str, time: app_commands.Range[str, 8, 8]):
+async def save_time(interaction: discord.Interaction, speed: Choice[str], items: Choice[str], track: str, time: str):
     """save a time"""
 
     mode = items.value+speed.value
