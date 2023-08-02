@@ -7,6 +7,7 @@ from discord import app_commands
 from discord.ext import commands
 from datetime import datetime
 from discord.app_commands import Choice
+from manage_time import confirmButton
 
 
 formatNumber = lambda n: n if n%1 else int(n)
@@ -74,7 +75,7 @@ class war_stats(commands.Cog):
     group = app_commands.Group(name="war", description="all command related to wars played with toad bot")
 
     @group.command()
-    @app_commands.guild_only()
+    @group.guild_only()
     @app_commands.describe(channel="the channel you want to check stats from", min="the minimum number of times the track has been played for it to count")
     async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel = None, min: app_commands.Range[int, 1] = 1) -> None:
         """check race stats in the specified channel"""
@@ -101,8 +102,9 @@ class war_stats(commands.Cog):
 
         await interaction.response.send_message(embed=embeds[0], view=utils.Paginator(interaction, embeds))
 
+
     @group.command(name="list")
-    @app_commands.guild_only()
+    @group.guild_only()
     @app_commands.describe(channel="the channel you want to check wars from")
     async def warlist(self, interaction: discord.interactions, channel: discord.TextChannel = None):
         """check the list of war that have been recorded"""
@@ -131,8 +133,68 @@ class war_stats(commands.Cog):
 
         await interaction.response.send_message(embed=embeds[0], view=utils.Paginator(interaction, embeds))
 
+
     @group.command()
-    @app_commands.guild_only()
+    @group.guild_only()
+    @app_commands.describe()
+    async def delete(self, interaction: discord.Interaction, channel: discord.TextChannel = None, war_id: app_commands.Range[int, 1] = None):
+        """delete stats from a specific war or all stats"""
+
+        if not channel:
+            channel = interaction.channel
+
+        if not war_id:
+            embed = discord.Embed(color=0x47e0ff, title="delete all war stats")
+            embed.description = f"you are about to delete {len(sql.get_war_list_from_channel(channel.id))} wars"
+            view = confirmButton()
+            await interaction.response.send_message(embed=embed, view=view)
+            await view.wait()
+
+            if view.answer:
+                for war in sql.get_war_list_from_channel(channel.id):
+                    sql.delete_races_from_war(war[0])
+                    sql.delete_war(war[0])
+                embed.title = "war stats removed"
+                embed.description = "all war stats have been removed"
+
+                await interaction.edit_original_response(embed=embed, view=None)
+
+            else:
+                embed.title = "action canceled"
+                embed.description = "data remained unchanged"
+
+                await interaction.edit_original_response(embed=embed, view=None)
+        
+        else:
+            war = sql.check_war_ownership(war_id, channel.id)
+
+            if len(war) != 1:
+                return await interaction.response.send_message(content="this war does not exist or does not belong to this channel", ephemeral=True)
+
+            embed = discord.Embed(color=0x47e0ff, title=f"delete war n°{war[0]}")
+            embed.description = f"you are about to delete this wars"
+            view = confirmButton()
+
+            await interaction.response.send_message(embed=embed, view=view)
+            await view.wait()
+
+            if view.answer:
+                sql.delete_races_from_war(war_id)
+                sql.delete_war(war_id)
+                embed.title = f"war n°{war_id} removed"
+                embed.description = "successfully deleted the war race data"
+
+                await interaction.edit_original_response(embed=embed, view=None)
+
+            else:
+                embed.title = "action canceled"
+                embed.description = "data remained unchanged"
+
+                await interaction.edit_original_response(embed=embed, view=None)
+
+
+    @group.command()
+    @group.guild_only()
     @app_commands.choices(status=[Choice(name='on', value='on'), Choice(name='off', value='off')])
     async def toggle(self, interaction: discord.Interaction, status: Choice[str]):
         """enable or disable stat monitoring"""
