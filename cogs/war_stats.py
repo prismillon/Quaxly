@@ -118,9 +118,10 @@ class war_stats(commands.Cog):
         embeds = []
 
         for war in raw_stats:
-            embed = discord.Embed(color=0x47e0ff, title=f"war {war[0]} | {war[3]} vs {war[4]}", timestamp=datetime.fromisoformat(war[2]))
+            embed = discord.Embed(color=0x47e0ff, title=f"{war[3]} vs {war[4]}", timestamp=datetime.fromisoformat(war[2]))
             races = sql.get_races_from_war(war[0])
-            embed.add_field(name="final result", value=f"{sum(race[3] for race in races):+}", inline=False)
+            embed.add_field(name="final result", value=f"```{sum(race[3] for race in races):+}```", inline=True)
+            embed.add_field(name="war id", value=f"```{war[0]}```", inline=False)
             race_text = "```\n"
             max_name_l = len(max(races, key=lambda x: len(x[2]))[2])+1
             for race in races:
