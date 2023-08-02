@@ -74,6 +74,8 @@ class war_stats(commands.Cog):
     group = app_commands.Group(name="war", description="all command related to wars played with toad bot")
 
     @group.command()
+    @app_commands.guild_only()
+    @app_commands.describe(channel="the channel you want to check stats from", min="the minimum number of times the track has been played for it to count")
     async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel = None, min: app_commands.Range[int, 1] = 1) -> None:
         """check race stats in the specified channel"""
 
@@ -99,7 +101,37 @@ class war_stats(commands.Cog):
 
         await interaction.response.send_message(embed=embeds[0], view=utils.Paginator(interaction, embeds))
 
+    @group.command(name="list")
+    @app_commands.guild_only()
+    @app_commands.describe(channel="the channel you want to check wars from")
+    async def warlist(self, interaction: discord.interactions, channel: discord.TextChannel = None):
+        """check the list of war that have been recorded"""
+
+        if not channel:
+            channel = interaction.channel
+        
+        raw_stats = sql.get_war_list_from_channel()
+
+        if len(raw_stats) == 0:
+            return await interaction.response.send_message(content="no wars registered in this channel", ephemeral=True)
+
+        embeds = []
+
+        for war in raw_stats:
+            embed = discord.Embed(color=0x47e0ff, title=f"war {war[0]} | {war[3]} vs {war[4]}", timestamp=war[2])
+            races = sql.get_races_from_war(war[0])
+            embed.add_field(name="final result", value=sum(race[3] for race in races))
+            race_text = "```\n"
+            max_name_l = len(max(races, key=lambda x: len(x[2]))[2])+1
+            for race in races:
+                race_text += f"{race[0]}:{' ' if len(str(race[0]))==1 else ''} {race[2]}{' '*(len(max_name_l)-len(race[2]))} {race[3]}"
+            embed.add_field(name="race list", value=f"{race_text}\n```")
+            embeds.append(embed)
+
+        await interaction.response.send_message(embed=embeds[0], view=utils.Paginator(interaction, embeds))
+
     @group.command()
+    @app_commands.guild_only()
     @app_commands.choices(status=[Choice(name='on', value='on'), Choice(name='off', value='off')])
     async def toggle(self, interaction: discord.Interaction, status: Choice[str]):
         """enable or disable stat monitoring"""
