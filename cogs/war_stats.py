@@ -124,7 +124,7 @@ class war_stats(commands.Cog):
             race_text = "```\n"
             max_name_l = len(max(races, key=lambda x: len(x[2]))[2])+1
             for race in races:
-                race_text += f"{race[0]}:{' ' if len(str(race[0]))==1 else ''} {race[2]}{' '*(len(max_name_l)-len(race[2]))} {race[3]}"
+                race_text += f"{race[0]}:{' ' if len(str(race[0]))==1 else ''} {race[2]}{' '*(max_name_l-len(race[2]))} {race[3]}"
             embed.add_field(name="race list", value=f"{race_text}\n```")
             embeds.append(embed)
 
