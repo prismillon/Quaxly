@@ -1,7 +1,7 @@
 import discord
 import os
 
-from utils import lounge_data, mkc_data
+from utils import lounge_data, mkc_data, lounge_season
 from discord.ext import commands, tasks
 
 
@@ -13,6 +13,9 @@ class startup(commands.Cog):
     async def api_list(self):
         await lounge_data.lounge_api_full()
         await mkc_data.mkc_api_full()
+        await lounge_season.lounge_season()
+
+    
 
     @commands.Cog.listener()
     async def on_ready(self):

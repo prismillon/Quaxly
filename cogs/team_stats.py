@@ -2,16 +2,17 @@ import discord
 import aiohttp
 import asyncio
 import statistics
+import re
 
 
 from autocomplete import mkc_team_autocomplete
 from datetime import datetime
 from discord import app_commands
-from utils import lounge_data, statChoices, mkc_data, wait_for_chunk
-from discord.app_commands import Choice
+from utils import lounge_data, statChoices, mkc_data, wait_for_chunk, lounge_season
+from discord.app_commands import Choice, Range
 
 
-async def id_to_stat(discord_id: int, stat: Choice[str], season: int):
+async def id_to_stat(discord_id: int, stat: Choice[str] = statChoices[0], season: int = None):
     season = f"&season={season}" if season else ""
     async with aiohttp.ClientSession() as session:
         async with session.get("https://www.mk8dx-lounge.com/api/player?discordId="+str(discord_id)+season) as response:
@@ -32,21 +33,17 @@ async def id_to_stat(discord_id: int, stat: Choice[str], season: int):
                 return user_data
 
 
-async def fc_to_stat(fc: str, stat: Choice[str], season: int):
-    season = f"&season={season}" if season else ""
+async def fc_to_stat(fc: str, season: int):
     async with aiohttp.ClientSession() as session:
-        async with session.get("https://www.mk8dx-lounge.com/api/player?fc="+fc+season) as response:
+        async with session.get(f"https://www.mk8dx-lounge.com/api/player/leaderboard?season={season}&search=switch="+fc) as response:
             if response.status == 200:
                 user_data = await response.json()
-                if "discordId" not in user_data:
+                if len(user_data['data']) != 1:
                     return None
-                if stat.value == 'eventsPlayed':
-                    async with session.get("https://www.mk8dx-lounge.com/api/player/details?name="+user_data['name']+season) as response:
-                        if response.status == 200:
-                            discord_id = user_data['discordId']
-                            user_data = await response.json()
-                            user_data['discordId'] = discord_id
-                            user_data['id'] = user_data['playerId']
+                user_data = user_data['data'][0]
+                user_data['discordId'] = next((player['discordId'] for player in lounge_data.data() if player['name'] == user_data['name']), None)
+                if not 'discordId' in user_data:
+                    return None
                 if 'mmr' not in user_data or not 'discordId' in user_data:
                     return None
                 if 'maxMmr' not in user_data:
@@ -99,6 +96,9 @@ async def role_stats(interaction: discord.Interaction, role: discord.Role, stat:
 async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[str] = None, season: int = None):
     """check stats of a mkc 150cc team"""
 
+    if not season:
+        season = lounge_season.data()
+
     await interaction.response.defer()
 
     team = next((mkc_team for mkc_team in mkc_data.data() if mkc_team['team_name'].lower() == team.lower()), None)
@@ -119,11 +119,11 @@ async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[st
 
     embeds = [discord.Embed(color=0x47e0ff, title=f"{team['team_name']} average {stat.name}").set_thumbnail(url=f"https://www.mariokartcentral.com/mkc/storage/{team_data['team_logo']}")]
 
-    member_tasks = [fc_to_stat(member['custom_field'], stat=stat, season=season) for member in team_data['rosters']['150cc']['members']]
+    member_tasks = [fc_to_stat(member['custom_field'], season=season) for member in team_data['rosters']['150cc']['members']]
     user_data_array = sorted(list(filter(lambda user_data: user_data is not None, await asyncio.gather(*member_tasks))), key=lambda key: key[stat.value], reverse=True)
 
     if len(user_data_array) == 0:
-        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"no users found", description="could not find anyone in lounge from this role"))
+        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"no users found", description="could not find anyone in lounge from this team"))
 
     for index, user in enumerate(user_data_array):
         if index%21==0 and index != 0:
@@ -140,6 +140,44 @@ async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[st
     await interaction.edit_original_response(embeds=embeds)
 
 
+@app_commands.command()
+@app_commands.describe(room="room message with the list of fc", team_size="the size of the team for this summit")
+async def summit_stats(interaction: discord.Interaction, room: str, team_size: Range[int, 1, 6] = 1):
+    """get stats from summit room"""
+
+    if len(re.findall("[0-9]{4}-[0-9]{4}-[0-9]{4}", room)) != 12:
+        return await interaction.response.send_message(content="room list provided is not valid", ephemeral=True)
+
+    await interaction.response.defer()
+
+    season = lounge_season.data()
+
+    players_fc = re.findall("[0-9]{4}-[0-9]{4}-[0-9]{4}", room)
+
+    players_api_request = [fc_to_stat(fc, season) for fc in players_fc]
+
+    players_profile = await asyncio.gather(*players_api_request)
+
+    teams = []
+
+    for index, profile in enumerate(players_profile):
+        if index%team_size==0:
+            teams.append([])
+        teams[-1].append(profile)
+
+    embed = discord.Embed(color=0x47e0ff, title=f"room average {round(statistics.fmean([user['mmr'] for user in filter(lambda x: x is not None, players_profile)]))}")
+
+    for index, team in enumerate(teams):
+        title = f"team {index+1}: {round(statistics.fmean([user['mmr'] for user in filter(lambda x: x is not None, team)]))}"
+        value = ""
+        for member in team:
+            value += f"[{member['name']}](https://www.mk8dx-lounge.com/PlayerDetails/{member['id']}): {member['mmr']}\n" if member else "not in lounge\n"
+        embed.add_field(name=title, value=value, inline=False)
+
+    await interaction.followup.send(embed=embed)
+
+
 async def setup(bot):
+    bot.tree.add_command(summit_stats)
     bot.tree.add_command(role_stats)
     bot.tree.add_command(mkc_stats)
