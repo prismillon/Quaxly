@@ -4,6 +4,7 @@ from typing import Literal, Optional
 from discord.ext import commands
 from discord.ext.commands import Greedy, Context
 
+
 @commands.command()
 @commands.guild_only()
 @commands.is_owner()
@@ -36,6 +37,18 @@ async def sync(ctx: Context, guilds: Greedy[discord.Object], spec: Optional[Lite
             ret += 1
 
     await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
+
+
+@commands.command()
+@commands.guild_only()
+@commands.is_owner()
+async def ext(ctx: Context) -> None:
+    try:
+        await ctx.bot.load_extension("cogs.extension")
+    except Exception as error:
+        await ctx.send(content=error)
+    else:
+        await ctx.send(content=f"succesfully loaded '{command}'")
 
 
 async def setup(bot: commands.Bot):

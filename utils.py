@@ -48,6 +48,21 @@ class mkcData:
         return self._data
 
 
+class loungeSeason:
+    def __init__(self):
+        self._data = None
+
+    async def lounge_season(self):
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://www.mk8dx-lounge.com/api/player/details?id=14324") as response:
+                if response.status == 200:
+                    _data_full = await response.json()
+                    self._data = _data_full['season']
+
+    def data(self):
+        return self._data
+
+
 class Paginator(discord.ui.View):
     def __init__(self, interaction: discord.Interaction, embeds: List[discord.Embed]):
         super().__init__(timeout=600)
@@ -131,5 +146,6 @@ class confirmButton(discord.ui.View):
         self.stop()
 
 
-mkc_data = mkcData()
+lounge_season = loungeSeason()
 lounge_data = loungeData()
+mkc_data = mkcData()
