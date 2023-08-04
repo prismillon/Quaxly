@@ -151,13 +151,9 @@ async def summit_stats(interaction: discord.Interaction, room: str, team_size: R
     await interaction.response.defer()
 
     season = lounge_season.data()
-
     players_fc = re.findall("[0-9]{4}-[0-9]{4}-[0-9]{4}", room)
-
     players_api_request = [fc_to_stat(fc, season) for fc in players_fc]
-
     players_profile = await asyncio.gather(*players_api_request)
-
     teams = []
 
     for index, profile in enumerate(players_profile):
