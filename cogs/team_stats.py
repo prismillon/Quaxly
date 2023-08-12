@@ -12,6 +12,13 @@ from utils import lounge_data, statChoices, mkc_data, wait_for_chunk, lounge_sea
 from discord.app_commands import Choice, Range
 
 
+async def check_for_none(data: list) -> bool:
+    for item in data:
+        if item is not None:
+            return True
+    return False
+
+
 async def id_to_stat(discord_id: int, stat: Choice[str] = statChoices[0], season: int = None):
     season = f"&season={season}" if season else ""
     async with aiohttp.ClientSession() as session:
@@ -167,7 +174,11 @@ async def summit_stats(interaction: discord.Interaction, room: str, team_size: R
     embed = discord.Embed(color=0x47e0ff, title=f"room average {round(statistics.fmean([user['mmr'] for user in filter(lambda x: x is not None, players_profile)]))}")
 
     for index, team in enumerate(teams):
-        title = f"team {index+1}: {round(statistics.fmean([user['mmr'] for user in filter(lambda x: x is not None, team)]))}"
+        title = f"team {index+1}: "
+        if await check_for_none(team):
+            title += f"{round(statistics.fmean([user['mmr'] for user in filter(lambda x: x is not None, team)]))}"
+        else:
+            title += 'N/A'
         value = ""
         for member in team:
             value += f"[{member['name']}](https://www.mk8dx-lounge.com/PlayerDetails/{member['id']}): {member['mmr']}\n" if member else "not in lounge\n"
