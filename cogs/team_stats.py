@@ -151,12 +151,12 @@ async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[st
 
 
 @app_commands.command()
-@app_commands.describe(room="room message with the list of fc", team_size="the size of the team for this summit")
-async def summit_stats(interaction: discord.Interaction, room: str, team_size: Range[int, 1, 6] = 1):
-    """get stats from summit room"""
+@app_commands.describe(room="message with the list of fc", team_size="the size of the team for this event")
+async def fc_stats(interaction: discord.Interaction, room: str, team_size: Range[int, 1, 6] = 1):
+    """get stats from a room with 12 friend codes"""
 
     if len(re.findall("[0-9]{4}-[0-9]{4}-[0-9]{4}", room)) != 12:
-        return await interaction.response.send_message(content="room list provided is not valid", ephemeral=True)
+        return await interaction.response.send_message(content="room list provided is not valid it should contain 12 friend codes", ephemeral=True)
 
     await interaction.response.defer()
 
@@ -188,6 +188,6 @@ async def summit_stats(interaction: discord.Interaction, room: str, team_size: R
 
 
 async def setup(bot):
-    bot.tree.add_command(summit_stats)
+    bot.tree.add_command(fc_stats)
     bot.tree.add_command(role_stats)
     bot.tree.add_command(mkc_stats)
