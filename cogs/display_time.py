@@ -7,6 +7,16 @@ from discord.app_commands import Choice
 from autocomplete import track_autocomplete
 
 
+def format_time(total_ms):
+    milliseconds = int(total_ms % 1000)
+    total_seconds = total_ms // 1000
+    seconds = total_seconds % 60
+    total_minutes = total_seconds // 60
+    minutes = total_minutes % 60
+    hours = total_minutes // 60
+    return f'{hours}h {minutes:02}m {seconds:02}s {milliseconds:03}ms'
+
+
 @app_commands.command()
 @app_commands.guild_only()
 @app_commands.describe(speed="the mode you want to display", items="do you want to only display times with shrooms or without?", track="the track you want to display", player="the player you want to display")
@@ -35,6 +45,7 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
         return await interaction.response.send_message(embed=embed)
 
     if player and not track:
+        total = 0
         times = sql.get_player_best(mode=mode, guild_id=interaction.guild_id, player_id=player.id)
         embed.title = f"{player.display_name} {speed.name} {items.name}"
         embed.set_thumbnail(url=player.guild_avatar if player.guild_avatar else player.avatar)
@@ -43,6 +54,9 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
         else:
             for time in times:
                 embed.description += f"**{time[0]}**: ``{time[1]}`` - {time[2]}/{time[3]}\n"
+                total += int(time[1].split(':')[0])*60*1000 + int(time[1].split(':')[1].split('.')[0])*1000 + int(time[1].split(':')[1].split('.')[1])
+            if len(times) == (len(sql.get_cups_emoji())*4):
+                embed.add_field(name="total time", value=format_time(total))
 
     elif not player and not track:
         times = sql.get_best_times(mode=mode, guild_id=interaction.guild_id)
