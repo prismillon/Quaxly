@@ -39,7 +39,7 @@ class mkcData:
 
     async def mkc_api_full(self):
         async with aiohttp.ClientSession() as session:
-            async with session.get("https://www.mariokartcentral.com/mkc/api/registry/teams/category/150cc") as response:
+            async with session.get("https://www.mariokartcentral.com/mkc/api/registry/teams/category/150cc", ssl=False) as response:
                 if response.status == 200:
                     _data_full = await response.json()
                     self._data = _data_full['data']
