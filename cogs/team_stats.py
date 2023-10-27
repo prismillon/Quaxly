@@ -117,7 +117,7 @@ async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[st
         return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"team not found", description="could not find the team you typed in the mkc database"))
 
     async with aiohttp.ClientSession() as session:
-        async with session.get("https://www.mariokartcentral.com/mkc/api/registry/teams/"+str(team['team_id'])) as response:
+        async with session.get("https://www.mariokartcentral.com/mkc/api/registry/teams/"+str(team['team_id']), ssl=False) as response:
             if response.status == 200:
                 team_data = await response.json()
     
