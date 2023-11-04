@@ -14,18 +14,18 @@ from datetime import datetime, timedelta
 async def name_history(interaction: discord.Interaction, player: str = None):
     """lounge name history of a player"""
 
+    await interaction.response.defer()
     embed = discord.Embed(color=0x47e0ff, title="name history")
 
-    if not player:
-        async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession() as session:
+        if not player:
             async with session.get("https://www.mk8dx-lounge.com/api/player?discordId="+str(interaction.user.id)) as response:
                 if response.status == 200:
                     user_data = await response.json()
                     player = user_data['name']
                 else:
-                    return await interaction.response.send_message(content="could not found your account in the lounge", ephemeral=True)
+                    return await interaction.followup.send(content="could not found your account in the lounge", ephemeral=True)
 
-    async with aiohttp.ClientSession() as session:
         async with session.get("https://www.mk8dx-lounge.com/api/player/details?name="+player) as response:
             if response.status == 200:
                 data = await response.json()
@@ -42,7 +42,7 @@ async def name_history(interaction: discord.Interaction, player: str = None):
             else:
                 embed.description = "player not found"
 
-    await interaction.response.send_message(embed=embed)
+    await interaction.followup.send(embed=embed)
 
 
 async def setup(bot):
