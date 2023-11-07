@@ -12,7 +12,7 @@ from discord.ext import commands
 async def get_host_string(host: str, interaction: discord.Interaction):
     url = "https://www.mk8dx-lounge.com/api/player?"
 
-    if re.match("^([0-9]{4}-){2}[0-9]{4}$", host):
+    if re.match("^(\d{4}-){2}\d{4}$", host):
         async with aiohttp.ClientSession() as session:
             async with session.get(f"{url}fc={host}") as response:
                 if response.status == 200:
@@ -20,9 +20,10 @@ async def get_host_string(host: str, interaction: discord.Interaction):
                     if "discordId" in json_data:
                         return f"{host} (<@{json_data['discordId']}>)"
 
-    elif re.match("[0-9<@> ]+", host) and interaction.guild.get_member(int(re.findall("[0-9]+", host)[0])) != None:
+    elif re.match("[0-9<@> ]+", host) and interaction.guild.get_member(int(re.findall("\d+", host)[0])) != None:
         async with aiohttp.ClientSession() as session:
-            async with session.get(f"{url}discordid={re.findall('[0-9]+', host)[0]}") as response:
+            host = re.findall('\d+', host)[0]
+            async with session.get(f"{url}discordid={host}") as response:
                 if response.status == 200:
                     json_data = await response.json()
                     if "discordId" in json_data and "switchFc" in json_data:
@@ -31,7 +32,7 @@ async def get_host_string(host: str, interaction: discord.Interaction):
     return host
 
 
-class editLineup(discord.ui.View):
+class edit_lineup_button(discord.ui.View):
     def __init__(self, embed: discord.Embed, old_view: discord.ui.View, owner: int):
         super().__init__(timeout=90)
         self.old_view = old_view
@@ -51,7 +52,7 @@ class editLineup(discord.ui.View):
         await self.old_view.message.edit(view=self.old_view)
 
 
-class editModal(discord.ui.Modal, title='edit lineup'):
+class edit_modal(discord.ui.Modal, title='edit lineup'):
     def __init__(self, embed: discord.Embed, ennemy_tag: str, tag: str, view: discord.ui.View):
         super().__init__()
         self.embed = embed
@@ -68,7 +69,7 @@ class editModal(discord.ui.Modal, title='edit lineup'):
 
         if self.time.value != '':
             self.embed.remove_field(1)
-            self.embed.insert_field_at(1, name="open", value=f"`{self.time.value}`" if not "<t:" in self.time.value else self.time.value, inline=True)
+            self.embed.insert_field_at(1, name="open", value=f"`{self.time.value}`" if "<t:" not in self.time.value else self.time.value, inline=True)
 
         if self.host.value != '':
             self.embed.remove_field(2)
@@ -87,7 +88,7 @@ class editModal(discord.ui.Modal, title='edit lineup'):
         await interaction.response.edit_message(embed=self.embed)
 
 
-class editButtons(discord.ui.View):
+class edit_buttons(discord.ui.View):
     def __init__(self, embed: discord.Embed, owner: int, ennemy_tag: str, tag: str):
         super().__init__(timeout=7200)
         self.embed = embed
@@ -99,14 +100,14 @@ class editButtons(discord.ui.View):
     async def edit(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id != self.owner:
             return await interaction.response.send_message(content="you are not the owner of the message sorry", ephemeral=True)
-        modal = editModal(self.embed, self.ennemy_tag, self.tag, self)
+        modal = edit_modal(self.embed, self.ennemy_tag, self.tag, self)
         await interaction.response.send_modal(modal)
 
     @discord.ui.button(emoji='👥', style=discord.ButtonStyle.gray)
     async def players(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id != self.owner:
             return await interaction.response.send_message(content="you are not the owner of the message sorry", ephemeral=True)
-        await interaction.response.edit_message(view=editLineup(self.embed, self, self.owner))
+        await interaction.response.edit_message(view=edit_lineup_button(self.embed, self, self.owner))
 
     async def on_timeout(self):
         await self.message.edit(view=None)
@@ -128,20 +129,20 @@ class lineup(commands.Cog):
         if not interaction.app_permissions.send_messages:
             return await interaction.response.send_message(content="this command need the permission to send message in this channel to work properly")
 
-        botMember = interaction.guild.get_member(self.bot.user.id)
+        bot_member = interaction.guild.get_member(self.bot.user.id)
 
-        if not interaction.channel.permissions_for(botMember).send_messages:
+        if not interaction.channel.permissions_for(bot_member).send_messages:
             return await interaction.response.send_message(content="this command need the permission to send message in this channel to work properly")
 
         embed = discord.Embed(color=0x47e0ff, title=f"clan war | {tag} vs {ennemy_tag}").set_thumbnail(url=interaction.guild.icon).set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar)
-        member_string = ' - '.join(player.mention for player in sorted(list(set([interaction.guild.get_member(int(player)) for player in re.findall("[0-9]+", players) if interaction.guild.get_member(int(player))])), key=lambda user: user.display_name.lower()))
+        member_string = ' - '.join(player.mention for player in sorted(list(set([interaction.guild.get_member(int(player)) for player in re.findall("\d+", players) if interaction.guild.get_member(int(player))])), key=lambda user: user.display_name.lower()))
         host_string = await get_host_string(host, interaction)
 
         embed.add_field(name="lineup", value=member_string, inline=False)
-        embed.add_field(name="open", value=f"`{time}`" if not "<t:" in time else time, inline=True)
+        embed.add_field(name="open", value=f"`{time}`" if "<t:" not in time else time, inline=True)
         embed.add_field(name="host", value=host_string, inline=True)
 
-        view = editButtons(embed, interaction.user.id, ennemy_tag, tag)
+        view = edit_buttons(embed, interaction.user.id, ennemy_tag, tag)
 
         await interaction.response.send_message(content=f"lineup war {time} vs {ennemy_tag} || {member_string} ||")
         view.message = await interaction.channel.send(embed=embed, view=view)

@@ -95,7 +95,7 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
                         embed.add_field(name=f"{fields_title[index]}", value=field)
 
                 if len(times) == (len(sql.get_cups_emoji())*4):
-                    embed.add_field(name="total time", value=format_time(total))
+                    embed.set_footer(text=f"total time: {format_time(total)}")
 
         else:
             times = sql.get_best_times(mode=mode, guild_id=interaction.guild_id)
