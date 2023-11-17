@@ -1,6 +1,4 @@
 import discord
-import importlib
-
 import utils
 import sql
 
@@ -26,9 +24,6 @@ def format_time(total_ms):
 @app_commands.autocomplete(track=track_autocomplete)
 async def display_time(interaction: discord.Interaction, speed: Choice[str], items: Choice[str], track: str = None, player: discord.Member = None):
     """display a specific time, a category or even all times"""
-
-    if not interaction.guild.chunked:
-        return await utils.wait_for_chunk(interaction)
 
     mode = items.value+speed.value
     embed = discord.Embed(color=0x47e0ff, description="")
@@ -123,6 +118,4 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
 
 
 async def setup(bot):
-    importlib.reload(utils)
-    importlib.reload(sql)
     bot.tree.add_command(display_time)
