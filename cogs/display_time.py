@@ -1,4 +1,6 @@
 import discord
+import importlib
+
 import utils
 import sql
 
@@ -121,4 +123,6 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
 
 
 async def setup(bot):
+    importlib.reload(utils)
+    importlib.reload(sql)
     bot.tree.add_command(display_time)
