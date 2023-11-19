@@ -74,6 +74,7 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
         if player:
             total = 0
             times = sql.get_player_best(mode=mode, guild_id=interaction.guild_id, player_id=player.id)
+            time_nb = len(times)
             embed.title = f"{player.display_name} {speed.name} {items.name}"
             embed.set_thumbnail(url=player.display_avatar)
             if len(times) == 0:
@@ -90,8 +91,7 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
                 for index, field in enumerate(fields):
                     if len(field)>0:
                         embed.add_field(name=f"{fields_title[index]}", value=field)
-
-                if len(times) == (len(sql.get_cups_emoji())*4):
+                if time_nb == (len(sql.get_cups_emoji())*4):
                     embed.set_footer(text=f"total time: {format_time(total)}")
 
         else:
@@ -112,7 +112,6 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
                 for index, field in enumerate(fields):
                     if len(field)>0:
                         embed.add_field(name=f"{fields_title[index]}", value=field)
-
 
     return await interaction.response.send_message(embed=embed)
 
