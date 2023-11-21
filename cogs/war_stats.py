@@ -18,7 +18,7 @@ class war_stats(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if not message.author.id == 177162177432649728:
+        if message.author.id != 177162177432649728:
             return
 
         if "Started MK8DX 6v6" in message.content:
@@ -69,7 +69,7 @@ class war_stats(commands.Cog):
                     self.active_war[message.channel.id]['spots'] = self.active_war[message.channel.id]['spots'][:race_id]
                     self.active_war[message.channel.id]['diff'] = self.active_war[message.channel.id]['diff'][:race_id]
                     self.active_war[message.channel.id]['tracks'] = self.active_war[message.channel.id]['tracks'][:race_id]
-                    return
+
 
     group = app_commands.Group(name="war", description="all command related to wars played with toad bot", guild_only=True)
 
