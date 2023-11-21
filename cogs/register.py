@@ -15,8 +15,7 @@ async def register_user(interaction: discord.Interaction, player: discord.Member
 
     embed = discord.Embed(color=0x47e0ff, description="")
 
-    if not player:
-        player = interaction.user
+    player = player or interaction.user
 
     embed.set_thumbnail(url=player.avatar)
 
@@ -42,8 +41,7 @@ async def remove_user(interaction: discord.Interaction, player: discord.Member =
 
     embed = discord.Embed(color=0x47e0ff, description="")
 
-    if not player:
-        player = interaction.user
+    player = player or interaction.user
 
     embed.set_thumbnail(url=player.avatar)
 

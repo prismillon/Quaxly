@@ -39,36 +39,38 @@ class war_stats(commands.Cog):
             }
             return
 
-        if message.channel.id in self.active_war:
+        if message.channel.id not in self.active_war:
+            return
 
-            if "Stopped war." in message.content:
-                if len(sql.check_war_length(self.active_war[message.channel.id]['war_id'])) < 2:
-                    sql.delete_races_from_war(self.active_war[message.channel.id]['war_id'])
-                    sql.delete_war(self.active_war[message.channel.id]['war_id'])
-                self.active_war.pop(message.channel.id)
-                return
+        if "Stopped war." in message.content:
+            if len(sql.check_war_length(self.active_war[message.channel.id]['war_id'])) < 2:
+                sql.delete_races_from_war(self.active_war[message.channel.id]['war_id'])
+                sql.delete_war(self.active_war[message.channel.id]['war_id'])
+            self.active_war.pop(message.channel.id)
+            return
 
-            if len(message.embeds) >= 1:
-                race_data = message.embeds[0].to_dict()
+        if len(message.embeds) == 0:
+            return
 
-                if "Score for Race" in race_data['title']:
-                    spots = sorted([int(spot[:-2]) for spot in race_data['fields'][0]['value'].split(", ")])
-                    track = race_data['fields'][4]['value'] if len(race_data['fields']) == 5 else "NULL"
-                    diff = race_data['fields'][3]['value']
-                    race_id = race_data['title'].replace("Score for Race ", '')
-                    sql.new_race(race_id, self.active_war[message.channel.id]['war_id'], track, diff, spots)
-                    self.active_war[message.channel.id]['spots'].append(spots)
-                    self.active_war[message.channel.id]['diff'].append(diff)
-                    self.active_war[message.channel.id]['tracks'].append(track)
-                    return
+        race_data = message.embeds[0].to_dict()
 
-                if "Total Score after Race" in race_data['title']:
-                    race_id = int(race_data['title'].replace("Total Score after Race ", ''))
-                    for race in range(race_id, len(self.active_war[message.channel.id]['diff'])):
-                        sql.delete_this_race(race+1, self.active_war[message.channel.id]['war_id'])
-                    self.active_war[message.channel.id]['spots'] = self.active_war[message.channel.id]['spots'][:race_id]
-                    self.active_war[message.channel.id]['diff'] = self.active_war[message.channel.id]['diff'][:race_id]
-                    self.active_war[message.channel.id]['tracks'] = self.active_war[message.channel.id]['tracks'][:race_id]
+        if "Score for Race" in race_data['title']:
+            spots = sorted([int(spot[:-2]) for spot in race_data['fields'][0]['value'].split(", ")])
+            track = race_data['fields'][4]['value'] if len(race_data['fields']) == 5 else "NULL"
+            diff = race_data['fields'][3]['value']
+            race_id = race_data['title'].replace("Score for Race ", '')
+            sql.new_race(race_id, self.active_war[message.channel.id]['war_id'], track, diff, spots)
+            self.active_war[message.channel.id]['spots'].append(spots)
+            self.active_war[message.channel.id]['diff'].append(diff)
+            self.active_war[message.channel.id]['tracks'].append(track)
+
+        elif "Total Score after Race" in race_data['title']:
+            race_id = int(race_data['title'].replace("Total Score after Race ", ''))
+            for race in range(race_id, len(self.active_war[message.channel.id]['diff'])):
+                sql.delete_this_race(race+1, self.active_war[message.channel.id]['war_id'])
+            self.active_war[message.channel.id]['spots'] = self.active_war[message.channel.id]['spots'][:race_id]
+            self.active_war[message.channel.id]['diff'] = self.active_war[message.channel.id]['diff'][:race_id]
+            self.active_war[message.channel.id]['tracks'] = self.active_war[message.channel.id]['tracks'][:race_id]
 
 
     group = app_commands.Group(name="war", description="all command related to wars played with toad bot", guild_only=True)
@@ -79,8 +81,7 @@ class war_stats(commands.Cog):
     async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel = None, min: app_commands.Range[int, 1] = 1) -> None:
         """check race stats in the specified channel"""
 
-        if not channel:
-            channel = interaction.channel
+        channel = channel or interaction.channel
 
         raw_stats = list(filter(lambda x: x[1] >= min, sql.get_wars_stats_from_channel(channel.id)))
 
@@ -108,8 +109,7 @@ class war_stats(commands.Cog):
     async def warlist(self, interaction: discord.interactions, channel: discord.TextChannel = None):
         """check the list of war that have been recorded"""
 
-        if not channel:
-            channel = interaction.channel
+        channel = channel or interaction.channel
         
         raw_stats = sql.get_war_list_from_channel(channel.id)
 
@@ -147,8 +147,8 @@ class war_stats(commands.Cog):
     async def delete(self, interaction: discord.Interaction, channel: discord.TextChannel = None, war_id: app_commands.Range[int, 1] = None):
         """delete stats from a specific war or all stats"""
 
-        if not channel:
-            channel = interaction.channel
+
+        channel = channel or interaction.channel
 
         if not war_id:
             if len(sql.get_war_list_from_channel(channel.id)) == 0:
@@ -167,13 +167,9 @@ class war_stats(commands.Cog):
                 embed.title = "war stats removed"
                 embed.description = "all war stats have been removed"
 
-                await interaction.edit_original_response(embed=embed, view=None)
-
             else:
                 embed.title = "action canceled"
                 embed.description = "data remained unchanged"
-
-                await interaction.edit_original_response(embed=embed, view=None)
         
         else:
             war = sql.check_war_ownership(war_id, channel.id)
@@ -182,7 +178,7 @@ class war_stats(commands.Cog):
                 return await interaction.response.send_message(content="this war does not exist or does not belong to this channel", ephemeral=True)
 
             embed = discord.Embed(color=0x47e0ff, title=f"delete war n°{war_id}")
-            embed.description = f"you are about to delete this wars"
+            embed.description = "you are about to delete this wars"
             view = confirmButton()
 
             await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
@@ -194,13 +190,11 @@ class war_stats(commands.Cog):
                 embed.title = f"war n°{war_id} removed"
                 embed.description = "successfully deleted the war race data"
 
-                await interaction.edit_original_response(embed=embed, view=None)
-
             else:
                 embed.title = "action canceled"
                 embed.description = "data remained unchanged"
 
-                await interaction.edit_original_response(embed=embed, view=None)
+        await interaction.edit_original_response(embed=embed, view=None)
 
 
 async def setup(bot: commands.Bot):
