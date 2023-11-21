@@ -38,7 +38,7 @@ async def save_time(interaction: discord.Interaction, speed: Choice[str], items:
     else:
         track = track_check[0][0]
 
-    if not re.fullmatch("^[0-9]:[0-5][0-9]\\.[0-9]{3}$", time):
+    if not re.fullmatch("^\d:[0-5]\d\\.\d{3}$", time):
         embed.title = "bad time formating >:C"
         embed.description = f"{time} is not a valid formated time like this (1:23.456)"
         return await interaction.response.send_message(embed=embed)
@@ -63,7 +63,7 @@ async def save_time(interaction: discord.Interaction, speed: Choice[str], items:
         embed.description += f"\nyou improved by ``{time_diff(time, previous_time[0][2])}`` !"
         
     else:
-        embed.title = f"conflict with previous time"
+        embed.title = "conflict with previous time"
         embed.description = f"you already have ``{previous_time[0][2]}`` on this track do you still want to make this change?"
         view = confirmButton()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)

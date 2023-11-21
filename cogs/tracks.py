@@ -3,7 +3,7 @@ import sql
 
 from discord import app_commands
 
-class cupsButtons(discord.ui.View):
+class cups_buttons(discord.ui.View):
     def __init__(self, embed: discord.Embed, interaction: discord.Interaction, clicked_cup: str = None):
         super().__init__()
         self.embed = embed
@@ -22,7 +22,7 @@ class cupsButtons(discord.ui.View):
         self.embed.title = tracks[0][1]
         self.embed.set_thumbnail(url=tracks[0][2])
         self.embed.description = f"```{tracks[0][0]},   {tracks[1][0]},   {tracks[2][0]},   {tracks[3][0]}```"
-        view = cupsButtons(self.embed, self.interaction, cup)
+        view = cups_buttons(self.embed, self.interaction, cup)
         return await interaction.response.edit_message(embed=self.embed, view=view)
     
     async def on_timeout(self):
@@ -36,7 +36,7 @@ async def tracks(interaction: discord.Interaction):
 
     embed = discord.Embed(color=0x47e0ff, description="Here is the list of all the cups in Mario Kart 8 Deluxe", title="Tracks")
     embed.set_thumbnail(url=interaction.guild.icon)
-    view = cupsButtons(embed=embed, interaction=interaction)
+    view = cups_buttons(embed=embed, interaction=interaction)
     return await interaction.response.send_message(embed=embed, view=view)
 
 

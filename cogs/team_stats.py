@@ -49,9 +49,9 @@ async def fc_to_stat(fc: str, season: int):
                     return None
                 user_data = user_data['data'][0]
                 user_data['discordId'] = next((player['discordId'] for player in lounge_data.data() if player['name'] == user_data['name']), None)
-                if not 'discordId' in user_data:
+                if 'discordId' not in user_data:
                     return None
-                if 'mmr' not in user_data or not 'discordId' in user_data:
+                if 'mmr' not in user_data or 'discordId' not in user_data:
                     return None
                 if 'maxMmr' not in user_data:
                     user_data['maxMmr'] = user_data['mmr']
@@ -70,8 +70,7 @@ async def role_stats(interaction: discord.Interaction, role: discord.Role, stat:
 
     await interaction.response.defer()
 
-    if not stat:
-        stat = statChoices[0]
+    stat = stat or statChoices[0]
 
     embeds = [discord.Embed(color=0x47e0ff, title=f"{role.name} average {stat.name}")]
 
@@ -79,7 +78,7 @@ async def role_stats(interaction: discord.Interaction, role: discord.Role, stat:
     user_data_array = sorted(list(filter(lambda user_data: user_data is not None, await asyncio.gather(*member_tasks))), key=lambda key: key[stat.value], reverse=True)
 
     if len(user_data_array) == 0:
-        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"no users found", description="could not find anyone in lounge from this role"))
+        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title="no users found", description="could not find anyone in lounge from this role"))
 
     for index, user in enumerate(user_data_array):
         if index%21==0 and index != 0:
@@ -87,7 +86,7 @@ async def role_stats(interaction: discord.Interaction, role: discord.Role, stat:
         embeds[-1].add_field(name=user['name'], value=f"<@{user['discordId']}> ([{user[stat.value]}](https://www.mk8dx-lounge.com/PlayerDetails/{user['id']}))")
 
     if len(embeds)>10:
-        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"too many users", description="too many users in this role, please select less people"))
+        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title="too many users", description="too many users in this role, please select less people"))
 
     embeds[-1].add_field(name='\u200B', value='\u200B', inline=False)
     embeds[-1].add_field(name='average', value=f"__{round(statistics.fmean([user[stat.value] for user in user_data_array]))}__")
@@ -103,8 +102,7 @@ async def role_stats(interaction: discord.Interaction, role: discord.Role, stat:
 async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[str] = None, season: int = None):
     """check stats of a mkc 150cc team"""
 
-    if not season:
-        season = lounge_season.data()
+    season = season or lounge_season.data()
 
     if not mkc_data.data():
         await interaction.response.send_message(content="mario kart central api is not loaded yet, please retry in a few seconds", ephemeral=True)
@@ -114,7 +112,7 @@ async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[st
     team = next((mkc_team for mkc_team in mkc_data.data() if mkc_team['team_name'].lower() == team.lower()), None)
 
     if not team:
-        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"team not found", description="could not find the team you typed in the mkc database"))
+        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title="team not found", description="could not find the team you typed in the mkc database"))
 
     async with aiohttp.ClientSession() as session:
         async with session.get("https://www.mariokartcentral.com/mkc/api/registry/teams/"+str(team['team_id']), ssl=False) as response:
@@ -122,10 +120,9 @@ async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[st
                 team_data = await response.json()
     
     if not team_data or not team_data['rosters']['150cc']:
-        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"team not found", description="could not find the team you typed in the mkc 150cc database"))
+        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title="team not found", description="could not find the team you typed in the mkc 150cc database"))
 
-    if not stat:
-        stat = statChoices[0]
+    stat = stat or statChoices[0]
 
     embeds = [discord.Embed(color=0x47e0ff, title=f"{team['team_name']} average {stat.name}").set_thumbnail(url=f"https://www.mariokartcentral.com/mkc/storage/{team_data['team_logo']}")]
 
@@ -133,7 +130,7 @@ async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[st
     user_data_array = sorted(list(filter(lambda user_data: user_data is not None, await asyncio.gather(*member_tasks))), key=lambda key: key[stat.value], reverse=True)
 
     if len(user_data_array) == 0:
-        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"no users found", description="could not find anyone in lounge from this team"))
+        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title="no users found", description="could not find anyone in lounge from this team"))
 
     for index, user in enumerate(user_data_array):
         if index%21==0 and index != 0:
@@ -141,7 +138,7 @@ async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[st
         embeds[-1].add_field(name=user['name'], value=f"<@{user['discordId']}> ([{user[stat.value]}](https://www.mk8dx-lounge.com/PlayerDetails/{user['id']}))")
 
     if len(embeds)>10:
-        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title=f"too many users", description="too many users in this role, please select less people"))
+        return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title="too many users", description="too many users in this role, please select less people"))
 
     embeds[-1].add_field(name='\u200B', value='\u200B', inline=False)
     embeds[-1].add_field(name='average', value=f"__{round(statistics.fmean([user[stat.value] for user in user_data_array]))}__")
@@ -155,13 +152,13 @@ async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[st
 async def fc_stats(interaction: discord.Interaction, room: str, team_size: Range[int, 1, 6] = 1):
     """get stats from a room with 12 friend codes"""
 
-    if len(re.findall("[0-9]{4}-[0-9]{4}-[0-9]{4}", room)) != 12:
+    if len(re.findall("\d{4}-\d{4}-\d{4}", room)) != 12:
         return await interaction.response.send_message(content="room list provided is not valid it should contain 12 friend codes", ephemeral=True)
 
     await interaction.response.defer()
 
     season = lounge_season.data()
-    players_fc = re.findall("[0-9]{4}-[0-9]{4}-[0-9]{4}", room)
+    players_fc = re.findall("\d{4}-\d{4}-\d{4}", room)
     players_api_request = [fc_to_stat(fc, season) for fc in players_fc]
     players_profile = await asyncio.gather(*players_api_request)
     teams = []
