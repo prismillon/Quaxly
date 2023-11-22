@@ -7,11 +7,12 @@ from discord.ext import commands
 from datetime import datetime
 from discord.app_commands import Choice
 from utils import confirmButton
+from cogs.war.base import Base
 
 
 formatNumber = lambda n: n if n%1 else int(n)
 
-class war_stats(commands.Cog):
+class war_stats(Base):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.active_war = {}
@@ -73,9 +74,7 @@ class war_stats(commands.Cog):
             self.active_war[message.channel.id]['tracks'] = self.active_war[message.channel.id]['tracks'][:race_id]
 
 
-    group = app_commands.Group(name="war", description="all command related to wars played with toad bot", guild_only=True)
-
-    @group.command()
+    @app_commands.command()
     @app_commands.guild_only()
     @app_commands.describe(channel="the channel you want to check stats from", min="the minimum number of times the track has been played for it to count")
     async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel = None, min: app_commands.Range[int, 1] = 1) -> None:
@@ -103,7 +102,7 @@ class war_stats(commands.Cog):
         await interaction.response.send_message(embed=embeds[0], view=utils.Paginator(interaction, embeds))
 
 
-    @group.command(name="list")
+    @app_commands.command(name="list")
     @app_commands.guild_only()
     @app_commands.describe(channel="the channel you want to check wars from")
     async def warlist(self, interaction: discord.interactions, channel: discord.TextChannel = None):
@@ -141,7 +140,7 @@ class war_stats(commands.Cog):
         await interaction.response.send_message(embed=embeds[0], view=utils.Paginator(interaction, embeds))
 
 
-    @group.command()
+    @app_commands.command()
     @app_commands.guild_only()
     @app_commands.describe()
     async def delete(self, interaction: discord.Interaction, channel: discord.TextChannel = None, war_id: app_commands.Range[int, 1] = None):
@@ -195,7 +194,3 @@ class war_stats(commands.Cog):
                 embed.description = "data remained unchanged"
 
         await interaction.edit_original_response(embed=embed, view=None)
-
-
-async def setup(bot: commands.Bot):
-    await bot.add_cog(war_stats(bot))
