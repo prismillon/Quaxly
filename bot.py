@@ -13,8 +13,8 @@ bot = commands.AutoShardedBot(command_prefix=commands.when_mentioned, intents=in
 
 @bot.event
 async def setup_hook():
-    for cmd in filter(lambda cmd: ".py" in cmd, os.listdir(f"{os.path.dirname(__file__)}/cogs")):
-        await bot.load_extension(f"cogs.{cmd[:-3]}")
+    for cmd in filter(lambda cmd: not cmd.startswith("__"), os.listdir(f"{os.path.dirname(__file__)}/cogs")):
+        await bot.load_extension(f"cogs.{cmd.replace('.py', '')}")
 
 
 bot.run(config.TOKEN, root_logger=True)

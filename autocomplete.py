@@ -34,4 +34,4 @@ async def mkc_team_autocomplete(interaction: discord.Interaction, current: str) 
 
 
 async def cmd_autocomplete(interaction: discord.Interaction, current: str) -> List[Choice[str]]:
-    return [Choice(name=cmd[:-3], value=f"cogs.{cmd[:-3]}") for cmd in filter(lambda cmd: cmd.lower().startswith(current.lower()) and ".py" in cmd, os.listdir(f"{os.path.dirname(__file__)}/cogs"))][:25]
+    return [Choice(name=cmd.replace('.py', ''), value=f"cogs.{cmd.replace('.py', '')}") for cmd in filter(lambda cmd: cmd.lower().startswith(current.lower()) and not cmd.startswith('__'), os.listdir(f"{os.path.dirname(__file__)}/cogs"))][:25]
