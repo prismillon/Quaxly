@@ -30,11 +30,17 @@ class Help(commands.Cog):
         embeds[-1].add_field(name="name history", value="```/name_history (player)```show the tracked name history with date of the selected player (you if player is not provided), and show when you will be able to change your name again", inline=False)
 
 
-        embeds.append(discord.Embed(color=0x47e0ff, title="War commands", description="*a reimplementation of sheat sokuji is planned, for now it only work with toad war bot*\n\nthis section is about stats on played tracks in war, using <@177162177432649728> Quaxly will do stats on each tracks for you (each channel count as a different team and only people that have access to the channel can see the stats of the channel)"))
+        embeds.append(discord.Embed(color=0x47e0ff, title="War stats commands", description="this section is about stats on played tracks in war, using <@177162177432649728> Quaxly will do stats on each tracks for you (each channel count as a different team and only people that have access to the channel can see the stats of the channel)"))
 
         embeds[-1].add_field(name="war list", value="```/war list (channel)```show the list of recorded war with it's id for the selected channel (if no channel is provided it will use the current one)", inline=False)
         embeds[-1].add_field(name="war delete", value="```/war delete (channel) (war_id)```let you delete a war (or all of them if you do not provide a war id), for the selected channel (or the current one if no channel is provided)", inline=False)
         embeds[-1].add_field(name="war stats", value="```/war stats (channel) (min)```show the stats for each track from best to worst in the selected channel (if no channel is provided it will use the current one), min is the minimum time a track need to be played to count in the stats it default to 1", inline=False)
+
+        embeds.append(discord.Embed(color=0x47e0ff, title="War bot commands", description="this is a war bot implementation like sokuji"))
+
+        embeds[-1].add_field(name="war start", value="```/war start tag ennemy_tag```start a war with selected teams", inline=False)
+        embeds[-1].add_field(name="war system", value="**1:** you are supposed to type the map abbreviation in the war channel when it gets picked\n**2:** type score all attached to each other (like 134568) to count a race, warning `10` is `0` and `11` is +, also bottom spot are added automatically so you never have to type 12 (don't try it will not work)\n**3:** misstyped something? Just type `back` and it will erase the last race\n**4:** want to add a track afterward? You can type `race <nb> <track>` to change it (example: `race 7 bdd`)", inline=False)
+        embeds[-1].add_field(name="war stop", value="```/war stop```stop the current war, you don't really have to type this if you do not usually type in the channel, war resets automatically if you start a new one and timeout after 3 hours", inline=False)
 
         embeds[-1].add_field(name="this section is very new", value="if you need more information or my assistance my contact is on the last page", inline=False)
 
