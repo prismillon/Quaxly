@@ -14,13 +14,28 @@ _score = (15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
 def text_to_score(text: str):
     data = []
+    prev = 1
+    if text[0] == '-':
+        data.append(prev)
+        prev = '-'
+        text = text[1:]
     for value in text:
-        if value == '0':
+        if prev == '-':
+            if value == '+':
+                value = 11
+            elif value == '0':
+                value = 10
+            data += range(data[-1]+1, int(value)+1)
+        elif value == '-':
+            prev = value
+            continue
+        elif value == '0':
             data.append(10)
         elif value == '+':
             data.append(11)
         else:
             data.append(int(value))
+        prev = value
     return validate_score(set(data))
 
 def validate_score(data: (int)):
@@ -28,7 +43,7 @@ def validate_score(data: (int)):
     while len(data) < 6:
         data.add(last_spot)
         last_spot -= 1
-    return sorted(list(data))
+    return sorted(list(data))[:6]
 
 def make_embed(war):
     embed = discord.Embed(color=0x47e0ff, title=f"Total Score after Race {len(war['diff'])}")
@@ -115,14 +130,15 @@ class war_bot(Base):
             return
 
         if message.content.lower() == 'back':
-            sql.delete_this_race(len(war["spots"]), war["war_id"])
-            war['spots'] = war['spots'][:1]
-            war['diff'] = war['diff'][:1]
-            war['tracks'] = war['tracks'][:1]
+            race_id = len(war["spots"])
+            sql.delete_this_race(race_id, war["war_id"])
+            war['spots'] = war['spots'][:race_id-1]
+            war['diff'] = war['diff'][:race_id-1]
+            war['tracks'] = war['tracks'][:race_id-1]
             self.active_war[message.channel.id] = war
             return await message.reply(embed=make_embed(war), mention_author=False)
 
-        if re.fullmatch("[0-9\+]+", message.content):
+        if re.fullmatch("[0-9\+\-]+", message.content):
             spots = text_to_score(message.content)
             scored = sum(map(lambda r: _score[r-1], spots))
             war['spots'].append(spots)
