@@ -135,6 +135,8 @@ class war_bot(Base):
             war['spots'] = war['spots'][:race_id-1]
             war['diff'] = war['diff'][:race_id-1]
             war['tracks'] = war['tracks'][:race_id-1]
+            war['home_score'] = war['home_score'][:race_id-1]
+            war['ennemy_score'] = war['ennemy_score'][:race_id-1]
             self.active_war[message.channel.id] = war
             return await message.reply(embed=make_embed(war), mention_author=False)
 
