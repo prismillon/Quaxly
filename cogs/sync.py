@@ -48,7 +48,7 @@ async def ext(ctx: Context) -> None:
     except Exception as error:
         await ctx.send(content=error)
     else:
-        await ctx.send(content=f"succesfully loaded '{command}'")
+        await ctx.send(content="succesfully loaded cogs.extension")
 
 
 async def setup(bot: commands.Bot):

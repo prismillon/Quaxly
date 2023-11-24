@@ -1,41 +1,73 @@
-import discord
-import sql
 import re
 
-from cogs.war.base import Base
-from discord import app_commands
-from discord.ext import commands, tasks
-from typing import Optional
 from datetime import datetime, timedelta
-from discord.app_commands import Choice
+from discord.ext import commands, tasks
+from discord import app_commands
+
+import discord
+import sql
+
+from cogs.war.base import Base
 from autocomplete import mkc_team_autocomplete
 
 _score = (15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
 def text_to_score(text: str):
     data = []
-    prev = 1
-    if text[0] == '-':
-        data.append(prev)
-        prev = '-'
-        text = text[1:]
-    for value in text:
-        if prev == '-':
-            if value == '+':
-                value = 11
-            elif value == '0':
-                value = 10
-            data += range(data[-1]+1, int(value)+1)
-        elif value == '-':
-            prev = value
-            continue
-        elif value == '0':
-            data.append(10)
-        elif value == '+':
-            data.append(11)
-        else:
-            data.append(int(value))
-        prev = value
+    prev = None
+    next_list = []
+    loopFlag = False
+    while text:
+        next_list = []
+        if text.startswith('-'):
+            loopFlag = True
+            text = text[1:]
+            if data:
+                prev = data[-1]
+            else:
+                prev = 0
+        if text.startswith('0'):
+            next_list = [10]
+            text = text[1:]
+        elif text.startswith('+'):
+            next_list = [11]
+            text = text[1:]
+        elif text.startswith('10'):
+            next_list = [10]
+            text = text[2:]
+        elif text.startswith('110'):
+            next_list = [1, 10]
+            text = text[3:]
+        elif text.startswith('1112'):
+            next_list = [11, 12]
+            text = text[4:]
+        elif text.startswith('111'):
+            next_list = [1, 11]
+            text = text[3:]
+        elif text.startswith('112'):
+            next_list = [1, 12]
+            text = text[3:]
+        elif text.startswith('11'):
+            next_list = [11]
+            text = text[2:]
+        elif text.startswith('12'):
+            if data:
+                next_list = [12]
+            else:
+                next_list = [1, 2]
+            text = text[2:]
+        elif text:
+            next_list = [int(text[0], 16)]
+            text = text[1:]
+        if loopFlag:
+            if not next_list:
+                next_list = [12]
+            next = next_list[0]
+            while next - prev > 1:
+                data.append(prev+1)
+                prev += 1
+            loopFlag = False
+        data += next_list
     return validate_score(set(data))
 
 def validate_score(data: (int)):
@@ -48,13 +80,20 @@ def validate_score(data: (int)):
 def make_embed(war):
     embed = discord.Embed(color=0x47e0ff, title=f"Total Score after Race {len(war['diff'])}")
     diff = sum(war['home_score']) - sum(war['ennemy_score'])
-    embed.add_field(name=f"{war['tag']} - {war['ennemy_tag']}", value=f"`{sum(war['home_score'])} - {sum(war['ennemy_score'])}` | `{diff if diff < 0 else '+' + str(diff)}`")
+    embed.add_field(name=war['tag'], value=sum(war['home_score']))
+    embed.add_field(name=war['ennemy_tag'], value=sum(war['ennemy_score']))
+    embed.add_field(name="Difference", value=f"{diff if diff < 0 else '+' + str(diff)}", inline=False)
     if len(war['diff']) > 0:
-        for i, (h_score, e_score, spot, diff, track) in enumerate(zip(war['home_score'], war['ennemy_score'], war['spots'], war['diff'], war['tracks'])):
-            embed.add_field(name=f"{i+1} {'| '+track[1]+' | '+track[0] if len(track) != 1 else ''}", value=f"`{h_score} : {e_score} ({diff if diff<0 else '+'+str(diff)})` | `{spot}`", inline=False)
+        race_field_value = "```\n"
+        for i, (spot, diff, track) in enumerate(zip(war['spots'], war['diff'], war['tracks'])):
+            diff = str(diff) if diff<0 else '+'+str(diff)
+            spot = re.sub('[\[\] ]', '', str(spot))
+            race_field_value += f"{i+1 if i+1>9 else ' '+str(i+1)}: {diff if len(diff) == 3 else ' '+diff} | {spot} {'('+track[1]+')' if len(track) != 1 else ''}\n"
+        race_field_value += "```"
+        embed.add_field(name="Races", value=race_field_value, inline=False)
     return embed
 
-class war_bot(Base):
+class WarBot(Base):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.active_war = {}
@@ -83,7 +122,7 @@ class war_bot(Base):
         }
         return await interaction.response.send_message(f"started war between {tag} and {ennemy_tag}")
 
-    
+
     @app_commands.command(name="stop")
     @app_commands.guild_only()
     async def warstop(self, interaction: discord.Interaction):
@@ -125,7 +164,7 @@ class war_bot(Base):
             sql.update_this_race_track(data[1], war['war_id'], track[4])
             self.active_war[message.channel.id] = war
             return await message.reply(embed=make_embed(war), mention_author=False)
-        
+
         if ' ' in message.content:
             return
 

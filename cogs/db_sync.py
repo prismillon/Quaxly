@@ -1,10 +1,10 @@
 import discord
-import sql
 
 from discord.ext import commands
 
+import sql
 
-class db_sync(commands.Cog):
+class DbSync(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -22,4 +22,4 @@ class db_sync(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(db_sync(bot))
+    await bot.add_cog(DbSync(bot))

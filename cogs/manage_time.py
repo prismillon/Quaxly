@@ -1,14 +1,14 @@
 import datetime
 import discord
-import utils
-import sql
 import re
 
 from discord import app_commands
 from discord.app_commands import Choice
 from autocomplete import track_autocomplete, time_autocomplete
-from utils import confirmButton
+from utils import ConfirmButton
 
+import utils
+import sql
 
 def time_diff(new_time, previous_time):
     diff = datetime.datetime.strptime(previous_time, "%M:%S.%f") - datetime.datetime.strptime(new_time, "%M:%S.%f")
@@ -61,11 +61,11 @@ async def save_time(interaction: discord.Interaction, speed: Choice[str], items:
     elif previous_time[0][2] > time:
         sql.update_time(mode, player.id, track, time)
         embed.description += f"\nyou improved by ``{time_diff(time, previous_time[0][2])}`` !"
-        
+
     else:
         embed.title = "conflict with previous time"
         embed.description = f"you already have ``{previous_time[0][2]}`` on this track do you still want to make this change?"
-        view = confirmButton()
+        view = ConfirmButton()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         await view.wait()
 
@@ -92,18 +92,18 @@ async def delete_time(interaction: discord.Interaction, speed: Choice[str] = Non
     """delete a time"""
 
     embed = discord.Embed(color=0x47e0ff, description="", title="deleting times")
-    view = confirmButton()
+    view = ConfirmButton()
 
-    if items != None and speed != None:
+    if items is not None and speed is not None:
         table_identifier = items.value+speed.value
-    elif items != None:
+    elif items is not None:
         table_identifier = items.value
-    elif speed != None:
+    elif speed is not None:
         table_identifier = speed.value
     else:
         table_identifier = "0"
-    
-    track_identifier = track if track != None else "%"
+
+    track_identifier = track if track is not None else "%"
     embed.description = "you are about to delete listed times, are you sure you want to do it?"
 
     for mode in filter(lambda table: table_identifier in table, utils.allowed_tables):
@@ -117,7 +117,7 @@ async def delete_time(interaction: discord.Interaction, speed: Choice[str] = Non
                     content += "**[...]**"
                     break
             embed.add_field(name=mode, value=content)
-    
+
     if len(embed.fields) == 0:
         embed.description = "No time to delete"
         return await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -135,7 +135,7 @@ async def delete_time(interaction: discord.Interaction, speed: Choice[str] = Non
         embed.title = "action canceled"
         embed.clear_fields()
         embed.description = "your times have been left unchanged"
-    
+
     return await interaction.edit_original_response(embed=embed, view=None)
 
 

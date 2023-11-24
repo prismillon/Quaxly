@@ -18,7 +18,7 @@ async def wait_for_chunk(interaction: discord.Interaction):
     await message.edit(content="server is now ready! ✅")
 
 
-class loungeData:
+class LoungeData:
     def __init__(self):
         self._data = None
 
@@ -33,7 +33,7 @@ class loungeData:
         return self._data
 
 
-class mkcData:
+class MkcData:
     def __init__(self):
         self._data = None
 
@@ -48,7 +48,7 @@ class mkcData:
         return self._data
 
 
-class loungeSeason:
+class LoungeSeason:
     def __init__(self):
         self._data = None
 
@@ -130,7 +130,7 @@ class Paginator(discord.ui.View):
         await self.interaction.edit_original_response(view=self)
 
 
-class confirmButton(discord.ui.View):
+class ConfirmButton(discord.ui.View):
     def __init__(self):
         super().__init__()
         self.answer = None
@@ -146,6 +146,6 @@ class confirmButton(discord.ui.View):
         self.stop()
 
 
-lounge_season = loungeSeason()
-lounge_data = loungeData()
-mkc_data = mkcData()
+lounge_season = LoungeSeason()
+lounge_data = LoungeData()
+mkc_data = MkcData()

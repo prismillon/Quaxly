@@ -5,7 +5,7 @@ from autocomplete import cmd_autocomplete
 from discord.ext import commands
 
 
-class extensions(commands.Cog):
+class Extensions(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -52,4 +52,4 @@ class extensions(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(extensions(bot))
+    await bot.add_cog(Extensions(bot))

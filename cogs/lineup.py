@@ -1,12 +1,11 @@
 import discord
 import aiohttp
-import datetime
 import re
 
-from utils import wait_for_chunk
 from typing import List
 from discord import app_commands
 from discord.ext import commands
+from utils import wait_for_chunk
 
 
 async def get_host_string(host: str, interaction: discord.Interaction):
@@ -20,7 +19,7 @@ async def get_host_string(host: str, interaction: discord.Interaction):
                     if "discordId" in json_data:
                         return f"{host} (<@{json_data['discordId']}>)"
 
-    elif re.match("[0-9<@> ]+", host) and interaction.guild.get_member(int(re.findall("\d+", host)[0])) != None:
+    elif re.match("[0-9<@> ]+", host) and interaction.guild.get_member(int(re.findall("\d+", host)[0])) is not None:
         async with aiohttp.ClientSession() as session:
             host = re.findall('\d+', host)[0]
             async with session.get(f"{url}discordid={host}") as response:
@@ -32,7 +31,7 @@ async def get_host_string(host: str, interaction: discord.Interaction):
     return host
 
 
-class edit_lineup_button(discord.ui.View):
+class EditLineupButton(discord.ui.View):
     def __init__(self, embed: discord.Embed, old_view: discord.ui.View, owner: int):
         super().__init__(timeout=90)
         self.old_view = old_view
@@ -52,7 +51,7 @@ class edit_lineup_button(discord.ui.View):
         await self.old_view.message.edit(view=self.old_view)
 
 
-class edit_modal(discord.ui.Modal, title='edit lineup'):
+class EditModal(discord.ui.Modal, title='edit lineup'):
     def __init__(self, embed: discord.Embed, ennemy_tag: str, tag: str, view: discord.ui.View):
         super().__init__()
         self.embed = embed
@@ -88,7 +87,7 @@ class edit_modal(discord.ui.Modal, title='edit lineup'):
         await interaction.response.edit_message(embed=self.embed)
 
 
-class edit_buttons(discord.ui.View):
+class EditButtons(discord.ui.View):
     def __init__(self, embed: discord.Embed, owner: int, ennemy_tag: str, tag: str):
         super().__init__(timeout=7200)
         self.embed = embed
@@ -100,20 +99,20 @@ class edit_buttons(discord.ui.View):
     async def edit(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id != self.owner:
             return await interaction.response.send_message(content="you are not the owner of the message sorry", ephemeral=True)
-        modal = edit_modal(self.embed, self.ennemy_tag, self.tag, self)
+        modal = EditModal(self.embed, self.ennemy_tag, self.tag, self)
         await interaction.response.send_modal(modal)
 
     @discord.ui.button(emoji='👥', style=discord.ButtonStyle.gray)
     async def players(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id != self.owner:
             return await interaction.response.send_message(content="you are not the owner of the message sorry", ephemeral=True)
-        await interaction.response.edit_message(view=edit_lineup_button(self.embed, self, self.owner))
+        await interaction.response.edit_message(view=EditLineupButton(self.embed, self, self.owner))
 
     async def on_timeout(self):
         await self.message.edit(view=None)
 
 
-class lineup(commands.Cog):
+class Lineup(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
@@ -142,7 +141,7 @@ class lineup(commands.Cog):
         embed.add_field(name="open", value=f"`{time}`" if "<t:" not in time else time, inline=True)
         embed.add_field(name="host", value=host_string, inline=True)
 
-        view = edit_buttons(embed, interaction.user.id, ennemy_tag, tag)
+        view = EditButtons(embed, interaction.user.id, ennemy_tag, tag)
 
         await interaction.response.send_message(content=f"lineup war {time} vs {ennemy_tag} || {member_string} ||")
         view.message = await interaction.channel.send(embed=embed, view=view)
@@ -150,4 +149,4 @@ class lineup(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(lineup(bot))
+    await bot.add_cog(Lineup(bot))

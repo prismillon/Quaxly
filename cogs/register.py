@@ -1,8 +1,9 @@
 import discord
-import sql
 
-from utils import wait_for_chunk
 from discord import app_commands
+from utils import wait_for_chunk
+
+import sql
 
 @app_commands.command()
 @app_commands.guild_only()
@@ -29,7 +30,7 @@ async def register_user(interaction: discord.Interaction, player: discord.Member
     else:
         embed.title = "already in >:("
         embed.description = f"{player.display_name} is already in the list"
-    
+
     return await interaction.response.send_message(embed=embed)
 
 
@@ -52,7 +53,7 @@ async def remove_user(interaction: discord.Interaction, player: discord.Member =
     else:
         embed.title = "not in >:("
         embed.description = f"{player.display_name} is not in the list"
-    
+
     return await interaction.response.send_message(embed=embed)
 
 
