@@ -1,16 +1,15 @@
-import discord
 import re
-
-import utils
-import sql
+import discord
 
 from discord import app_commands
 from discord.app_commands import Choice
 from discord.ext import commands, tasks
 from datetime import datetime, timedelta
 
+import utils
+import sql
 
-class import_time(commands.Cog):
+class ImportTime(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.active_user = {}
@@ -65,4 +64,4 @@ class import_time(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(import_time(bot))
+    await bot.add_cog(ImportTime(bot))

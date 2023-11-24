@@ -1,11 +1,11 @@
 import discord
-import utils
-import sql
 
 from discord import app_commands
 from discord.app_commands import Choice
 from autocomplete import track_autocomplete
 
+import utils
+import sql
 
 def format_time(total_ms):
     milliseconds = int(total_ms % 1000)
@@ -27,7 +27,7 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
 
     mode = items.value+speed.value
     embed = discord.Embed(color=0x47e0ff, description="")
-    
+
     if mode not in utils.allowed_tables:
         return await interaction.response.send_message(content=":euh:")
 
@@ -52,7 +52,7 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
                 embed.set_thumbnail(url=times[0][3])
                 member = interaction.guild.get_member(times[0][0])
                 embed.description = f"{member.display_name} - `{times[0][2]}`"
-            
+
         else:
             times = sql.get_track_times(mode=mode, guild_id=interaction.guild_id, track=track)
             if len(times) == 0:

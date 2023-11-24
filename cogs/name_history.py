@@ -4,7 +4,6 @@ import re
 
 from discord import app_commands
 from autocomplete import name_autocomplete
-from utils import lounge_data
 from datetime import datetime, timedelta
 
 

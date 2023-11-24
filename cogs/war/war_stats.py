@@ -1,18 +1,19 @@
+from datetime import datetime
 import discord
-import utils
-import sql
 
 from discord import app_commands
 from discord.ext import commands
-from datetime import datetime
-from discord.app_commands import Choice
-from utils import confirmButton
+
+import utils
+import sql
+
+from utils import ConfirmButton
 from cogs.war.base import Base
 
 
 formatNumber = lambda n: n if n%1 else int(n)
 
-class war_stats(Base):
+class WarStats(Base):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.active_war = {}
@@ -76,13 +77,13 @@ class war_stats(Base):
 
     @app_commands.command()
     @app_commands.guild_only()
-    @app_commands.describe(channel="the channel you want to check stats from", min="the minimum number of times the track has been played for it to count")
-    async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel = None, min: app_commands.Range[int, 1] = 1) -> None:
+    @app_commands.describe(channel="the channel you want to check stats from", mininmum="the minimum number of times the track has been played for it to count")
+    async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel = None, mininmum: app_commands.Range[int, 1] = 1) -> None:
         """check race stats in the specified channel"""
 
         channel = channel or interaction.channel
 
-        raw_stats = list(filter(lambda x: x[1] >= min, sql.get_wars_stats_from_channel(channel.id)))
+        raw_stats = list(filter(lambda x: x[1] >= mininmum, sql.get_wars_stats_from_channel(channel.id)))
 
         if len(raw_stats) == 0:
             return await interaction.response.send_message(content="no stats registered in this channel", ephemeral=True)
@@ -155,7 +156,7 @@ class war_stats(Base):
 
             embed = discord.Embed(color=0x47e0ff, title="delete all war stats")
             embed.description = f"you are about to delete {len(sql.get_war_list_from_channel(channel.id))} wars"
-            view = confirmButton()
+            view = ConfirmButton()
             await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
             await view.wait()
 
@@ -178,7 +179,7 @@ class war_stats(Base):
 
             embed = discord.Embed(color=0x47e0ff, title=f"delete war n°{war_id}")
             embed.description = "you are about to delete this wars"
-            view = confirmButton()
+            view = ConfirmButton()
 
             await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
             await view.wait()
