@@ -10,7 +10,7 @@ import sql
 from cogs.war.base import Base
 from autocomplete import mkc_team_autocomplete
 
-_score = (15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+_SCORE = (15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
 def text_to_score(text: str):
     data = []
@@ -88,7 +88,7 @@ def make_embed(war):
         for i, (spot, diff, track) in enumerate(zip(war['spots'], war['diff'], war['tracks'])):
             diff = str(diff) if diff<0 else '+'+str(diff)
             spot = re.sub('[\[\] ]', '', str(spot))
-            race_field_value += f"{i+1 if i+1>9 else ' '+str(i+1)}: {diff if len(diff) == 3 else ' '+diff} | {spot} {'('+track[1]+')' if len(track) != 1 else ''}\n"
+            race_field_value += f"{i + 1 if i + 1 > 9 else ' '+str(i + 1)}: {diff if len(diff) == 3 else ' ' + diff} | {spot} {'(' + track[1] + ')' if len(track) != 1 else ''}\n"
         race_field_value += "```"
         embed.add_field(name="Races", value=race_field_value, inline=False)
     return embed
@@ -181,7 +181,7 @@ class WarBot(Base):
 
         if re.fullmatch("[0-9\+\-]+", message.content):
             spots = text_to_score(message.content)
-            scored = sum(map(lambda r: _score[r-1], spots))
+            scored = sum(map(lambda r: _SCORE[r-1], spots))
             war['spots'].append(spots)
             war['home_score'].append(scored)
             war['ennemy_score'].append(82-scored)
@@ -198,4 +198,3 @@ class WarBot(Base):
             track = track[0]
             war['incomming_track'] = track[4], track[1]
             return await message.reply(embed=discord.Embed(color=0x47e0ff,title=f"{track[1]} | {track[4]}").set_image(url=f"http://japan-mk.blog.jp/mk8dx.info-4/table/{track[0]:02d}.jpg"), mention_author=False)
-            
