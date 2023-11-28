@@ -105,7 +105,7 @@ async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[st
     season = season or lounge_season.data()
 
     if not mkc_data.data():
-        await interaction.response.send_message(content="mario kart central api is not loaded yet, please retry in a few seconds", ephemeral=True)
+        return await interaction.response.send_message(content="mario kart central api is not loaded yet, please retry in a few seconds", ephemeral=True)
 
     await interaction.response.defer()
 
