@@ -179,7 +179,7 @@ class WarBot(Base):
             self.active_war[message.channel.id] = war
             return await message.reply(embed=make_embed(war), mention_author=False)
 
-        if re.fullmatch("[0-9\+\-]+", message.content):
+        if re.fullmatch("^((?!--)[0-9\+\-])+$", message.content):
             spots = text_to_score(message.content)
             scored = sum(map(lambda r: _SCORE[r-1], spots))
             war['spots'].append(spots)
