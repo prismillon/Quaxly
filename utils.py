@@ -11,13 +11,6 @@ itemChoices = [Choice(name='Shrooms', value='Sh'), Choice(name='No items', value
 statChoices = [Choice(name='mmr', value='mmr'), Choice(name='peak', value='maxMmr'), Choice(name='events', value='eventsPlayed')]
 
 
-async def wait_for_chunk(interaction: discord.Interaction):
-    await interaction.response.send_message(content="server is not loaded yet, please wait, this message will be edited when this server is ready")
-    message = await interaction.original_response()
-    await interaction.guild.chunk()
-    await message.edit(content="server is now ready! ✅")
-
-
 class LoungeData:
     def __init__(self):
         self._data = None

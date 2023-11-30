@@ -5,7 +5,7 @@ from utils import lounge_data, mkc_data, lounge_season
 from discord.ext import commands, tasks
 
 
-class startup(commands.Cog):
+class Startup(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -21,10 +21,12 @@ class startup(commands.Cog):
     async def on_ready(self):
         if not self.api_list.is_running():
             self.api_list.start()
+        
+        await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="starting..."), status=discord.Status('dnd'))
 
         await self.bot.wait_until_ready()
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{len(self.bot.guilds)} servers"))
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(startup(bot))
+    await bot.add_cog(Startup(bot))
