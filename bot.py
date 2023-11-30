@@ -8,7 +8,7 @@ from discord.ext import commands
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
-bot = commands.AutoShardedBot(command_prefix=commands.when_mentioned, intents=intents, help_command=None)
+bot = commands.AutoShardedBot(command_prefix=commands.when_mentioned, intents=intents, help_command=None, activity=discord.Activity(type=discord.ActivityType.watching, name="starting..."), status=discord.Status('dnd'))
 
 
 @bot.event
