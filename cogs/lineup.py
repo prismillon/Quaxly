@@ -5,7 +5,6 @@ import re
 from typing import List
 from discord import app_commands
 from discord.ext import commands
-from utils import wait_for_chunk
 
 
 async def get_host_string(host: str, interaction: discord.Interaction):
@@ -122,15 +121,7 @@ class Lineup(commands.Cog):
     async def lineup(self, interaction: discord.Interaction, players: str, time: str, host: str, ennemy_tag: str, tag: str):
         """create a clan war line-up for your team"""
 
-        if not interaction.guild.chunked:
-            return await wait_for_chunk(interaction)
-
         if not interaction.app_permissions.send_messages:
-            return await interaction.response.send_message(content="this command need the permission to send message in this channel to work properly")
-
-        bot_member = interaction.guild.get_member(self.bot.user.id)
-
-        if not interaction.channel.permissions_for(bot_member).send_messages:
             return await interaction.response.send_message(content="this command need the permission to send message in this channel to work properly")
 
         embed = discord.Embed(color=0x47e0ff, title=f"clan war | {tag} vs {ennemy_tag}").set_thumbnail(url=interaction.guild.icon).set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar)

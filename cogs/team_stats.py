@@ -8,7 +8,7 @@ import re
 from autocomplete import mkc_team_autocomplete
 from datetime import datetime
 from discord import app_commands
-from utils import lounge_data, statChoices, mkc_data, wait_for_chunk, lounge_season
+from utils import lounge_data, statChoices, mkc_data, lounge_season
 from discord.app_commands import Choice, Range
 
 
@@ -64,9 +64,6 @@ async def fc_to_stat(fc: str, season: int):
 @app_commands.describe(role="the role you want to check stats from", stat="the type of stats", season="the season you want this info from")
 async def role_stats(interaction: discord.Interaction, role: discord.Role, stat: Choice[str] = None, season: int = None):
     """check stats of a discord role"""
-
-    if not interaction.guild.chunked:
-        return await wait_for_chunk(interaction)
 
     await interaction.response.defer()
 

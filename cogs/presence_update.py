@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 
 
-class presence(commands.Cog):
+class Presence(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -17,4 +17,4 @@ class presence(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(presence(bot))
+    await bot.add_cog(Presence(bot))

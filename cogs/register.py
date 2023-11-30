@@ -1,7 +1,6 @@
 import discord
 
 from discord import app_commands
-from utils import wait_for_chunk
 
 import sql
 
@@ -10,9 +9,6 @@ import sql
 @app_commands.describe(player="the player you want to register")
 async def register_user(interaction: discord.Interaction, player: discord.Member = None):
     """register a user in the timetrial database of the server"""
-
-    if not interaction.guild.chunked:
-        return await wait_for_chunk(interaction)
 
     embed = discord.Embed(color=0x47e0ff, description="")
 
