@@ -51,7 +51,7 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
                 embed.title = f"{times[0][1]} {speed.name} {items.name}"
                 embed.set_thumbnail(url=times[0][3])
                 member = interaction.guild.get_member(times[0][0]) or f"<@{times[0][0]}>"
-                embed.description = f"{member.display_name or member} - `{times[0][2]}`"
+                embed.description = f"{member.display_name if not isinstance(member, str) else member} - `{times[0][2]}`"
 
         else:
             times = await sql.get_track_times(mode=mode, guild_id=interaction.guild_id, track=track)
@@ -64,7 +64,7 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
                 rank = 1
                 for time in times:
                     member = interaction.guild.get_member(time[0]) or f"<@{time[0]}>"
-                    embed.description += f"**{rank}:** {member.display_name or member} `{time[1]}`\n"
+                    embed.description += f"**{rank}:** {member.display_name if not isinstance(member, str) else member} `{time[1]}`\n"
                     rank += 1
     else:
         track_list_raw = await sql.get_all_tracks()
@@ -107,7 +107,7 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
                     if len(times)>0 and track[0] == times[0][0]:
                         time = times[0]
                         member = interaction.guild.get_member(time[2]) or f"<@{time[2]}>"
-                        fields[-1] += f"**{time[0]}**: `{time[1]}` - {member.display_name or member}\n"
+                        fields[-1] += f"**{time[0]}**: `{time[1]}` - {member.display_name if not isinstance(member, str) else member}\n"
                         times.pop(0)
                 for index, field in enumerate(fields):
                     if len(field)>0:
