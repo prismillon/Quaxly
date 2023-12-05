@@ -4,12 +4,13 @@ import sql
 from discord import app_commands
 
 class CupsButtons(discord.ui.View):
-    def __init__(self, embed: discord.Embed, interaction: discord.Interaction, clicked_cup: str = None):
+    def __init__(self, embed: discord.Embed, interaction: discord.Interaction, sql_data: List, clicked_cup: str = None):
         super().__init__()
         self.embed = embed
         self.interaction = interaction
+        self.sql_data = sql_data
         self.clicked_cup = clicked_cup
-        for cup in sql.get_cups_emoji():
+        for cup in self.sql_data:
             button = discord.ui.Button(emoji=f"<:{cup[0]}:{cup[1]}>")
             if cup[0] == clicked_cup:
                 button.disabled = True
@@ -18,11 +19,11 @@ class CupsButtons(discord.ui.View):
 
     async def callback(self, interaction: discord.Interaction, cup: str):
         self.stop()
-        tracks = sql.get_tracks_from_cup(cup)
+        tracks = await sql.get_tracks_from_cup(cup)
         self.embed.title = tracks[0][1]
         self.embed.set_thumbnail(url=tracks[0][2])
         self.embed.description = f"```{tracks[0][0]},   {tracks[1][0]},   {tracks[2][0]},   {tracks[3][0]}```"
-        view = CupsButtons(self.embed, self.interaction, cup)
+        view = CupsButtons(self.embed, self.interaction, self.sql_data, cup)
         return await interaction.response.edit_message(embed=self.embed, view=view)
 
     async def on_timeout(self):
@@ -36,7 +37,8 @@ async def tracks(interaction: discord.Interaction):
 
     embed = discord.Embed(color=0x47e0ff, description="Here is the list of all the cups in Mario Kart 8 Deluxe", title="Tracks")
     embed.set_thumbnail(url=interaction.guild.icon)
-    view = CupsButtons(embed=embed, interaction=interaction)
+    sql_data = await sql.get_cups_emoji()
+    view = CupsButtons(embed=embed, interaction=interaction, sql_data=sql_data)
     return await interaction.response.send_message(embed=embed, view=view)
 
 

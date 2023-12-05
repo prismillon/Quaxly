@@ -25,7 +25,7 @@ async def save_time(interaction: discord.Interaction, speed: Choice[str], items:
 
     mode = items.value+speed.value
     embed = discord.Embed(color=0x47e0ff, description="")
-    track_check = sql.check_track_name(track)
+    track_check = await sql.check_track_name(track)
     player = interaction.user
 
     if mode not in utils.allowed_tables:
@@ -43,23 +43,23 @@ async def save_time(interaction: discord.Interaction, speed: Choice[str], items:
         embed.description = f"{time} is not a valid formated time like this (1:23.456)"
         return await interaction.response.send_message(embed=embed)
 
-    if len(sql.check_player(player.id)) == 0:
-        sql.register_new_player(player.id)
+    if len(await sql.check_player(player.id)) == 0:
+        await sql.register_new_player(player.id)
 
-    if len(sql.check_player_server(player.id, interaction.guild_id)) == 0:
-        sql.register_user_in_server(player.id, interaction.guild_id)
+    if len(await sql.check_player_server(player.id, interaction.guild_id)) == 0:
+        await sql.register_user_in_server(player.id, interaction.guild_id)
 
-    previous_time = sql.get_user_track_time(mode, interaction.guild_id, track, player.id)
+    previous_time = await sql.get_user_track_time(mode, interaction.guild_id, track, player.id)
 
     embed.set_thumbnail(url=track_check[0][1])
     embed.title = f"time saved in {speed.name} {items.name}"
     embed.description = f"{player.display_name} saved ``{time}`` on **{track}**"
 
     if len(previous_time) == 0:
-        sql.save_time(mode, player.id, track, time)
+        await sql.save_time(mode, player.id, track, time)
 
     elif previous_time[0][2] > time:
-        sql.update_time(mode, player.id, track, time)
+        await sql.update_time(mode, player.id, track, time)
         embed.description += f"\nyou improved by ``{time_diff(time, previous_time[0][2])}`` !"
 
     else:
@@ -70,7 +70,7 @@ async def save_time(interaction: discord.Interaction, speed: Choice[str], items:
         await view.wait()
 
         if view.answer:
-            sql.update_time(mode, player.id, track, time)
+            await sql.update_time(mode, player.id, track, time)
             embed.title = f"time saved in {speed.name} {items.name}"
             embed.description = f"{player.display_name} saved ``{time}`` on **{track}**"
 
@@ -107,7 +107,7 @@ async def delete_time(interaction: discord.Interaction, speed: Choice[str] = Non
     embed.description = "you are about to delete listed times, are you sure you want to do it?"
 
     for mode in filter(lambda table: table_identifier in table, utils.allowed_tables):
-        times = sql.get_user_times(mode, interaction.user.id, track_identifier)
+        times = await sql.get_user_times(mode, interaction.user.id, track_identifier)
         if len(times) > 0:
             content = ""
             for time in times:
@@ -127,7 +127,7 @@ async def delete_time(interaction: discord.Interaction, speed: Choice[str] = Non
 
     if view.answer:
         for mode in filter(lambda table: table_identifier in table, utils.allowed_tables):
-            sql.delete_player_times(mode, interaction.user.id, track_identifier)
+            await sql.delete_player_times(mode, interaction.user.id, track_identifier)
         embed.clear_fields()
         embed.description = "selected times have been deleted"
 

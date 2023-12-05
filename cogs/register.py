@@ -16,11 +16,11 @@ async def register_user(interaction: discord.Interaction, player: discord.Member
 
     embed.set_thumbnail(url=player.avatar)
 
-    if len(sql.check_player(player.id)) == 0:
-        sql.register_new_player(player.id)
+    if len(await sql.check_player(player.id)) == 0:
+        await sql.register_new_player(player.id)
 
-    if len(sql.check_player_server(player.id, interaction.guild_id)) == 0:
-        sql.register_user_in_server(player.id, interaction.guild_id)
+    if len(await sql.check_player_server(player.id, interaction.guild_id)) == 0:
+        await sql.register_user_in_server(player.id, interaction.guild_id)
         embed.title = "registered !"
         embed.description = f"{player.display_name} has been added to the list"
     else:
@@ -42,8 +42,8 @@ async def remove_user(interaction: discord.Interaction, player: discord.Member =
 
     embed.set_thumbnail(url=player.avatar)
 
-    if len(sql.check_player(player.id)) == 1 and len(sql.check_player_server(player.id, interaction.guild_id)) == 1:
-        sql.delete_player_from_server(player.id, interaction.guild_id)
+    if len(await sql.check_player(player.id)) == 1 and len(await sql.check_player_server(player.id, interaction.guild_id)) == 1:
+        await sql.delete_player_from_server(player.id, interaction.guild_id)
         embed.title = "removed !"
         embed.description = f"{player.display_name} has been removed from the list"
     else:
