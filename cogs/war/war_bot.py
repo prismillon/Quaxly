@@ -109,7 +109,7 @@ class WarBot(Base):
         date = datetime.utcnow()
         await sql.new_war(interaction.channel.id, date, tag, ennemy_tag)
         self.active_war[interaction.channel.id] = {
-            "war_id": await sql.check_war_id(interaction.channel.id, date, tag, ennemy_tag)[0][0],
+            "war_id": (await sql.check_war_id(interaction.channel.id, date, tag, ennemy_tag))[0][0],
             "date": date,
             "tag": tag,
             "ennemy_tag": ennemy_tag,

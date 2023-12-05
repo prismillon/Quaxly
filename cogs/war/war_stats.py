@@ -31,7 +31,7 @@ class WarStats(Base):
             date = datetime.utcnow()
             await sql.new_war(message.channel.id, date, tag, ennemy_tag)
             self.active_war[message.channel.id] = {
-                "war_id": await sql.check_war_id(message.channel.id, date, tag, ennemy_tag)[0][0],
+                "war_id":(await sql.check_war_id(message.channel.id, date, tag, ennemy_tag))[0][0],
                 "date": date,
                 "tag": tag,
                 "ennemy_tag": ennemy_tag,
