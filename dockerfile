@@ -1,5 +1,5 @@
 FROM python:3.11-slim-bullseye
-RUN apt update && apt install --no-cache git -y
+RUN apt update && apt install git -y
 WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --upgrade pip
