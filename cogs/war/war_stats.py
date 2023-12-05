@@ -29,9 +29,9 @@ class WarStats(Base):
             tag = extract_tag[0]
             ennemy_tag = extract_tag[1]
             date = datetime.utcnow()
-            sql.new_war(message.channel.id, date, tag, ennemy_tag)
+            await sql.new_war(message.channel.id, date, tag, ennemy_tag)
             self.active_war[message.channel.id] = {
-                "war_id": sql.check_war_id(message.channel.id, date, tag, ennemy_tag)[0][0],
+                "war_id": await sql.check_war_id(message.channel.id, date, tag, ennemy_tag)[0][0],
                 "date": date,
                 "tag": tag,
                 "ennemy_tag": ennemy_tag,
@@ -45,9 +45,9 @@ class WarStats(Base):
             return
 
         if "Stopped war." in message.content:
-            if len(sql.check_war_length(self.active_war[message.channel.id]['war_id'])) < 2:
-                sql.delete_races_from_war(self.active_war[message.channel.id]['war_id'])
-                sql.delete_war(self.active_war[message.channel.id]['war_id'])
+            if len(await sql.check_war_length(self.active_war[message.channel.id]['war_id'])) < 2:
+                await sql.delete_races_from_war(self.active_war[message.channel.id]['war_id'])
+                await sql.delete_war(self.active_war[message.channel.id]['war_id'])
             self.active_war.pop(message.channel.id)
             return
 
@@ -61,7 +61,7 @@ class WarStats(Base):
             track = race_data['fields'][4]['value'] if len(race_data['fields']) == 5 else "NULL"
             diff = race_data['fields'][3]['value']
             race_id = race_data['title'].replace("Score for Race ", '')
-            sql.new_race(race_id, self.active_war[message.channel.id]['war_id'], track, diff, spots)
+            await sql.new_race(race_id, self.active_war[message.channel.id]['war_id'], track, diff, spots)
             self.active_war[message.channel.id]['spots'].append(spots)
             self.active_war[message.channel.id]['diff'].append(diff)
             self.active_war[message.channel.id]['tracks'].append(track)
@@ -69,7 +69,7 @@ class WarStats(Base):
         elif "Total Score after Race" in race_data['title']:
             race_id = int(race_data['title'].replace("Total Score after Race ", ''))
             for race in range(race_id, len(self.active_war[message.channel.id]['diff'])):
-                sql.delete_this_race(race+1, self.active_war[message.channel.id]['war_id'])
+                await sql.delete_this_race(race+1, self.active_war[message.channel.id]['war_id'])
             self.active_war[message.channel.id]['spots'] = self.active_war[message.channel.id]['spots'][:race_id]
             self.active_war[message.channel.id]['diff'] = self.active_war[message.channel.id]['diff'][:race_id]
             self.active_war[message.channel.id]['tracks'] = self.active_war[message.channel.id]['tracks'][:race_id]
@@ -83,7 +83,7 @@ class WarStats(Base):
 
         channel = channel or interaction.channel
 
-        raw_stats = list(filter(lambda x: x[1] >= mininmum, sql.get_wars_stats_from_channel(channel.id)))
+        raw_stats = list(filter(lambda x: x[1] >= mininmum, await sql.get_wars_stats_from_channel(channel.id)))
 
         if len(raw_stats) == 0:
             return await interaction.response.send_message(content="no stats registered in this channel", ephemeral=True)
@@ -111,7 +111,7 @@ class WarStats(Base):
 
         channel = channel or interaction.channel
         
-        raw_stats = sql.get_war_list_from_channel(channel.id)
+        raw_stats = await sql.get_war_list_from_channel(channel.id)
 
         if len(raw_stats) == 0:
             return await interaction.response.send_message(content="no wars registered in this channel", ephemeral=True)
@@ -120,7 +120,7 @@ class WarStats(Base):
 
         for war in raw_stats:
             embed = discord.Embed(color=0x47e0ff, title=f"{war[3]} vs {war[4]}", timestamp=datetime.fromisoformat(war[2]))
-            races = sql.get_races_from_war(war[0])
+            races = await sql.get_races_from_war(war[0])
             if len(races) == 0:
                 continue
             embed.add_field(name="final result", value=f"```{sum(race[3] for race in races):+}```", inline=True)
@@ -151,19 +151,19 @@ class WarStats(Base):
         channel = channel or interaction.channel
 
         if not war_id:
-            if len(sql.get_war_list_from_channel(channel.id)) == 0:
+            if len(await sql.get_war_list_from_channel(channel.id)) == 0:
                 return await interaction.response.send_message(content="this channel do not have any war stats", ephemeral=True)
 
             embed = discord.Embed(color=0x47e0ff, title="delete all war stats")
-            embed.description = f"you are about to delete {len(sql.get_war_list_from_channel(channel.id))} wars"
+            embed.description = f"you are about to delete {len(await sql.get_war_list_from_channel(channel.id))} wars"
             view = ConfirmButton()
             await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
             await view.wait()
 
             if view.answer:
-                for war in sql.get_war_list_from_channel(channel.id):
-                    sql.delete_races_from_war(war[0])
-                    sql.delete_war(war[0])
+                for war in await sql.get_war_list_from_channel(channel.id):
+                    await sql.delete_races_from_war(war[0])
+                    await sql.delete_war(war[0])
                 embed.title = "war stats removed"
                 embed.description = "all war stats have been removed"
 
@@ -172,7 +172,7 @@ class WarStats(Base):
                 embed.description = "data remained unchanged"
         
         else:
-            war = sql.check_war_ownership(war_id, channel.id)
+            war = await sql.check_war_ownership(war_id, channel.id)
 
             if len(war) != 1:
                 return await interaction.response.send_message(content="this war does not exist or does not belong to this channel", ephemeral=True)
@@ -185,8 +185,8 @@ class WarStats(Base):
             await view.wait()
 
             if view.answer:
-                sql.delete_races_from_war(war_id)
-                sql.delete_war(war_id)
+                await sql.delete_races_from_war(war_id)
+                await sql.delete_war(war_id)
                 embed.title = f"war n°{war_id} removed"
                 embed.description = "successfully deleted the war race data"
 
