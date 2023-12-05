@@ -31,30 +31,30 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
     if mode not in utils.allowed_tables:
         return await interaction.response.send_message(content=":euh:")
 
-    if track and len(sql.check_track_name(track)) != 1:
+    if track and len(await sql.check_track_name(track)) != 1:
         embed.title = "track not found :("
         embed.description = f"{track} was not found in the list of tracks"
         return await interaction.response.send_message(embed=embed)
 
-    if player and len(sql.check_player_server(player.id, interaction.guild_id)) != 1:
+    if player and len(await sql.check_player_server(player.id, interaction.guild_id)) != 1:
         embed.title = "player not found :("
         embed.description = f"{player.display_name} is not registered in the server"
         return await interaction.response.send_message(embed=embed)
 
     if track:
         if player:
-            times = sql.get_user_track_time(mode=mode, guild_id=interaction.guild_id, track=track, player_id=player.id)
+            times = await sql.get_user_track_time(mode=mode, guild_id=interaction.guild_id, track=track, player_id=player.id)
             if len(times) == 0:
                 embed.title = f"{player.display_name} {track} {speed.name} {items.name}"
                 embed.description = "No time to display sorry"
             else:
                 embed.title = f"{times[0][1]} {speed.name} {items.name}"
                 embed.set_thumbnail(url=times[0][3])
-                member = interaction.guild.get_member(times[0][0])
-                embed.description = f"{member.display_name} - `{times[0][2]}`"
+                member = interaction.guild.get_member(times[0][0]) or f"<@{times[0][0]}>"
+                embed.description = f"{member.display_name or member} - `{times[0][2]}`"
 
         else:
-            times = sql.get_track_times(mode=mode, guild_id=interaction.guild_id, track=track)
+            times = await sql.get_track_times(mode=mode, guild_id=interaction.guild_id, track=track)
             if len(times) == 0:
                 embed.title = f"{track} {speed.name} {items.name}"
                 embed.description = "No time to display sorry"
@@ -63,17 +63,17 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
                 embed.set_thumbnail(url=times[0][3])
                 rank = 1
                 for time in times:
-                    member = interaction.guild.get_member(time[0])
-                    embed.description += f"**{rank}:** {member.display_name} `{time[1]}`\n"
+                    member = interaction.guild.get_member(time[0]) or f"<@{time[0]}>"
+                    embed.description += f"**{rank}:** {member.display_name or member} `{time[1]}`\n"
                     rank += 1
     else:
-        track_list_raw = sql.get_all_tracks()
+        track_list_raw = await sql.get_all_tracks()
         fields = []
         fields_title = ["__Nitro tracks__", "__Retro tracks__", "__DLC tracks__", "__Wave 1 & 2__", "__Wave 3 & 4__", "__Wave 5 & 6__"]
 
         if player:
             total = 0
-            times = sql.get_player_best(mode=mode, guild_id=interaction.guild_id, player_id=player.id)
+            times = await sql.get_player_best(mode=mode, guild_id=interaction.guild_id, player_id=player.id)
             time_nb = len(times)
             embed.title = f"{player.display_name} {speed.name} {items.name}"
             embed.set_thumbnail(url=player.display_avatar)
@@ -91,11 +91,11 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
                 for index, field in enumerate(fields):
                     if len(field)>0:
                         embed.add_field(name=f"{fields_title[index]}", value=field)
-                if time_nb == (len(sql.get_cups_emoji())*4):
+                if time_nb == (len(await sql.get_cups_emoji())*4):
                     embed.set_footer(text=f"total time: {format_time(total)}")
 
         else:
-            times = sql.get_best_times(mode=mode, guild_id=interaction.guild_id)
+            times = await sql.get_best_times(mode=mode, guild_id=interaction.guild_id)
             embed.title = f"{speed.name} {items.name}"
             embed.set_thumbnail(url=interaction.guild.icon)
             if len(times) == 0:
@@ -106,8 +106,8 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
                         fields.append("")
                     if len(times)>0 and track[0] == times[0][0]:
                         time = times[0]
-                        member = interaction.guild.get_member(time[2])
-                        fields[-1] += f"**{time[0]}**: `{time[1]}` - {member.display_name}\n"
+                        member = interaction.guild.get_member(time[2]) or f"<@{time[2]}>"
+                        fields[-1] += f"**{time[0]}**: `{time[1]}` - {member.display_name or member}\n"
                         times.pop(0)
                 for index, field in enumerate(fields):
                     if len(field)>0:

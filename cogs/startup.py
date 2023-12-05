@@ -22,6 +22,8 @@ class Startup(commands.Cog):
         if not self.api_list.is_running():
             self.api_list.start()
 
+        await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="starting..."), status=discord.Status('dnd'))
+
         await self.bot.wait_until_ready()
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{len(self.bot.guilds)} servers"))
 

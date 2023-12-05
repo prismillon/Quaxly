@@ -24,14 +24,14 @@ class ImportTime(commands.Cog):
 
         self.active_user[interaction.user.global_name] = {"date": datetime.now(), "mode": items.value+speed.value, "discord_id": interaction.user.id}
         await interaction.response.send_message("please use the command below quaxly will register the times from Cadoizzob for you")
-        await interaction.channel.send(f"/tt option:{speed.name} categorie:{'shroom' if items.value == 'Sh' else 'ni'} third:find four:{interaction.user.id}")
+        await interaction.channel.send(f"/tt option:{speed.name} categorie:{'shroom' if items.value == 'Sh' else 'ni'} third:find")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if message.author.id != 543424033673445378 or len(message.embeds) != 1 or message.embeds[0].title[9:] not in self.active_user.keys():
             return
 
-        correct_track_names = sql.get_all_tracks()
+        correct_track_names = await sql.get_all_tracks()
         user = self.active_user.get(message.embeds[0].title[9:])
         time_list = re.findall("[a-zA-Z0-9]+ : \*\*\d+\/\d+\*\* -> \d:[0-5]\d\.\d{3}", message.embeds[0].description)
         if len(time_list) == 0:
@@ -46,7 +46,7 @@ class ImportTime(commands.Cog):
             else:
                 track = next(track_name[0] for track_name in correct_track_names if track_name[0].lower() == track.lower())
             try:
-                sql.save_time(user["mode"], user["discord_id"], track, time)
+                await sql.save_time(user["mode"], user["discord_id"], track, time)
             except:
                 pass
 
