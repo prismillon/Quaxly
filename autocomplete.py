@@ -8,7 +8,7 @@ from utils import lounge_data, mkc_data
 
 
 async def track_autocomplete(interaction: discord.Interaction, current: str) -> List[Choice[str]]:
-    tracks = sql.get_track_names(current)
+    tracks = await sql.get_track_names(current)
     return [Choice(name=track[0], value=track[0]) for track in tracks]
 
 
