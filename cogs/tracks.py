@@ -4,7 +4,7 @@ import sql
 from discord import app_commands
 
 class CupsButtons(discord.ui.View):
-    def __init__(self, embed: discord.Embed, interaction: discord.Interaction, sql_data: List, clicked_cup: str = None):
+    def __init__(self, embed: discord.Embed, interaction: discord.Interaction, sql_data, clicked_cup: str = None):
         super().__init__()
         self.embed = embed
         self.interaction = interaction
