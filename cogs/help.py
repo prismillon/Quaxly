@@ -28,6 +28,7 @@ class Help(commands.Cog):
         embeds[-1].add_field(name="mkc stats", value="```/mkc_stats team (stat) (season)```show the stats of everyone in a mkc roaster, the total average and the 6 best average, stat let you choose the type of stats (default is mmr), season let you choose the season to check the stats from (default to current season)", inline=False)
         embeds[-1].add_field(name="fc stats", value="```/fc_stats room (team_size)```show the stats of a room using friend code, it need to be a room of 12 and while team_size is optionnal you should set it to have proper stats for each teams, room is where you paste your room info", inline=False)
         embeds[-1].add_field(name="name history", value="```/name_history (player)```show the tracked name history with date of the selected player (you if player is not provided), and show when you will be able to change your name again", inline=False)
+        embeds[-1].add_field(name="lounge profil", value="```/lounge_profil (player)```show the lounge profil of the selected player (you if player is not provided)", inline=False)
 
 
         embeds.append(discord.Embed(color=0x47e0ff, title="War stats commands", description="this section is about stats on played tracks in war, using <@177162177432649728> Quaxly will do stats on each tracks for you (each channel count as a different team and only people that have access to the channel can see the stats of the channel)"))
