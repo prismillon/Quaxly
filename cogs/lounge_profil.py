@@ -85,7 +85,7 @@ async def lounge_profil(interaction: discord.Interaction, player: str = None):
     parteners_scores = []
     seasons = {}
     season_played = []
-    for i in range(4, lounge_season.data()):
+    for i in range(4, lounge_season.data()+1):
         seasons[i] = {}
 
     async with aiohttp.ClientSession() as session:
