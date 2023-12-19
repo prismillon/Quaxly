@@ -1,5 +1,5 @@
 aiohttp==3.8.4
-asqlite==2.0.0a0
+git+https://github.com/Rapptz/asqlite.git
 discord.py==2.3.2
 matplotlib==3.7.2
 numpy==1.26.2
