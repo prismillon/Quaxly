@@ -72,9 +72,9 @@ def create_plot(base, history):
 
 @app_commands.command()
 @app_commands.autocomplete(player=name_autocomplete)
-@app_commands.describe(player="The player you want to check lounge profil from")
-async def lounge_profil(interaction: discord.Interaction, player: str = None):
-    """lounge profil of a player"""
+@app_commands.describe(player="The player you want to check lounge profile from")
+async def lounge_profile(interaction: discord.Interaction, player: str = None):
+    """lounge profile of a player"""
 
     await interaction.response.defer()
 
@@ -118,7 +118,9 @@ async def lounge_profil(interaction: discord.Interaction, player: str = None):
                     seasons[season]['history'] = season_history
                 else:
                     return await interaction.followup.send(content="player not found", ephemeral=True)
-    embed.title = f"{player}'s profil"
+    if len(scores) == 0:
+        return await interaction.followup.send(content="player has not played yet", ephemeral=True)
+    embed.title = f"{player}'s profile"
     embed.add_field(name="avg score", value=str(round(sum(scores)/len(scores), 2)), inline=True)
     embed.add_field(name="partner avg", value=str(round(sum(parteners_scores)/len(parteners_scores), 2)), inline=True)
     embed.add_field(name="events played", value=str(len(scores)), inline=True)
@@ -144,4 +146,4 @@ async def lounge_profil(interaction: discord.Interaction, player: str = None):
 
 
 async def setup(bot):
-    bot.tree.add_command(lounge_profil)
+    bot.tree.add_command(lounge_profile)

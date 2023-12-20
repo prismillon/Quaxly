@@ -11,7 +11,7 @@ config.js
 .DS_Store
 config.py
 __pycache__
-mk.db
+mk.db*
 db.py
 cups_emoji.py
 sql.py
