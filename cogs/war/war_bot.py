@@ -9,6 +9,7 @@ import sql
 
 from cogs.war.base import Base
 from autocomplete import mkc_team_autocomplete
+from utils import mkc_data
 
 _SCORE = (15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
@@ -105,6 +106,9 @@ class WarBot(Base):
     @app_commands.describe(tag="the tag of your team", ennemy_tag="the tag of the ennemie team")
     async def warstart(self, interaction: discord.Interaction, tag: str, ennemy_tag: str):
         """start a war in the channel"""
+
+        tag = next(filter(lambda team: team['team_name'] == tag, mkc_data.data()))['team_tag']
+        ennemy_tag = next(filter(lambda team: team['team_name'] == ennemy_tag, mkc_data.data()))['team_tag']
 
         date = datetime.utcnow()
         await sql.new_war(interaction.channel.id, date, tag, ennemy_tag)
