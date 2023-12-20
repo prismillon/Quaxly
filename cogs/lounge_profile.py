@@ -80,6 +80,8 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
 
     embed = discord.Embed(color=0x47e0ff)
 
+    if not lounge_season.data():
+        return await interaction.followup.send(content="bot not ready yet please wait 1 minute", ephemeral=True)
 
     scores = []
     parteners_scores = []
