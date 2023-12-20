@@ -122,6 +122,7 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
                     return await interaction.followup.send(content="player not found", ephemeral=True)
     if len(scores) == 0:
         return await interaction.followup.send(content="player has not played yet", ephemeral=True)
+    seasons = {k: v for k, v in seasons.items() if v is not None}
     embed.title = f"{player}'s profile"
     embed.add_field(name="avg score", value=str(round(sum(scores)/len(scores), 2)), inline=True)
     embed.add_field(name="partner avg", value=str(round(sum(parteners_scores)/len(parteners_scores), 2)), inline=True)
@@ -136,11 +137,11 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
             base = seasons[season]['base']
             break
     history = []
-    for season in seasons:
-        if seasons[season]:
-            if len(history) > 0:
-                history.append(seasons[season]['base'] - seasons[season-1]['endingMmr'])
-            history += seasons[season]['history']
+    season_list = list(seasons.values())
+    for i, season in enumerate(season_list):
+        if len(history) > 0:
+            history.append(season_list[i]['base'] - season_list[i-1]['endingMmr'])
+        history += season_list[i]['history']
     embed.set_image(url="attachment://plot.png")
     if base != 0 and len(history) > 0:
         return await interaction.followup.send(embed=embed, file=discord.File(create_plot(base, history), "plot.png"))
