@@ -8,8 +8,7 @@ import discord
 import sql
 
 from cogs.war.base import Base
-from autocomplete import mkc_team_autocomplete
-from utils import mkc_data
+from autocomplete import mkc_tag_autocomplete
 
 _SCORE = (15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
@@ -102,13 +101,10 @@ class WarBot(Base):
 
     @app_commands.command(name="start")
     @app_commands.guild_only()
-    @app_commands.autocomplete(tag=mkc_team_autocomplete, ennemy_tag=mkc_team_autocomplete)
+    @app_commands.autocomplete(tag=mkc_tag_autocomplete, ennemy_tag=mkc_tag_autocomplete)
     @app_commands.describe(tag="the tag of your team", ennemy_tag="the tag of the ennemie team")
     async def warstart(self, interaction: discord.Interaction, tag: str, ennemy_tag: str):
         """start a war in the channel"""
-
-        tag = next(filter(lambda team: team['team_name'] == tag, mkc_data.data()))['team_tag']
-        ennemy_tag = next(filter(lambda team: team['team_name'] == ennemy_tag, mkc_data.data()))['team_tag']
 
         date = datetime.utcnow()
         await sql.new_war(interaction.channel.id, date, tag, ennemy_tag)
@@ -124,7 +120,7 @@ class WarBot(Base):
             "tracks": [],
             "incomming_track": ()
         }
-        return await interaction.response.send_message(f"started war between {tag} and {ennemy_tag}")
+        return await interaction.response.send_message(f"started war between `{tag}` and `{ennemy_tag}` \n(obs overlay: https://waroverlay.prismillon.com/overlay/{interaction.channel.id})")
 
 
     @app_commands.command(name="stop")
