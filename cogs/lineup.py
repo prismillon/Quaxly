@@ -121,8 +121,8 @@ class Lineup(commands.Cog):
     async def lineup(self, interaction: discord.Interaction, players: str, time: str, host: str, ennemy_tag: str, tag: str):
         """create a clan war line-up for your team"""
 
-        if not interaction.app_permissions.send_messages:
-            return await interaction.response.send_message(content="this command need the permission to send message in this channel to work properly")
+        if not interaction.channel.permissions_for(interaction.guild.me).send_messages:
+            return await interaction.response.send_message("I don't have permission to send message in this channel")
 
         embed = discord.Embed(color=0x47e0ff, title=f"clan war | {tag} vs {ennemy_tag}").set_thumbnail(url=interaction.guild.icon).set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar)
         member_string = ' - '.join(player.mention for player in sorted(list(set([interaction.guild.get_member(int(player)) for player in re.findall("\d+", players) if interaction.guild.get_member(int(player))])), key=lambda user: user.display_name.lower()))

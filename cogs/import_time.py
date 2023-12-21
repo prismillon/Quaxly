@@ -22,6 +22,9 @@ class ImportTime(commands.Cog):
     async def import_time(self, interaction: discord.Interaction, speed: Choice[str], items: Choice[str]):
         """import time from cadoizzob"""
 
+        if not interaction.channel.permissions_for(interaction.guild.me).send_messages:
+            return await interaction.response.send_message("I don't have permission to send message in this channel")
+
         self.active_user[interaction.user.global_name] = {"date": datetime.now(), "mode": items.value+speed.value, "discord_id": interaction.user.id}
         await interaction.response.send_message("please use the command below quaxly will register the times from Cadoizzob for you")
         await interaction.channel.send(f"/tt option:{speed.name} categorie:{'shroom' if items.value == 'Sh' else 'ni'} third:find")
