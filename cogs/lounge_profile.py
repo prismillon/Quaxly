@@ -125,7 +125,7 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
     seasons = {k: v for k, v in seasons.items() if v is not None}
     embed.title = f"{player}'s profile"
     embed.add_field(name="avg score", value=str(round(sum(scores)/len(scores), 2)), inline=True)
-    embed.add_field(name="partner avg", value=str(round(sum(parteners_scores)/len(parteners_scores), 2)), inline=True)
+    embed.add_field(name="partner avg", value=str(round(sum(parteners_scores)/len(parteners_scores) if len(parteners_scores) != 0 else 0, 2)), inline=True)
     embed.add_field(name="events played", value=str(len(scores)), inline=True)
     embed.add_field(name="seasons played", value=str(season_played)[1:-1], inline=True)
     embed.set_thumbnail(url=mmr_to_rank(seasons[season_played[-1]]['endingMmr'])[0])
