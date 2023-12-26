@@ -128,7 +128,7 @@ class WarBot(Base):
     async def warstop(self, interaction: discord.Interaction):
         """stop the war"""
 
-        if self.active_war[interaction.channel.id]:
+        if interaction.channel.id in self.active_war:
             if len(await sql.check_war_length(self.active_war[interaction.channel.id]['war_id'])) < 2:
                 await sql.delete_races_from_war(self.active_war[interaction.channel.id]['war_id'])
                 await sql.delete_war(self.active_war[interaction.channel.id]['war_id'])
