@@ -78,7 +78,7 @@ class WarStats(Base):
 
     @app_commands.command()
     @app_commands.guild_only()
-    @app_commands.describe(channel="the channel you want to check stats from", minimum="the minimum number of times the track has been played for it to count")
+    @app_commands.describe(channel="the channel you want to check stats from", minimum="the minimum number of times the track has been played for it to count", track="the track you want to check stats from")
     @app_commands.autocomplete(track=track_autocomplete)
     async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel = None, minimum: app_commands.Range[int, 1] = 1, track: str = None) -> None:
         """check race stats in the specified channel"""

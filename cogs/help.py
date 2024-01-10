@@ -35,7 +35,7 @@ class Help(commands.Cog):
 
         embeds[-1].add_field(name="war list", value="```/war list (channel)```show the list of recorded war with it's id for the selected channel (if no channel is provided it will use the current one)", inline=False)
         embeds[-1].add_field(name="war delete", value="```/war delete (channel) (war_id)```let you delete a war (or all of them if you do not provide a war id), for the selected channel (or the current one if no channel is provided)", inline=False)
-        embeds[-1].add_field(name="war stats", value="```/war stats (channel) (min)```show the stats for each track from best to worst in the selected channel (if no channel is provided it will use the current one), min is the minimum time a track need to be played to count in the stats it default to 1", inline=False)
+        embeds[-1].add_field(name="war stats", value="```/war stats (channel) (minimum) (track)```show the stats for each track from best to worst in the selected channel (if no channel is provided it will use the current one), minimum is the minimum time a track need to be played to count in the stats it default to 1, track is an option to view stats from one track only", inline=False)
 
         embeds.append(discord.Embed(color=0x47e0ff, title="War bot commands", description="this is a war bot implementation like sokuji"))
 
