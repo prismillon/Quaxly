@@ -6,7 +6,7 @@ from io import BytesIO
 
 from discord import app_commands
 from autocomplete import name_autocomplete
-from utils import lounge_season
+from utils import lounge_season, lounge_data
 
 def mmr_to_rank(mmr):
     if mmr < 2000:
@@ -76,12 +76,16 @@ def create_plot(base, history):
 async def lounge_profile(interaction: discord.Interaction, player: str = None):
     """lounge profile of a player"""
 
-    await interaction.response.defer()
 
     embed = discord.Embed(color=0x47e0ff)
 
     if not lounge_season.data():
-        return await interaction.followup.send(content="bot not ready yet please wait 1 minute", ephemeral=True)
+        return await interaction.response.send(content="bot not ready yet please wait 1 minute", ephemeral=True)
+    player = player or discord.utils.find(lambda player: player['discordId'] == str(interaction.user.id), lounge_data.data())['name']
+    if not player:
+        return await interaction.response.send_message(content="could not found player account in the lounge", ephemeral=True)
+
+    await interaction.response.defer()
 
     scores = []
     parteners_scores = []
@@ -91,13 +95,6 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
         seasons[i] = {}
 
     async with aiohttp.ClientSession() as session:
-        if not player:
-            async with session.get("https://www.mk8dx-lounge.com/api/player?discordId="+str(interaction.user.id)) as response:
-                if response.status == 200:
-                    user_data = await response.json()
-                    player = user_data['name']
-                else:
-                    return await interaction.followup.send(content="could not found your account in the lounge", ephemeral=True)
         for season in seasons:
             async with session.get("https://www.mk8dx-lounge.com/api/player/details?name="+player+"&season="+str(season)) as response:
                 if response.status == 200:

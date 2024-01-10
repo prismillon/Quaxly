@@ -48,8 +48,8 @@ async def fc_to_stat(fc: str, season: int):
                 if len(user_data['data']) != 1:
                     return None
                 user_data = user_data['data'][0]
-                user_data['discordId'] = next((player['discordId'] for player in lounge_data.data() if player['name'] == user_data['name']), None)
-                if 'discordId' not in user_data:
+                user_data['discordId'] = discord.utils.find(lambda player: player['name'].lower() == user_data['name'].lower(), lounge_data.data())['discordId']
+                if not user_data['discordId']:
                     return None
                 if 'mmr' not in user_data or 'discordId' not in user_data:
                     return None
@@ -106,7 +106,7 @@ async def mkc_stats(interaction: discord.Interaction, team: str, stat: Choice[st
 
     await interaction.response.defer()
 
-    team = next((mkc_team for mkc_team in mkc_data.data() if mkc_team['team_name'].lower() == team.lower()), None)
+    team = discord.utils.find(lambda mkc_team: mkc_team['team_name'].lower() == team.lower(), mkc_data.data())
 
     if not team:
         return await interaction.edit_original_response(embed=discord.Embed(color=0x47e0ff, title="team not found", description="could not find the team you typed in the mkc database"))
