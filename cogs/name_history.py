@@ -14,9 +14,12 @@ from utils import lounge_data
 async def name_history(interaction: discord.Interaction, player: str = None):
     """lounge name history of a player"""
 
-    player = player or discord.utils.find(lambda player: player['discordId'] == str(interaction.user.id), lounge_data.data())['name']
     if not player:
-        return await interaction.response.send_message(content="could not found player account in the lounge", ephemeral=True)
+        lounge_user = discord.utils.find(lambda player: player['discordId'] == str(interaction.user.id), lounge_data.data())
+        if not lounge_user:
+            return await interaction.response.send_message(content="could not found your account in the lounge", ephemeral=True)
+        
+    player = player or lounge_user['name']
 
     await interaction.response.defer()
     embed = discord.Embed(color=0x47e0ff, title="name history")

@@ -48,9 +48,10 @@ async def fc_to_stat(fc: str, season: int):
                 if len(user_data['data']) != 1:
                     return None
                 user_data = user_data['data'][0]
-                user_data['discordId'] = discord.utils.find(lambda player: player['name'].lower() == user_data['name'].lower(), lounge_data.data())['discordId']
-                if not user_data['discordId']:
+                user = discord.utils.find(lambda player: player['name'].lower() == user_data['name'].lower(), lounge_data.data())
+                if not user:
                     return None
+                user_data['discordId'] = user['discordId']
                 if 'mmr' not in user_data or 'discordId' not in user_data:
                     return None
                 if 'maxMmr' not in user_data:

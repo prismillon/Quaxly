@@ -81,9 +81,13 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
 
     if not lounge_season.data():
         return await interaction.response.send_message(content="bot not ready yet please wait 1 minute", ephemeral=True)
-    player = player or discord.utils.find(lambda player: player['discordId'] == str(interaction.user.id), lounge_data.data())['name']
+    
     if not player:
-        return await interaction.response.send_message(content="could not found player account in the lounge", ephemeral=True)
+        lounge_user = discord.utils.find(lambda player: player['discordId'] == str(interaction.user.id), lounge_data.data())
+        if not lounge_user:
+            return await interaction.response.send_message(content="could not found your account in the lounge", ephemeral=True)
+        
+    player = player or lounge_user['name']
 
     await interaction.response.defer()
 
