@@ -9,6 +9,7 @@ import sql
 
 from utils import ConfirmButton
 from cogs.war.base import Base
+from autocomplete import track_autocomplete
 
 
 formatNumber = lambda n: n if n%1 else int(n)
@@ -77,13 +78,21 @@ class WarStats(Base):
 
     @app_commands.command()
     @app_commands.guild_only()
-    @app_commands.describe(channel="the channel you want to check stats from", mininmum="the minimum number of times the track has been played for it to count")
-    async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel = None, mininmum: app_commands.Range[int, 1] = 1) -> None:
+    @app_commands.describe(channel="the channel you want to check stats from", minimum="the minimum number of times the track has been played for it to count")
+    @app_commands.autocomplete(track=track_autocomplete)
+    async def stats(self, interaction: discord.Interaction, channel: discord.TextChannel = None, minimum: app_commands.Range[int, 1] = 1, track: str = None) -> None:
         """check race stats in the specified channel"""
 
         channel = channel or interaction.channel
 
-        raw_stats = list(filter(lambda x: x[1] >= mininmum, await sql.get_wars_stats_from_channel(channel.id)))
+        raw_stats = list(filter(lambda x: x[1] >= minimum, await sql.get_wars_stats_from_channel(channel.id)))
+
+        if track:
+            raw_stats = list(filter(lambda x: x[3] == track, raw_stats))
+            if len(raw_stats) == 0:
+                return await interaction.response.send_message(content=f"no stats registered in this channel for the track {track}", ephemeral=True)
+            embed = discord.Embed(color=0x47e0ff, description=f"stats for {track}:\n\n```{raw_stats[0][3]} | {raw_stats[0][2]} | {raw_stats[0][1]}```")
+            return await interaction.response.send_message(embed=embed)
 
         if len(raw_stats) == 0:
             return await interaction.response.send_message(content="no stats registered in this channel", ephemeral=True)

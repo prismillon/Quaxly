@@ -5,6 +5,7 @@ import re
 from discord import app_commands
 from autocomplete import name_autocomplete
 from datetime import datetime, timedelta
+from utils import lounge_data
 
 
 @app_commands.command()
@@ -13,18 +14,14 @@ from datetime import datetime, timedelta
 async def name_history(interaction: discord.Interaction, player: str = None):
     """lounge name history of a player"""
 
+    player = player or discord.utils.find(lambda player: player['discordId'] == str(interaction.user.id), lounge_data.data())['name']
+    if not player:
+        return await interaction.response.send_message(content="could not found player account in the lounge", ephemeral=True)
+
     await interaction.response.defer()
     embed = discord.Embed(color=0x47e0ff, title="name history")
 
     async with aiohttp.ClientSession() as session:
-        if not player:
-            async with session.get("https://www.mk8dx-lounge.com/api/player?discordId="+str(interaction.user.id)) as response:
-                if response.status == 200:
-                    user_data = await response.json()
-                    player = user_data['name']
-                else:
-                    return await interaction.followup.send(content="could not found your account in the lounge", ephemeral=True)
-
         async with session.get("https://www.mk8dx-lounge.com/api/player/details?name="+player) as response:
             if response.status == 200:
                 data = await response.json()
