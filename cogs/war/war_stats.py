@@ -19,8 +19,8 @@ class WarStats(Base):
         self.bot = bot
         self.active_war = {}
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    @commands.Cog.listener(name="on_message")
+    async def toad_tracking(self, message: discord.Message):
         if message.author.id != 177162177432649728:
             return
 
@@ -115,7 +115,7 @@ class WarStats(Base):
     @app_commands.command(name="list")
     @app_commands.guild_only()
     @app_commands.describe(channel="the channel you want to check wars from")
-    async def warlist(self, interaction: discord.interactions, channel: discord.TextChannel = None):
+    async def warlist(self, interaction: discord.Interaction, channel: discord.TextChannel = None):
         """check the list of war that have been recorded"""
 
         channel = channel or interaction.channel

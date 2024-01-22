@@ -145,8 +145,8 @@ class WarBot(Base):
                 self.active_war.pop(channel_id)
 
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    @commands.Cog.listener(name="on_message")
+    async def war_score(self, message: discord.Message):
         if message.channel.id not in self.active_war or message.content == '':
             return
 
