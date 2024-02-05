@@ -17,7 +17,7 @@ formatNumber = lambda n: n if n%1 else int(n)
 class WarStats(Base):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.active_war = {}
+        self.active_toad_war = {}
 
     @commands.Cog.listener(name="on_message")
     async def toad_tracking(self, message: discord.Message):
@@ -31,7 +31,7 @@ class WarStats(Base):
             ennemy_tag = extract_tag[1]
             date = datetime.utcnow()
             await sql.new_war(message.channel.id, date, tag, ennemy_tag)
-            self.active_war[message.channel.id] = {
+            self.active_toad_war[message.channel.id] = {
                 "war_id":(await sql.check_war_id(message.channel.id, date, tag, ennemy_tag))[0][0],
                 "date": date,
                 "tag": tag,
@@ -42,14 +42,14 @@ class WarStats(Base):
             }
             return
 
-        if message.channel.id not in self.active_war:
+        if message.channel.id not in self.active_toad_war:
             return
 
         if "Stopped war." in message.content:
-            if len(await sql.check_war_length(self.active_war[message.channel.id]['war_id'])) < 2:
-                await sql.delete_races_from_war(self.active_war[message.channel.id]['war_id'])
-                await sql.delete_war(self.active_war[message.channel.id]['war_id'])
-            self.active_war.pop(message.channel.id)
+            if len(await sql.check_war_length(self.active_toad_war[message.channel.id]['war_id'])) < 2:
+                await sql.delete_races_from_war(self.active_toad_war[message.channel.id]['war_id'])
+                await sql.delete_war(self.active_toad_war[message.channel.id]['war_id'])
+            self.active_toad_war.pop(message.channel.id)
             return
 
         if len(message.embeds) == 0:
@@ -62,18 +62,18 @@ class WarStats(Base):
             track = race_data['fields'][4]['value'] if len(race_data['fields']) == 5 else "NULL"
             diff = race_data['fields'][3]['value']
             race_id = race_data['title'].replace("Score for Race ", '')
-            await sql.new_race(race_id, self.active_war[message.channel.id]['war_id'], track, diff, spots)
-            self.active_war[message.channel.id]['spots'].append(spots)
-            self.active_war[message.channel.id]['diff'].append(diff)
-            self.active_war[message.channel.id]['tracks'].append(track)
+            await sql.new_race(race_id, self.active_toad_war[message.channel.id]['war_id'], track, diff, spots)
+            self.active_toad_war[message.channel.id]['spots'].append(spots)
+            self.active_toad_war[message.channel.id]['diff'].append(diff)
+            self.active_toad_war[message.channel.id]['tracks'].append(track)
 
         elif "Total Score after Race" in race_data['title']:
             race_id = int(race_data['title'].replace("Total Score after Race ", ''))
-            for race in range(race_id, len(self.active_war[message.channel.id]['diff'])):
-                await sql.delete_this_race(race+1, self.active_war[message.channel.id]['war_id'])
-            self.active_war[message.channel.id]['spots'] = self.active_war[message.channel.id]['spots'][:race_id]
-            self.active_war[message.channel.id]['diff'] = self.active_war[message.channel.id]['diff'][:race_id]
-            self.active_war[message.channel.id]['tracks'] = self.active_war[message.channel.id]['tracks'][:race_id]
+            for race in range(race_id, len(self.active_toad_war[message.channel.id]['diff'])):
+                await sql.delete_this_race(race+1, self.active_toad_war[message.channel.id]['war_id'])
+            self.active_toad_war[message.channel.id]['spots'] = self.active_toad_war[message.channel.id]['spots'][:race_id]
+            self.active_toad_war[message.channel.id]['diff'] = self.active_toad_war[message.channel.id]['diff'][:race_id]
+            self.active_toad_war[message.channel.id]['tracks'] = self.active_toad_war[message.channel.id]['tracks'][:race_id]
 
 
     @app_commands.command()
