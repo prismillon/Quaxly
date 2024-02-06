@@ -22,3 +22,4 @@ update_tracks.py
 cogs/logging.py
 mk.db-journal
 docker-compose.yml
+theo.py
