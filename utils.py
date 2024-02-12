@@ -120,7 +120,8 @@ class Paginator(discord.ui.View):
         self.before.disabled = True
         self.after.disabled = True
         self.last.disabled = True
-        await self.interaction.edit_original_response(view=self)
+        if not self.interaction.is_expired():
+            await self.interaction.edit_original_response(view=self)
 
 
 class ConfirmButton(discord.ui.View):
