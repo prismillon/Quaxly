@@ -81,12 +81,12 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
 
     if not lounge_season.data():
         return await interaction.response.send_message(content="bot not ready yet please wait 1 minute", ephemeral=True)
-    
+
     if not player:
         lounge_user = discord.utils.find(lambda player: player['discordId'] == str(interaction.user.id), lounge_data.data())
         if not lounge_user:
             return await interaction.response.send_message(content="could not found your account in the lounge", ephemeral=True)
-        
+
     player = player or lounge_user['name']
 
     await interaction.response.defer()
@@ -95,6 +95,7 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
     parteners_scores = []
     seasons = {}
     season_played = []
+    country_name = ""
     for i in range(4, lounge_season.data()+1):
         seasons[i] = {}
 
@@ -103,6 +104,9 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
             async with session.get("https://www.mk8dx-lounge.com/api/player/details?name="+player+"&season="+str(season)) as response:
                 if response.status == 200:
                     data = await response.json()
+                    if country_name == "" and data['countryName'] != None:
+                        country_name = data['countryName']
+
                     if not data['mmrChanges']:
                         seasons[season] = None
                         continue
@@ -129,6 +133,7 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
     embed.add_field(name="partner avg", value=str(round(sum(parteners_scores)/len(parteners_scores) if len(parteners_scores) != 0 else 0, 2)), inline=True)
     embed.add_field(name="events played", value=str(len(scores)), inline=True)
     embed.add_field(name="seasons played", value=str(season_played)[1:-1], inline=True)
+    embed.add_field(name="Country", value=country_name, inline=True)
     embed.set_thumbnail(url=mmr_to_rank(seasons[season_played[-1]]['endingMmr'])[0])
     embed.color = mmr_to_rank(seasons[season_played[-1]]['endingMmr'])[1]
 
