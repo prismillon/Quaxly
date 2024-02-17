@@ -104,7 +104,7 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
             async with session.get("https://www.mk8dx-lounge.com/api/player/details?name="+player+"&season="+str(season)) as response:
                 if response.status == 200:
                     data = await response.json()
-                    if country_name == "" and data['countryName'] != None:
+                    if country_name == "" and 'countryName' in data:
                         country_name = data['countryName']
 
                     if not data['mmrChanges']:
@@ -133,7 +133,8 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
     embed.add_field(name="partner avg", value=str(round(sum(parteners_scores)/len(parteners_scores) if len(parteners_scores) != 0 else 0, 2)), inline=True)
     embed.add_field(name="events played", value=str(len(scores)), inline=True)
     embed.add_field(name="seasons played", value=str(season_played)[1:-1], inline=True)
-    embed.add_field(name="Country", value=country_name, inline=True)
+    if country_name != "":
+        embed.add_field(name="Country", value=country_name, inline=True)
     embed.set_thumbnail(url=mmr_to_rank(seasons[season_played[-1]]['endingMmr'])[0])
     embed.color = mmr_to_rank(seasons[season_played[-1]]['endingMmr'])[1]
 
