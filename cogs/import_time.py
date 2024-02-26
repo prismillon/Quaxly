@@ -27,17 +27,17 @@ class ImportTime(commands.Cog):
 
         name = name or interaction.user.display_name
 
-        self.active_user[name] = {"date": datetime.now(), "mode": items.value+speed.value, "discord_id": interaction.user.id}
+        self.active_user[name.lower()] = {"date": datetime.now(), "mode": items.value+speed.value, "discord_id": interaction.user.id}
         await interaction.response.send_message("please use the command below quaxly will register the times from Cadoizzob for you (make sure your nickname match the name in cadoizzob)")
         await interaction.channel.send(f"/tt option:{speed.name} categorie:{'shroom' if items.value == 'Sh' else 'ni'} third:find four:{interaction.user.id}")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if message.author.id != 543424033673445378 or len(message.embeds) != 1 or message.embeds[0].title[9:] not in self.active_user.keys():
+        if message.author.id != 543424033673445378 or len(message.embeds) != 1 or message.embeds[0].title[9:].lower() not in self.active_user.keys():
             return
 
         correct_track_names = await sql.get_all_tracks()
-        user = self.active_user.get(message.embeds[0].title[9:])
+        user = self.active_user.get(message.embeds[0].title[9:].lower())
         time_list = re.findall("[a-zA-Z0-9]+ : \*\*\d+\/\d+\*\* -> \d:[0-5]\d\.\d{3}", message.embeds[0].description)
         if len(time_list) == 0:
             return await message.channel.send("ptit flop bg")
