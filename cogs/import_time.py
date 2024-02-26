@@ -48,6 +48,8 @@ class ImportTime(commands.Cog):
                 track = "bCMo"
             elif track.lower() == "bcmw":
                 track = "bCMa"
+            elif track.lower() == "brrd":
+                track = "bRRW"
             else:
                 track = next(track_name[0] for track_name in correct_track_names if track_name[0].lower() == track.lower())
             try:
