@@ -42,6 +42,7 @@ class ImportTime(commands.Cog):
         for line in time_list:
             time = line.split(" -> ")[1]
             track = line.split(" : ")[0]
+            print(time, track)
             if track.lower() == "bcm64":
                 track = "bCMo"
             elif track.lower() == "bcmw":
