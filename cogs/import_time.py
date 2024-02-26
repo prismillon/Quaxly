@@ -17,17 +17,19 @@ class ImportTime(commands.Cog):
 
     @app_commands.command()
     @app_commands.guild_only()
-    @app_commands.describe(speed="the mode your list correspond to", items="is it with shroom or not")
+    @app_commands.describe(speed="the mode your list correspond to", items="is it with shroom or not", name="the name cadoizzob display")
     @app_commands.choices(speed=utils.speedChoices, items=utils.itemChoices)
-    async def import_time(self, interaction: discord.Interaction, speed: Choice[str], items: Choice[str]):
+    async def import_time(self, interaction: discord.Interaction, speed: Choice[str], items: Choice[str], name: str = None):
         """import time from cadoizzob"""
 
         if not interaction.channel.permissions_for(interaction.guild.me).send_messages:
             return await interaction.response.send_message("I don't have permission to send message in this channel")
 
-        self.active_user[interaction.user.global_name] = {"date": datetime.now(), "mode": items.value+speed.value, "discord_id": interaction.user.id}
-        await interaction.response.send_message("please use the command below quaxly will register the times from Cadoizzob for you")
-        await interaction.channel.send(f"/tt option:{speed.name} categorie:{'shroom' if items.value == 'Sh' else 'ni'} third:find")
+        name = name or interaction.user.display_name
+
+        self.active_user[name] = {"date": datetime.now(), "mode": items.value+speed.value, "discord_id": interaction.user.id}
+        await interaction.response.send_message("please use the command below quaxly will register the times from Cadoizzob for you (make sure your nickname match the name in cadoizzob)")
+        await interaction.channel.send(f"/tt option:{speed.name} categorie:{'shroom' if items.value == 'Sh' else 'ni'} third:find four:{interaction.user.id}")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -42,7 +44,6 @@ class ImportTime(commands.Cog):
         for line in time_list:
             time = line.split(" -> ")[1]
             track = line.split(" : ")[0]
-            print(time, track)
             if track.lower() == "bcm64":
                 track = "bCMo"
             elif track.lower() == "bcmw":
