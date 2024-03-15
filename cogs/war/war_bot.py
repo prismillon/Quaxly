@@ -5,12 +5,15 @@ from discord.ext import commands, tasks
 from discord import app_commands
 
 import discord
+import redis
+import json
 import sql
 
 from cogs.war.base import Base
 from autocomplete import mkc_tag_autocomplete
 
 _SCORE = (15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+r = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 def text_to_score(text: str):
     data = []
@@ -110,7 +113,7 @@ class WarBot(Base):
         await sql.new_war(interaction.channel.id, date, tag, ennemy_tag)
         self.active_war[interaction.channel.id] = {
             "war_id": (await sql.check_war_id(interaction.channel.id, date, tag, ennemy_tag))[0][0],
-            "date": date,
+            "date": date.isoformat(),
             "tag": tag,
             "ennemy_tag": ennemy_tag,
             "home_score": [],
@@ -120,6 +123,7 @@ class WarBot(Base):
             "tracks": [],
             "incomming_track": ()
         }
+        r.set(interaction.channel.id, json.dumps(self.active_war[interaction.channel.id]))
         return await interaction.response.send_message(f"started war between `{tag}` and `{ennemy_tag}` \n(obs overlay: https://waroverlay.prismillon.com/overlay/{interaction.channel.id})")
 
 
@@ -129,6 +133,7 @@ class WarBot(Base):
         """stop the war"""
 
         if interaction.channel.id in self.active_war:
+            r.delete(interaction.channel.id)
             if len(await sql.check_war_length(self.active_war[interaction.channel.id]['war_id'])) < 2:
                 await sql.delete_races_from_war(self.active_war[interaction.channel.id]['war_id'])
                 await sql.delete_war(self.active_war[interaction.channel.id]['war_id'])
@@ -141,7 +146,8 @@ class WarBot(Base):
     async def remove_expired_war(self):
         expired_date = datetime.now()-timedelta(hours=3)
         for channel_id, data in list(self.active_war.items()):
-            if data['date'] < expired_date:
+            if datetime.fromisoformat(data['date']) < expired_date:
+                r.delete(channel_id)
                 self.active_war.pop(channel_id)
 
 
@@ -163,6 +169,7 @@ class WarBot(Base):
             war['tracks'][int(data[1])-1] = track[4], track[1]
             await sql.update_this_race_track(data[1], war['war_id'], track[4])
             self.active_war[message.channel.id] = war
+            r.set(message.channel.id, json.dumps(self.active_war[message.channel.id]))
             return await message.reply(embed=make_embed(war), mention_author=False)
 
         if ' ' in message.content:
@@ -177,6 +184,7 @@ class WarBot(Base):
             war['home_score'] = war['home_score'][:race_id-1]
             war['ennemy_score'] = war['ennemy_score'][:race_id-1]
             self.active_war[message.channel.id] = war
+            r.set(message.channel.id, json.dumps(self.active_war[message.channel.id]))
             return await message.reply(embed=make_embed(war), mention_author=False)
 
         if re.fullmatch("^((?!--)[0-9\+\-])+$", message.content):
@@ -190,6 +198,7 @@ class WarBot(Base):
             war['incomming_track'] = ()
             await sql.new_race(len(war["spots"]), war['war_id'], war['tracks'][-1][0], war['diff'][-1], war['spots'][-1])
             self.active_war[message.channel.id] = war
+            r.set(message.channel.id, json.dumps(self.active_war[message.channel.id]))
             return await message.reply(embed=make_embed(war), mention_author=False)
 
         track = await sql.get_track_details(message.content)
