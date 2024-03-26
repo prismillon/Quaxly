@@ -12,7 +12,6 @@ config.js
 config.py
 __pycache__
 mk.db*
-db.py
 cups_emoji.py
 sql.py
 update_cups.py
@@ -23,3 +22,13 @@ cogs/logging.py
 mk.db-journal
 docker-compose.yml
 .vscode
+.Python
+[Bb]in
+[Ii]nclude
+[Ll]ib
+[Ll]ib64
+[Ll]ocal
+[Ss]cripts
+pyvenv.cfg
+.venv
+pip-selfcheck.json

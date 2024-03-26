@@ -1,5 +1,7 @@
-aiohttp==3.8.4
+aiohttp==3.9.3
 git+https://github.com/Rapptz/asqlite.git
 discord.py==2.3.2
-matplotlib==3.7.2
-numpy==1.26.2
+matplotlib==3.8.3
+motor==3.3.2
+numpy==1.26.4
+redis==5.0.3
