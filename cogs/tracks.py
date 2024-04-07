@@ -1,29 +1,34 @@
 import discord
-import sql
 
 from discord import app_commands
+from db import db
 
 class CupsButtons(discord.ui.View):
-    def __init__(self, embed: discord.Embed, interaction: discord.Interaction, sql_data, clicked_cup: str = None):
+    def __init__(self, embed: discord.Embed, interaction: discord.Interaction, cups, tracks, clicked_cup: str = None):
         super().__init__()
         self.embed = embed
         self.interaction = interaction
-        self.sql_data = sql_data
+        self.cups = cups
+        self.tracks = tracks
         self.clicked_cup = clicked_cup
-        for cup in self.sql_data:
-            button = discord.ui.Button(emoji=f"<:{cup[0]}:{cup[1]}>")
-            if cup[0] == clicked_cup:
+        for cup in self.cups:
+            button = discord.ui.Button(emoji=f"<:{cup['cupEmojiName']}:{cup['cupEmojiId']}>")
+            if cup['cupEmojiName'] == clicked_cup:
                 button.disabled = True
-            button.callback = lambda i, cup_identifier=cup[0]: self.callback(i, cup_identifier)
+            button.callback = lambda i, cup_identifier=cup['cupEmojiName']: self.callback(i, cup_identifier)
             self.add_item(button)
 
     async def callback(self, interaction: discord.Interaction, cup: str):
         self.stop()
-        tracks = await sql.get_tracks_from_cup(cup)
-        self.embed.title = tracks[0][1]
-        self.embed.set_thumbnail(url=tracks[0][2])
-        self.embed.description = f"```{tracks[0][0]},   {tracks[1][0]},   {tracks[2][0]},   {tracks[3][0]}```"
-        view = CupsButtons(self.embed, self.interaction, self.sql_data, cup)
+        cup = discord.utils.find(lambda x: x['cupEmojiName'] == cup, self.cups)
+        self.embed.clear_fields()
+        self.embed.title = cup['cupName']
+        self.embed.set_thumbnail(url=cup['cupUrl'])
+        tracks = [track for track in self.tracks if track['cupId'] == cup['_id']]
+        self.embed.description = ""
+        for track in tracks:
+            self.embed.add_field(name=track['fullName'], value=track['trackName'], inline=False)
+        view = CupsButtons(self.embed, self.interaction, self.cups, self.tracks, cup['cupEmojiName'])
         return await interaction.response.edit_message(embed=self.embed, view=view)
 
     async def on_timeout(self):
@@ -37,8 +42,11 @@ async def tracks(interaction: discord.Interaction):
 
     embed = discord.Embed(color=0x47e0ff, description="Here is the list of all the cups in Mario Kart 8 Deluxe", title="Tracks")
     embed.set_thumbnail(url=interaction.guild.icon)
-    sql_data = await sql.get_cups_emoji()
-    view = CupsButtons(embed=embed, interaction=interaction, sql_data=sql_data)
+    cups = await db.Cups.find({}).to_list(None)
+    cups = sorted(cups, key=lambda x: x['id'])
+    tracks = await db.Tracks.find({}).to_list(None)
+    tracks = sorted(tracks, key=lambda x: x['id'])
+    view = CupsButtons(embed=embed, interaction=interaction, cups=cups, tracks=tracks)
     return await interaction.response.send_message(embed=embed, view=view)
 
 

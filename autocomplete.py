@@ -1,15 +1,20 @@
+import copy
 import discord
-import sql
 import os
 
 from discord.app_commands import Choice
 from typing import List
 from utils import lounge_data, mkc_data
+from db import db
+
+TRACKS = db.Tracks.find({})
 
 
 async def track_autocomplete(interaction: discord.Interaction, current: str) -> List[Choice[str]]:
-    tracks = await sql.get_track_names(current)
-    return [Choice(name=track[0], value=track[0]) for track in tracks]
+    tcopy = copy.deepcopy(TRACKS)
+    tracks = await tcopy.to_list(None)
+    tracks = sorted(tracks, key=lambda x: x['id'])
+    return [Choice(name=track['trackName'], value=track['trackName']) for track in tracks if track['trackName'].lower().startswith(current.lower())][:25]
 
 
 async def time_autocomplete(interaction: discord.Interaction, current: str) -> List[Choice[str]]:
