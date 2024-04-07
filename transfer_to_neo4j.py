@@ -42,7 +42,7 @@ def transfer_war(neo4j_session, mongo_db):
             "id": str(war["_id"]),
             "channelId": str(war["channel_id"]),
             "home_tag": war["tag"],
-            "enemy_tag": war["ennemy_tag"]
+            "enemy_tag": war["enemy_tag"]
         }
         session.run(
                 "CREATE (u:War $war)", war=war_node

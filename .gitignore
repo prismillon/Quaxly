@@ -23,12 +23,5 @@ mk.db-journal
 docker-compose.yml
 .vscode
 .Python
-[Bb]in
-[Ii]nclude
-[Ll]ib
-[Ll]ib64
-[Ll]ocal
-[Ss]cripts
-pyvenv.cfg
-.venv
-pip-selfcheck.json
+venv
+.idea

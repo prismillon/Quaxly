@@ -5,10 +5,10 @@ import re
 from discord import app_commands
 from discord.app_commands import Choice
 from autocomplete import track_autocomplete, time_autocomplete
-from utils import ConfirmButton
+from utils import ConfirmButton, COLLATION
+from db import db
 
 import utils
-import sql
 
 def time_diff(new_time, previous_time):
     diff = datetime.datetime.strptime(previous_time, "%M:%S.%f") - datetime.datetime.strptime(new_time, "%M:%S.%f")
@@ -23,56 +23,57 @@ def time_diff(new_time, previous_time):
 async def save_time(interaction: discord.Interaction, speed: Choice[str], items: Choice[str], track: str, time: app_commands.Range[str, 8, 8]):
     """save a time"""
 
-    mode = items.value+speed.value
+    mode = items.value + speed.value + "Tracks"
     embed = discord.Embed(color=0x47e0ff, description="")
-    track_check = await sql.check_track_name(track)
+    track = await db.Tracks.find_one({"trackName": track}, collation=COLLATION)
     player = interaction.user
 
-    if mode not in utils.allowed_tables:
-        return await interaction.response.send_message(content=":euh:")
+    if not track:
+        return await interaction.response.send_message(content="track not found", ephemeral=True)
 
-    if len(track_check) != 1:
-        embed.title = "track not found :("
-        embed.description = f"{track} was not found in the list of tracks"
-        return await interaction.response.send_message(embed=embed)
-    else:
-        track = track_check[0][0]
 
-    if not re.fullmatch("^\d:[0-5]\d\\.\d{3}$", time):
-        embed.title = "bad time formating >:C"
-        embed.description = f"{time} is not a valid formated time like this (1:23.456)"
-        return await interaction.response.send_message(embed=embed)
+    if not re.fullmatch("^\\d:[0-5]\\d\\.\\d{3}$", time):
+        return await interaction.response.send_message(content=f"{time} is not a valid formated time like this (1:23.456)", ephemeral=True)
 
-    if len(await sql.check_player(player.id)) == 0:
-        await sql.register_new_player(player.id)
-
-    if len(await sql.check_player_server(player.id, interaction.guild_id)) == 0:
-        await sql.register_user_in_server(player.id, interaction.guild_id)
-
-    previous_time = await sql.get_user_track_time(mode, interaction.guild_id, track, player.id)
-
-    embed.set_thumbnail(url=track_check[0][1])
     embed.title = f"time saved in {speed.name} {items.name}"
-    embed.description = f"{player.display_name} saved ``{time}`` on **{track}**"
+    embed.description = f"{player.display_name} saved ``{time}`` on **{track['trackName']}**"
+    embed.set_thumbnail(url=track['trackUrl'])
+    
+    user = await db.Users.find_one({"discordId": player.id})
+    if not user:
+        user = {"discordId": player.id, "servers": [
+            {"serverId": interaction.guild.id}
+        ], mode: [
+            {"trackRef": track["_id"], "time": time}
+        ]}
+        await db.Users.insert_one(user)
+        return await interaction.response.send_message(embed=embed)
 
-    if len(previous_time) == 0:
-        await sql.save_time(mode, player.id, track, time)
+    previous_time = discord.utils.find(lambda x: x["trackRef"] == track["_id"], user[mode])
 
-    elif previous_time[0][2] > time:
-        await sql.update_time(mode, player.id, track, time)
-        embed.description += f"\nyou improved by ``{time_diff(time, previous_time[0][2])}`` !"
+    if not previous_time:
+        user[mode].append({"trackRef": track["_id"], "time": time})
+        await db.Users.update_one({"discordId": player.id}, {"$set": {mode: user[mode]}})
+        return await interaction.response.send_message(embed=embed)
+
+
+    elif previous_time['time'] > time:
+        embed.description += f"\nyou improved by ``{time_diff(time, previous_time['time'])}`` !"
+        user[mode][user[mode].index(previous_time)]["time"] = time
+        await db.Users.update_one({"discordId": player.id}, {"$set": {mode: user[mode]}})
 
     else:
         embed.title = "conflict with previous time"
-        embed.description = f"you already have ``{previous_time[0][2]}`` on this track do you still want to make this change?"
+        embed.description = f"you already have ``{previous_time['time']}`` on this track do you still want to make this change?"
         view = ConfirmButton()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
         await view.wait()
 
         if view.answer:
-            await sql.update_time(mode, player.id, track, time)
+            user[mode][user[mode].index(previous_time)]["time"] = time
+            await db.Users.update_one({"discordId": player.id}, {"$set": {mode: user[mode]}})
             embed.title = f"time saved in {speed.name} {items.name}"
-            embed.description = f"{player.display_name} saved ``{time}`` on **{track}**"
+            embed.description = f"{player.display_name} saved ``{time}`` on **{track['trackName']}**"
 
         else:
             embed.title = "action canceled"
@@ -88,52 +89,53 @@ async def save_time(interaction: discord.Interaction, speed: Choice[str], items:
 @app_commands.describe(speed="the mode you played in", items="did you use shrooms?", track="the track you played on")
 @app_commands.choices(speed=utils.speedChoices, items=utils.itemChoices)
 @app_commands.autocomplete(track=track_autocomplete)
-async def delete_time(interaction: discord.Interaction, speed: Choice[str] = None, items: Choice[str] = None, track: str = None):
+async def delete_time(interaction: discord.Interaction, speed: Choice[str], items: Choice[str], track: str = None):
     """delete a time"""
 
     embed = discord.Embed(color=0x47e0ff, description="", title="deleting times")
     view = ConfirmButton()
 
-    if items is not None and speed is not None:
-        table_identifier = items.value+speed.value
-    elif items is not None:
-        table_identifier = items.value
-    elif speed is not None:
-        table_identifier = speed.value
-    else:
-        table_identifier = "0"
+    user = await db.Users.find_one({"discordId": interaction.user.id})
+    if not user:
+        return await interaction.response.send_message(content="you have no time to delete", ephemeral=True)
 
-    track_identifier = track if track is not None else "%"
-    embed.description = "you are about to delete listed times, are you sure you want to do it?"
+    if track:
+        track = await db.Tracks.find_one({"trackName": track}, collation=COLLATION)
+        if not track:
+            return await interaction.response.send_message(content="track not found", ephemeral=True)
+        if track['_id'] not in [tracq["trackRef"] for tracq in user[items.value + speed.value + "Tracks"]]:
+            return await interaction.response.send_message(content="no time to delete", ephemeral=True)
+        embed.title = f"deleting time on {track['trackName']} {speed.name} {items.name}"
+        embed.set_thumbnail(url=track['trackUrl'])
+        time = discord.utils.find(lambda x: x["trackRef"] == track["_id"], user[items.value + speed.value + "Tracks"])["time"]
+        embed.description = f"do you want to delete ``{time}`` on **{track['trackName']}**"
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        await view.wait()
 
-    for mode in filter(lambda table: table_identifier in table, utils.allowed_tables):
-        times = await sql.get_user_times(mode, interaction.user.id, track_identifier)
-        if len(times) > 0:
-            content = ""
-            for time in times:
-                if len(content) < 1000:
-                    content += f"**{time[0]}**: `{time[1]}`\n"
-                else:
-                    content += "**[...]**"
-                    break
-            embed.add_field(name=mode, value=content)
+        if view.answer:
+            user[items.value + speed.value + "Tracks"].remove(discord.utils.find(lambda x: x["trackRef"] == track["_id"], user[items.value + speed.value + "Tracks"]))
+            await db.Users.update_one({"discordId": interaction.user.id}, {"$set": {items.value + speed.value + "Tracks": user[items.value + speed.value + "Tracks"]}})
+            embed.title = "time deleted"
+            embed.description = f"``{time}`` on **{track['trackName']}** has been deleted"
 
-    if len(embed.fields) == 0:
-        embed.description = "No time to delete"
-        return await interaction.response.send_message(embed=embed, ephemeral=True)
+        else:
+            embed.title = "action canceled"
+            embed.description = "your time has been left unchanged"
 
+        return await interaction.edit_original_response(embed=embed, view=None)
+    
+    embed.title = f"deleting all times in {speed.name} {items.name}"
+    embed.description = f"you are about to delete all your times in {speed.name} {items.name}, are you sure you want to do it?"
     await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
     await view.wait()
 
     if view.answer:
-        for mode in filter(lambda table: table_identifier in table, utils.allowed_tables):
-            await sql.delete_player_times(mode, interaction.user.id, track_identifier)
-        embed.clear_fields()
-        embed.description = "selected times have been deleted"
-
+        await db.Users.update_one({"discordId": interaction.user.id}, {"$set": {items.value + speed.value + "Tracks": []}})
+        embed.title = "all times deleted"
+        embed.description = f"all your times in {speed.name} {items.name} have been deleted"
+    
     else:
         embed.title = "action canceled"
-        embed.clear_fields()
         embed.description = "your times have been left unchanged"
 
     return await interaction.edit_original_response(embed=embed, view=None)

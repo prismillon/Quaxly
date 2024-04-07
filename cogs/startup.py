@@ -15,7 +15,7 @@ class Startup(commands.Cog):
         await mkc_data.mkc_api_full()
         await lounge_season.lounge_season()
 
-    
+
 
     @commands.Cog.listener()
     async def on_ready(self):
