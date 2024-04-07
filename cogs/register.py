@@ -1,8 +1,7 @@
 import discord
 
 from discord import app_commands
-
-import sql
+from db import db
 
 @app_commands.command()
 @app_commands.guild_only()
@@ -16,18 +15,20 @@ async def register_user(interaction: discord.Interaction, player: discord.Member
 
     embed.set_thumbnail(url=player.avatar)
 
-    if len(await sql.check_player(player.id)) == 0:
-        await sql.register_new_player(player.id)
+    user = await db.Users.find_one({"discordId": player.id})
 
-    if len(await sql.check_player_server(player.id, interaction.guild_id)) == 0:
-        await sql.register_user_in_server(player.id, interaction.guild_id)
-        embed.title = "registered !"
-        embed.description = f"{player.display_name} has been added to the list"
+    if not user:
+        await db.Users.insert_one({"discordId": player.id, "servers": [{"serverId": interaction.guild_id}]})
+
     else:
-        embed.title = "already in >:("
-        embed.description = f"{player.display_name} is already in the list"
-
-    return await interaction.response.send_message(embed=embed)
+        if interaction.guild_id not in [server["serverId"] for server in user["servers"]]:
+            await db.Users.update_one({"discordId": player.id}, {"$push": {"servers": {"serverId": interaction.guild_id}}})
+        else:
+            return await interaction.response.send_message(content="player is already in the list", ephemeral=True)
+        
+    embed.title = "registered !"
+    embed.description = f"{player.display_name} has been added to the list"
+    await interaction.response.send_message(embed=embed)
 
 
 @app_commands.command()
@@ -42,14 +43,14 @@ async def remove_user(interaction: discord.Interaction, player: discord.Member =
 
     embed.set_thumbnail(url=player.avatar)
 
-    if len(await sql.check_player(player.id)) == 1 and len(await sql.check_player_server(player.id, interaction.guild_id)) == 1:
-        await sql.delete_player_from_server(player.id, interaction.guild_id)
-        embed.title = "removed !"
-        embed.description = f"{player.display_name} has been removed from the list"
-    else:
-        embed.title = "not in >:("
-        embed.description = f"{player.display_name} is not in the list"
+    user = await db.Users.find_one({"discordId": player.id})
 
+    if not user or interaction.guild_id not in [server["serverId"] for server in user["servers"]]:
+        return await interaction.response.send_message(content="player is not in the list", ephemeral=True)
+    
+    await db.Users.update_one({"discordId": player.id}, {"$pull": {"servers": {"serverId": interaction.guild_id}}})
+    embed.title = "removed !"
+    embed.description = f"{player.display_name} has been removed from the list"
     return await interaction.response.send_message(embed=embed)
 
 

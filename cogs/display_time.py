@@ -3,9 +3,10 @@ import discord
 from discord import app_commands
 from discord.app_commands import Choice
 from autocomplete import track_autocomplete
+from db import db
+from utils import COLLATION
 
 import utils
-import sql
 
 def format_time(total_ms):
     milliseconds = int(total_ms % 1000)
@@ -16,6 +17,11 @@ def format_time(total_ms):
     hours = total_minutes // 60
     return f'{hours}h {minutes:02}m {seconds:02}s {milliseconds:03}ms'
 
+def player_ranking_in_server(user, mode, users, track):
+    users = [user for user in users if user[mode] and track["_id"] in [tracq["trackRef"] for tracq in user[mode]]]
+    users = sorted(users, key=lambda x: discord.utils.find(lambda y: y["trackRef"] == track["_id"], x[mode])["time"])
+    return f"{users.index(user) + 1}/{len(users)}"
+
 
 @app_commands.command()
 @app_commands.guild_only()
@@ -25,90 +31,87 @@ def format_time(total_ms):
 async def display_time(interaction: discord.Interaction, speed: Choice[str], items: Choice[str], track: str = None, player: discord.Member = None):
     """display a specific time, a category or even all times"""
 
-    mode = items.value+speed.value
+    mode = items.value + speed.value + "Tracks"
     embed = discord.Embed(color=0x47e0ff, description="")
 
-    if mode not in utils.allowed_tables:
-        return await interaction.response.send_message(content=":euh:")
+    if track:
+        track = await db.Tracks.find_one({"trackName": track}, collation=COLLATION)
+        if not track:
+            return await interaction.response.send_message(content="track not found", ephemeral=True)
 
-    if track and len(await sql.check_track_name(track)) != 1:
-        embed.title = "track not found :("
-        embed.description = f"{track} was not found in the list of tracks"
-        return await interaction.response.send_message(embed=embed)
-
-    if player and len(await sql.check_player_server(player.id, interaction.guild_id)) != 1:
-        embed.title = "player not found :("
-        embed.description = f"{player.display_name} is not registered in the server"
-        return await interaction.response.send_message(embed=embed)
+    if player:
+        data = await db.Users.find_one({"discordId": player.id})
+        if not data or interaction.guild.id not in [server["serverId"] for server in data["servers"]]:
+            return await interaction.response.send_message(content="player is not registered in the server", ephemeral=True)
 
     if track:
         if player:
-            times = await sql.get_user_track_time(mode=mode, guild_id=interaction.guild_id, track=track, player_id=player.id)
-            if len(times) == 0:
-                embed.title = f"{player.display_name} {track} {speed.name} {items.name}"
-                embed.description = "No time to display sorry"
+            if not data[mode] or track["_id"] not in [tracq["trackRef"] for tracq in data[mode]]:
+                return await interaction.response.send_message(content="no time to display sorry", ephemeral=True)
             else:
-                embed.title = f"{times[0][1]} {speed.name} {items.name}"
-                embed.set_thumbnail(url=times[0][3])
-                member = interaction.guild.get_member(times[0][0]) or f"<@{times[0][0]}>"
-                embed.description = f"{member.display_name if not isinstance(member, str) else member} - `{times[0][2]}`"
+                embed.title = f"{track['trackName']} {speed.name} {items.name}"
+                embed.set_thumbnail(url=track['trackUrl'])
+                member = interaction.guild.get_member(player.id) or f"<@{player.id}>"
+                time = discord.utils.find(lambda x: x["trackRef"] == track["_id"], data[mode])
+                embed.description = f"{member.display_name if not isinstance(member, str) else member} - `{time['time']}`"
 
         else:
-            times = await sql.get_track_times(mode=mode, guild_id=interaction.guild_id, track=track)
-            if len(times) == 0:
-                embed.title = f"{track} {speed.name} {items.name}"
-                embed.description = "No time to display sorry"
+            users = await db.Users.find({"servers.serverId": interaction.guild.id}).to_list(None)
+            users = [user for user in users if user[mode] and track["_id"] in [tracq["trackRef"] for tracq in user[mode]]]
+            if len(users) == 0:
+                return await interaction.response.send_message(content="no time to display sorry", ephemeral=True)
             else:
-                embed.title = f"{times[0][2]} {speed.name} {items.name}"
-                embed.set_thumbnail(url=times[0][3])
+                embed.title = f"{track['trackName']} {speed.name} {items.name}"
+                embed.set_thumbnail(url=track['trackUrl'])
                 rank = 1
-                for time in times:
-                    member = interaction.guild.get_member(time[0]) or f"<@{time[0]}>"
-                    embed.description += f"**{rank}:** {member.display_name if not isinstance(member, str) else member} `{time[1]}`\n"
+                users = sorted(users, key=lambda x: discord.utils.find(lambda y: y["trackRef"] == track["_id"], x[mode])["time"])
+                for user in users:
+                    member = interaction.guild.get_member(user['discordId']) or f"<@{user['discordId']}>"
+                    time = discord.utils.find(lambda x: x["trackRef"] == track["_id"], user[mode])
+                    embed.description += f"{rank}. {member.display_name if not isinstance(member, str) else member} - `{time['time']}`\n"
                     rank += 1
     else:
-        track_list_raw = await sql.get_all_tracks()
+        track_list_raw = await db.Tracks.find({}).to_list(None)
+        track_list_raw = sorted(track_list_raw, key=lambda x: x['id'])
         fields = []
         fields_title = ["__Nitro tracks__", "__Retro tracks__", "__DLC tracks__", "__Wave 1 & 2__", "__Wave 3 & 4__", "__Wave 5 & 6__"]
 
         if player:
             total = 0
-            times = await sql.get_player_best(mode=mode, guild_id=interaction.guild_id, player_id=player.id)
-            time_nb = len(times)
             embed.title = f"{player.display_name} {speed.name} {items.name}"
             embed.set_thumbnail(url=player.display_avatar)
-            if len(times) == 0:
-                embed.description = "No time to display sorry"
+            if len(data[mode]) == 0:
+                return await interaction.response.send_message(content="No time to display sorry", ephemeral=True)
             else:
+                users = await db.Users.find({"servers.serverId": interaction.guild.id}).to_list(None)
                 for index, track in enumerate(track_list_raw):
                     if index%16==0:
                         fields.append("")
-                    if len(times)>0 and track[0] == times[0][0]:
-                        time = times[0]
-                        fields[-1] += f"**{time[0]}**: `{time[1]}` - {time[2]}/{time[3]}\n"
-                        total += int(time[1].split(':')[0])*60*1000 + int(time[1].split(':')[1].split('.')[0])*1000 + int(time[1].split(':')[1].split('.')[1])
-                        times.pop(0)
+                    if track['_id'] in [tracq["trackRef"] for tracq in data[mode]]:
+                        fields[-1] += f"**{track['trackName']}**: `{discord.utils.find(lambda x: x['trackRef'] == track['_id'], data[mode])['time']} - {player_ranking_in_server(data, mode, users, track)}`\n"
+                        time = discord.utils.find(lambda x: x['trackRef'] == track['_id'], data[mode])['time']
+                        total += int(time.split(':')[0])*60*1000 + int(time.split(':')[1].split('.')[0])*1000 + int(time.split(':')[1].split('.')[1])
                 for index, field in enumerate(fields):
                     if len(field)>0:
                         embed.add_field(name=f"{fields_title[index]}", value=field)
-                if time_nb == (len(await sql.get_cups_emoji())*4):
+                if len(data[mode]) == len(track_list_raw):
                     embed.set_footer(text=f"total time: {format_time(total)}")
 
         else:
-            times = await sql.get_best_times(mode=mode, guild_id=interaction.guild_id)
+            users = await db.Users.find({"servers.serverId": interaction.guild.id}).to_list(None)
             embed.title = f"{speed.name} {items.name}"
             embed.set_thumbnail(url=interaction.guild.icon)
-            if len(times) == 0:
-                embed.description = "No time to display sorry"
+            if len(users) == 0:
+                return await interaction.response.send_message(content="No time to display sorry", ephemeral=True)
             else:
                 for index, track in enumerate(track_list_raw):
                     if index%16==0:
                         fields.append("")
-                    if len(times)>0 and track[0] == times[0][0]:
-                        time = times[0]
-                        member = interaction.guild.get_member(time[2]) or f"<@{time[2]}>"
-                        fields[-1] += f"**{time[0]}**: `{time[1]}` - {member.display_name if not isinstance(member, str) else member}\n"
-                        times.pop(0)
+                    if any([track['_id'] in [tracq["trackRef"] for tracq in user[mode]] for user in users]):
+                        has_track = [user for user in users if user[mode] and track['_id'] in [tracq["trackRef"] for tracq in user[mode]]]
+                        has_best_time = sorted(has_track, key=lambda x: discord.utils.find(lambda y: y["trackRef"] == track["_id"], x[mode])["time"])[0]
+                        member = interaction.guild.get_member(has_best_time['discordId']) or f"<@{has_best_time['discordId']}>"
+                        fields[-1] += f"**{track['trackName']}**: `{discord.utils.find(lambda x: x['trackRef'] == track['_id'], has_best_time[mode])['time']} - {member.display_name if not isinstance(member, str) else member}`\n"
                 for index, field in enumerate(fields):
                     if len(field)>0:
                         embed.add_field(name=f"{fields_title[index]}", value=field)

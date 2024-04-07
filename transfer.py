@@ -2,13 +2,16 @@ import asyncio
 import sqlite3
 from motor.motor_asyncio import AsyncIOMotorClient
 
+
 async def get_pool():
     client = AsyncIOMotorClient("mongodb://localhost:27017")
     db = client["quaxly"]
     return db
 
+
 conn = sqlite3.connect("mk.db")
 cursor = conn.cursor()
+
 
 async def transfer_full_users(db):
     cursor.execute("SELECT discordId FROM Users")
@@ -40,11 +43,12 @@ async def transfer_full_users(db):
                     "time": track[2],
                 })
         await users.insert_one(user)
-    
+
     tasks = [process_user(user) for user in user_data]
     print("Process user")
     await asyncio.gather(*tasks)
     print("Process user FINISH")
+
 
 async def transfer_cups_and_tracks(db):
     cursor.execute("SELECT id, cupName, cupEmojiName, cupEmojiId, cupUrl FROM Cups")
@@ -88,6 +92,7 @@ async def transfer_cups_and_tracks(db):
     await asyncio.gather(*tasks)
     print("Process cup FINISH")
 
+
 async def transfer_wars(db):
     cursor.execute("SELECT id, channelId, date, tag, ennemyTag FROM Wars")
     wars_data = cursor.fetchall()
@@ -95,10 +100,11 @@ async def transfer_wars(db):
     wars = db.Wars
 
     async def process_war(war):
-        cursor.execute(f"SELECT id, warId, track, diff, spot1, spot2, spot3, spot4, spot5, spot6 FROM Races WHERE warId = {war[0]}")
+        cursor.execute(
+            f"SELECT id, warId, track, diff, spot1, spot2, spot3, spot4, spot5, spot6 FROM Races WHERE warId = {war[0]}")
         races_data = cursor.fetchall()
         home_score = []
-        ennemy_score = []
+        enemy_score = []
         spots = []
         diff = []
         tracks = []
@@ -109,15 +115,15 @@ async def transfer_wars(db):
                 tracks.append(track[2])
             else:
                 tracks.append(None)
-            home_score.append(diff[-1]/2 + 41)
-            ennemy_score.append(82 - home_score[-1])
+            home_score.append(diff[-1] / 2 + 41)
+            enemy_score.append(82 - home_score[-1])
         war_data = {
             "channel_id": war[1],
             "date": war[2],
             "tag": war[3],
-            "ennemy_tag": war[4],
+            "enemy_tag": war[4],
             "home_score": home_score,
-            "ennemy_score": ennemy_score,
+            "enemy_score": enemy_score,
             "spots": spots,
             "diff": diff,
             "tracks": tracks,
@@ -129,15 +135,18 @@ async def transfer_wars(db):
     await asyncio.gather(*tasks)
     print("Process war FINISH")
 
+
 async def transfer_data(db):
     await asyncio.gather(transfer_cups_and_tracks(db))
     await asyncio.gather(transfer_full_users(db))
     await asyncio.gather(transfer_wars(db))
 
+
 async def main():
     db = await get_pool()
     await transfer_data(db)
     db.client.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
