@@ -7,9 +7,13 @@ from discord.app_commands import Choice
 
 allowed_tables = ['Sh150', 'Ni150', 'Sh200', 'Ni200']
 speedChoices = [Choice(name='150cc', value='150'), Choice(name='200cc', value='200')]
-itemChoices = [Choice(name='Shrooms', value='Sh'), Choice(name='No items', value='Ni')]
+itemChoices = [Choice(name='Shrooms', value='sh'), Choice(name='No items', value='ni')]
 statChoices = [Choice(name='mmr', value='mmr'), Choice(name='peak', value='maxMmr'), Choice(name='events', value='eventsPlayed')]
 
+COLLATION = {
+    "locale": "en",
+    "strength": 1,
+}
 
 class LoungeData:
     def __init__(self):

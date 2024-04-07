@@ -1,8 +1,7 @@
 import discord
 
 from discord.ext import commands
-
-import sql
+from db import db
 
 class DbSync(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -12,13 +11,14 @@ class DbSync(commands.Cog):
     async def on_guild_available(self, guild: discord.Guild):
         await guild.chunk()
         members_id = [member.id async for member in guild.fetch_members(limit=None)]
-        for member in await sql.get_all_users_from_server(guild.id):
-            if member[0] not in members_id:
-                await sql.delete_player_from_server(member[0], guild.id)
+        users_from_server = await db.Users.find({"servers.serverId": guild.id}).to_list(None)
+        for member in users_from_server:
+            if member['discordId'] not in members_id:
+                await db.Users.update_one({"discordId": member['discordId']}, {"$pull": {"servers": {"serverId": guild.id}}})
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
-        await sql.delete_player_from_server(member.id, member.guild.id)
+        await db.Users.update_one({"discordId": member.id}, {"$pull": {"servers": {"serverId": member.guild.id}}})
 
 
 async def setup(bot: commands.Bot):
