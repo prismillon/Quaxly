@@ -196,7 +196,7 @@ class WarBot(Base):
             war['enemy_score'] = war['enemy_score'][:race_id - 1]
             await db.Wars.update_one({"_id": war["_id"]}, {
                 "$set": {"spots": war['spots'], "diff": war['diff'], "tracks": war['tracks'],
-                         "home_score": war['home_score'], "ennemy_score": war['ennemy_score']}})
+                         "home_score": war['home_score'], "enemy_score": war['enemy_score']}})
             self.active_war[message.channel.id] = war
             await r.set(message.channel.id, json.dumps(self.active_war[message.channel.id], default=str))
             return await message.reply(embed=make_embed(war), mention_author=False)
