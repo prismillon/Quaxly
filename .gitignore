@@ -25,4 +25,4 @@ docker-compose.yml
 .Python
 venv
 .idea
-./data
+data
