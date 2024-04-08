@@ -85,8 +85,8 @@ class WarStats(Base):
             self.active_toad_war[message.channel.id]['spots'].append(spots)
             self.active_toad_war[message.channel.id]['diff'].append(diff)
             self.active_toad_war[message.channel.id]['tracks'].append(track)
-            self.active_toad_war[message.channel.id]['home_score'].append(41 + diff / 2)
-            self.active_toad_war[message.channel.id]['enemy_score'].append(41 - diff / 2)
+            self.active_toad_war[message.channel.id]['home_score'].append(41 + int(diff) / 2)
+            self.active_toad_war[message.channel.id]['enemy_score'].append(41 - int(diff) / 2)
 
             await r.set(message.channel.id, json.dumps(self.active_toad_war[message.channel.id], default=str))
             war = self.active_toad_war[message.channel.id]
@@ -129,15 +129,13 @@ class WarStats(Base):
                     track_stats[tracq] = []
                 track_stats[tracq].append(diff)
 
-        for tracq in track_stats:
-            if len(track_stats[tracq]) < minimum:
-                del track_stats[tracq]
+        track_stats = dict(filter(lambda x: len(x[1]) >= minimum, track_stats.items()))
 
         final_stats = {}
-        for tracq in track_stats:
+        for tracq, scores in track_stats.items():
             final_stats[tracq] = {
-                "average": round(average(track_stats[tracq])),
-                "count": len(track_stats[tracq])
+                "average": round(average(scores)),
+                "count": len(scores)
             }
 
         if track:
