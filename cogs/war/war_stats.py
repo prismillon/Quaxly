@@ -196,7 +196,7 @@ class WarStats(Base):
                 if index == 20:
                     race_text += "[...]\n"
                     break
-                race_text += f"{index:2}: {war['diff'][index]:>+3} | {track}\n"
+                race_text += f"{index+1:2}: {war['diff'][index]:>+3} | {track}\n"
             embed.add_field(name="race list", value=f"{race_text}`", inline=False)
             embeds.append(embed)
 
