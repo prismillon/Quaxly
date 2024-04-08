@@ -49,6 +49,8 @@ async def save_time(interaction: discord.Interaction, speed: Choice[str], items:
         await db.Users.insert_one(user)
         return await interaction.response.send_message(embed=embed)
 
+    if mode not in user:
+        user[mode] = []
     previous_time = discord.utils.find(lambda x: x["trackRef"] == track["_id"], user[mode])
 
     if not previous_time:
