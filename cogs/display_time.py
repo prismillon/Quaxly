@@ -56,7 +56,7 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
                 embed.description = f"{member.display_name if not isinstance(member, str) else member} - `{time['time']}`"
 
         else:
-            users = await db.Users.find({"servers.serverId": interaction.guild.id}, {mode: 1}).to_list(None)
+            users = await db.Users.find({"servers.serverId": interaction.guild.id, mode: 1}).to_list(None)
             users = [user for user in users if user[mode] and track["_id"] in [tracq["trackRef"] for tracq in user[mode]]]
             if len(users) == 0:
                 return await interaction.response.send_message(content="no time to display sorry", ephemeral=True)
@@ -83,7 +83,7 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
             if len(data[mode]) == 0:
                 return await interaction.response.send_message(content="No time to display sorry", ephemeral=True)
             else:
-                users = await db.Users.find({"servers.serverId": interaction.guild.id}, {mode: 1}).to_list(None)
+                users = await db.Users.find({"servers.serverId": interaction.guild.id, mode: 1}).to_list(None)
                 for index, track in enumerate(track_list_raw):
                     if index%16==0:
                         fields.append("")
@@ -98,7 +98,7 @@ async def display_time(interaction: discord.Interaction, speed: Choice[str], ite
                     embed.set_footer(text=f"total time: {format_time(total)}")
 
         else:
-            users = await db.Users.find({"servers.serverId": interaction.guild.id}, {mode: 1}).to_list(None)
+            users = await db.Users.find({"servers.serverId": interaction.guild.id, mode: 1}).to_list(None)
             embed.title = f"{speed.name} {items.name}"
             embed.set_thumbnail(url=interaction.guild.icon)
             if len(users) == 0:
