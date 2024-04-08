@@ -1,10 +1,11 @@
 import asyncio
 import sqlite3
 from motor.motor_asyncio import AsyncIOMotorClient
+import os
 
 
 async def get_pool():
-    client = AsyncIOMotorClient("mongodb://localhost:27017")
+    client = AsyncIOMotorClient(os.getenv("MONGODB_URL"))
     db = client["quaxly"]
     return db
 
