@@ -6,6 +6,11 @@ import copy
 client = pymongo.MongoClient(os.getenv('MONGODB_URL'))
 db = client.quaxly
 
+last_96_documents = db.Tracks.find().sort('_id', -1).limit(96)
+
+for doc in last_96_documents:
+    db.Tracks.delete_one({'_id': doc['_id']})
+
 db.Tracks.update_one({'trackName': 'bPPC'}, {"$set": {"fullName": "Piranha Plant Cove"}})
 
 tracks = db.Tracks.find({})
