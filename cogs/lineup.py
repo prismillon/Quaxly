@@ -18,9 +18,12 @@ async def get_host_string(host: str, interaction: discord.Interaction):
                     if "discordId" in json_data:
                         return f"{host} (<@{json_data['discordId']}>)"
 
-    elif re.match("[0-9<@> ]+", host) and interaction.guild.get_member(int(re.findall("\d+", host)[0])) is not None:
+    elif (
+        re.match("[0-9<@> ]+", host)
+        and interaction.guild.get_member(int(re.findall("\d+", host)[0])) is not None
+    ):
         async with aiohttp.ClientSession() as session:
-            host = re.findall('\d+', host)[0]
+            host = re.findall("\d+", host)[0]
             async with session.get(f"{url}discordid={host}") as response:
                 if response.status == 200:
                     json_data = await response.json()
@@ -38,49 +41,79 @@ class EditLineupButton(discord.ui.View):
         self.owner = owner
 
     @discord.ui.select(cls=discord.ui.UserSelect, min_values=1, max_values=6)
-    async def edit_lineup(self, interaction: discord.Interaction, users: List[discord.Member]):
+    async def edit_lineup(
+        self, interaction: discord.Interaction, users: List[discord.Member]
+    ):
         if interaction.user.id != self.owner:
-            return await interaction.response.send_message(content="only the owner can use this sorry", ephemeral=True)
+            return await interaction.response.send_message(
+                content="only the owner can use this sorry", ephemeral=True
+            )
         self.embed.remove_field(0)
-        self.embed.insert_field_at(0, name="lineup", value=' - '.join(user.mention for user in sorted(users.values, key=lambda user: user.display_name.lower())), inline=False)
+        self.embed.insert_field_at(
+            0,
+            name="lineup",
+            value=" - ".join(
+                user.mention
+                for user in sorted(
+                    users.values, key=lambda user: user.display_name.lower()
+                )
+            ),
+            inline=False,
+        )
         self.stop()
         await interaction.response.edit_message(embed=self.embed, view=self.old_view)
-    
+
     async def on_timeout(self):
         await self.old_view.message.edit(view=self.old_view)
 
 
-class EditModal(discord.ui.Modal, title='edit lineup'):
-    def __init__(self, embed: discord.Embed, ennemy_tag: str, tag: str, view: discord.ui.View):
+class EditModal(discord.ui.Modal, title="edit lineup"):
+    def __init__(
+        self, embed: discord.Embed, ennemy_tag: str, tag: str, view: discord.ui.View
+    ):
         super().__init__()
         self.embed = embed
         self.old_ennemy_tag = ennemy_tag
         self.old_tag = tag
         self.view = view
 
-    time = discord.ui.TextInput(label='time', required=False)
-    host = discord.ui.TextInput(label='host', required=False)
-    ennemy_tag = discord.ui.TextInput(label='ennemy tag', required=False)
-    tag = discord.ui.TextInput(label='tag', required=False)
+    time = discord.ui.TextInput(label="time", required=False)
+    host = discord.ui.TextInput(label="host", required=False)
+    ennemy_tag = discord.ui.TextInput(label="ennemy tag", required=False)
+    tag = discord.ui.TextInput(label="tag", required=False)
 
     async def on_submit(self, interaction: discord.Interaction):
 
-        if self.time.value != '':
+        if self.time.value != "":
             self.embed.remove_field(1)
-            self.embed.insert_field_at(1, name="open", value=f"`{self.time.value}`" if "<t:" not in self.time.value else self.time.value, inline=True)
+            self.embed.insert_field_at(
+                1,
+                name="open",
+                value=(
+                    f"`{self.time.value}`"
+                    if "<t:" not in self.time.value
+                    else self.time.value
+                ),
+                inline=True,
+            )
 
-        if self.host.value != '':
+        if self.host.value != "":
             self.embed.remove_field(2)
-            self.embed.insert_field_at(2, name="host", value=await get_host_string(self.host.value, interaction), inline=True)
+            self.embed.insert_field_at(
+                2,
+                name="host",
+                value=await get_host_string(self.host.value, interaction),
+                inline=True,
+            )
 
-        if self.ennemy_tag.value != '' and self.tag.value != '':
+        if self.ennemy_tag.value != "" and self.tag.value != "":
             self.embed.title = f"clan war | {self.tag.value} vs {self.ennemy_tag.value}"
             self.view.tag = self.tag.value
             self.view.ennemy_tag = self.ennemy_tag.value
-        elif self.ennemy_tag.value != '':
+        elif self.ennemy_tag.value != "":
             self.embed.title = f"clan war | {self.old_tag} vs {self.ennemy_tag.value}"
             self.view.ennemy_tag = self.ennemy_tag.value
-        elif self.tag.value != '':
+        elif self.tag.value != "":
             self.embed.title = f"clan war | {self.tag.value} vs {self.old_ennemy_tag}"
             self.view.tag = self.tag.value
         await interaction.response.edit_message(embed=self.embed)
@@ -94,18 +127,26 @@ class EditButtons(discord.ui.View):
         self.ennemy_tag = ennemy_tag
         self.tag = tag
 
-    @discord.ui.button(emoji='📝', style=discord.ButtonStyle.gray)
+    @discord.ui.button(emoji="📝", style=discord.ButtonStyle.gray)
     async def edit(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id != self.owner:
-            return await interaction.response.send_message(content="you are not the owner of the message sorry", ephemeral=True)
+            return await interaction.response.send_message(
+                content="you are not the owner of the message sorry", ephemeral=True
+            )
         modal = EditModal(self.embed, self.ennemy_tag, self.tag, self)
         await interaction.response.send_modal(modal)
 
-    @discord.ui.button(emoji='👥', style=discord.ButtonStyle.gray)
-    async def players(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(emoji="👥", style=discord.ButtonStyle.gray)
+    async def players(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         if interaction.user.id != self.owner:
-            return await interaction.response.send_message(content="you are not the owner of the message sorry", ephemeral=True)
-        await interaction.response.edit_message(view=EditLineupButton(self.embed, self, self.owner))
+            return await interaction.response.send_message(
+                content="you are not the owner of the message sorry", ephemeral=True
+            )
+        await interaction.response.edit_message(
+            view=EditLineupButton(self.embed, self, self.owner)
+        )
 
     async def on_timeout(self):
         await self.message.edit(view=None)
@@ -114,27 +155,68 @@ class EditButtons(discord.ui.View):
 class Lineup(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
+
     @app_commands.command()
     @app_commands.guild_only()
-    @app_commands.describe(players="List of the players for this lineup (you have to tag them)", time="The time of the war is schedueled for. Any format", host="Friend code or tag the host of the war", ennemy_tag="Name or tag of the ennemy team", tag="Name or tag of your team")
-    async def lineup(self, interaction: discord.Interaction, players: str, time: str, host: str, ennemy_tag: str, tag: str):
+    @app_commands.describe(
+        players="List of the players for this lineup (you have to tag them)",
+        time="The time of the war is schedueled for. Any format",
+        host="Friend code or tag the host of the war",
+        ennemy_tag="Name or tag of the ennemy team",
+        tag="Name or tag of your team",
+    )
+    async def lineup(
+        self,
+        interaction: discord.Interaction,
+        players: str,
+        time: str,
+        host: str,
+        ennemy_tag: str,
+        tag: str,
+    ):
         """create a clan war line-up for your team"""
 
         if not interaction.channel.permissions_for(interaction.guild.me).send_messages:
-            return await interaction.response.send_message("I don't have permission to send message in this channel")
+            return await interaction.response.send_message(
+                "I don't have permission to send message in this channel"
+            )
 
-        embed = discord.Embed(color=0x47e0ff, title=f"clan war | {tag} vs {ennemy_tag}").set_thumbnail(url=interaction.guild.icon).set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar)
-        member_string = ' - '.join(player.mention for player in sorted(list(set([interaction.guild.get_member(int(player)) for player in re.findall("\d+", players) if interaction.guild.get_member(int(player))])), key=lambda user: user.display_name.lower()))
+        embed = (
+            discord.Embed(color=0x47E0FF, title=f"clan war | {tag} vs {ennemy_tag}")
+            .set_thumbnail(url=interaction.guild.icon)
+            .set_author(
+                name=interaction.user.display_name,
+                icon_url=interaction.user.display_avatar,
+            )
+        )
+        member_string = " - ".join(
+            player.mention
+            for player in sorted(
+                list(
+                    set(
+                        [
+                            interaction.guild.get_member(int(player))
+                            for player in re.findall("\d+", players)
+                            if interaction.guild.get_member(int(player))
+                        ]
+                    )
+                ),
+                key=lambda user: user.display_name.lower(),
+            )
+        )
         host_string = await get_host_string(host, interaction)
 
         embed.add_field(name="lineup", value=member_string, inline=False)
-        embed.add_field(name="open", value=f"`{time}`" if "<t:" not in time else time, inline=True)
+        embed.add_field(
+            name="open", value=f"`{time}`" if "<t:" not in time else time, inline=True
+        )
         embed.add_field(name="host", value=host_string, inline=True)
 
         view = EditButtons(embed, interaction.user.id, ennemy_tag, tag)
 
-        await interaction.response.send_message(content=f"lineup war {time} vs {ennemy_tag} || {member_string} ||")
+        await interaction.response.send_message(
+            content=f"lineup war {time} vs {ennemy_tag} || {member_string} ||"
+        )
         view.message = await interaction.channel.send(embed=embed, view=view)
         await interaction.delete_original_response()
 

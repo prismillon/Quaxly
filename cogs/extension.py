@@ -20,8 +20,9 @@ class Extensions(commands.Cog):
         except Exception as error:
             await interaction.response.send_message(content=error)
         else:
-            await interaction.response.send_message(content=f"succesfully loaded '{command}'")
-
+            await interaction.response.send_message(
+                content=f"succesfully loaded '{command}'"
+            )
 
     @app_commands.command()
     @app_commands.autocomplete(command=cmd_autocomplete)
@@ -34,8 +35,9 @@ class Extensions(commands.Cog):
         except Exception as error:
             await interaction.response.send_message(content=error)
         else:
-            await interaction.response.send_message(content=f"succesfully unloaded '{command}'")
-
+            await interaction.response.send_message(
+                content=f"succesfully unloaded '{command}'"
+            )
 
     @app_commands.command()
     @app_commands.autocomplete(command=cmd_autocomplete)
@@ -48,7 +50,9 @@ class Extensions(commands.Cog):
         except Exception as error:
             await interaction.response.send_message(content=error)
         else:
-            await interaction.response.send_message(content=f"succesfully reloaded '{command}'")
+            await interaction.response.send_message(
+                content=f"succesfully reloaded '{command}'"
+            )
 
 
 async def setup(bot: commands.Bot):

@@ -8,7 +8,11 @@ from discord.ext.commands import Greedy, Context
 @commands.command()
 @commands.guild_only()
 @commands.is_owner()
-async def sync(ctx: Context, guilds: Greedy[discord.Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
+async def sync(
+    ctx: Context,
+    guilds: Greedy[discord.Object],
+    spec: Optional[Literal["~", "*", "^"]] = None,
+) -> None:
     if not guilds:
         if spec == "~":
             synced = await ctx.bot.tree.sync(guild=ctx.guild)
