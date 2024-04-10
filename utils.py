@@ -5,15 +5,20 @@ import asyncio
 from typing import List
 from discord.app_commands import Choice
 
-allowed_tables = ['Sh150', 'Ni150', 'Sh200', 'Ni200']
-speedChoices = [Choice(name='150cc', value='150'), Choice(name='200cc', value='200')]
-itemChoices = [Choice(name='Shrooms', value='sh'), Choice(name='No items', value='ni')]
-statChoices = [Choice(name='mmr', value='mmr'), Choice(name='peak', value='maxMmr'), Choice(name='events', value='eventsPlayed')]
+allowed_tables = ["Sh150", "Ni150", "Sh200", "Ni200"]
+speedChoices = [Choice(name="150cc", value="150"), Choice(name="200cc", value="200")]
+itemChoices = [Choice(name="Shrooms", value="sh"), Choice(name="No items", value="ni")]
+statChoices = [
+    Choice(name="mmr", value="mmr"),
+    Choice(name="peak", value="maxMmr"),
+    Choice(name="events", value="eventsPlayed"),
+]
 
 COLLATION = {
     "locale": "en",
     "strength": 1,
 }
+
 
 class LoungeData:
     def __init__(self):
@@ -21,10 +26,16 @@ class LoungeData:
 
     async def lounge_api_full(self):
         async with aiohttp.ClientSession() as session:
-            async with session.get("https://www.mk8dx-lounge.com/api/player/list") as response:
+            async with session.get(
+                "https://www.mk8dx-lounge.com/api/player/list"
+            ) as response:
                 if response.status == 200:
                     _data_full = await response.json()
-                    self._data = [player for player in _data_full['players'] if "discordId" in player]
+                    self._data = [
+                        player
+                        for player in _data_full["players"]
+                        if "discordId" in player
+                    ]
 
     def data(self):
         return self._data
@@ -36,10 +47,13 @@ class MkcData:
 
     async def mkc_api_full(self):
         async with aiohttp.ClientSession() as session:
-            async with session.get("https://www.mariokartcentral.com/mkc/api/registry/teams/category/150cc", ssl=False) as response:
+            async with session.get(
+                "https://www.mariokartcentral.com/mkc/api/registry/teams/category/150cc",
+                ssl=False,
+            ) as response:
                 if response.status == 200:
                     _data_full = await response.json()
-                    self._data = _data_full['data']
+                    self._data = _data_full["data"]
 
     def data(self):
         return self._data
@@ -51,10 +65,12 @@ class LoungeSeason:
 
     async def lounge_season(self):
         async with aiohttp.ClientSession() as session:
-            async with session.get("https://www.mk8dx-lounge.com/api/player/details?id=14324") as response:
+            async with session.get(
+                "https://www.mk8dx-lounge.com/api/player/details?id=14324"
+            ) as response:
                 if response.status == 200:
                     _data_full = await response.json()
-                    self._data = _data_full['season']
+                    self._data = _data_full["season"]
 
     def data(self):
         return self._data
@@ -73,7 +89,7 @@ class Paginator(discord.ui.View):
             self.after.disabled = True
             self.last.disabled = True
 
-    @discord.ui.button(label='<<', style=discord.ButtonStyle.blurple)
+    @discord.ui.button(label="<<", style=discord.ButtonStyle.blurple)
     async def first(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.page_num = 1
         self.index.label = f"{self.page_num}/{len(self.embeds)}"
@@ -81,9 +97,11 @@ class Paginator(discord.ui.View):
         self.before.disabled = True
         self.after.disabled = False
         self.last.disabled = False
-        await interaction.response.edit_message(embed=self.embeds[self.page_num-1], view=self)
+        await interaction.response.edit_message(
+            embed=self.embeds[self.page_num - 1], view=self
+        )
 
-    @discord.ui.button(label='<', style=discord.ButtonStyle.red)
+    @discord.ui.button(label="<", style=discord.ButtonStyle.red)
     async def before(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.page_num -= 1
         self.index.label = f"{self.page_num}/{len(self.embeds)}"
@@ -92,13 +110,15 @@ class Paginator(discord.ui.View):
         if self.page_num == 1:
             self.first.disabled = True
             self.before.disabled = True
-        await interaction.response.edit_message(embed=self.embeds[self.page_num-1], view=self)
+        await interaction.response.edit_message(
+            embed=self.embeds[self.page_num - 1], view=self
+        )
 
     @discord.ui.button(style=discord.ButtonStyle.gray, disabled=True)
     async def index(self, interaction: discord.Interaction, button: discord.ui.Button):
         pass
 
-    @discord.ui.button(label='>', style=discord.ButtonStyle.green)
+    @discord.ui.button(label=">", style=discord.ButtonStyle.green)
     async def after(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.page_num += 1
         self.index.label = f"{self.page_num}/{len(self.embeds)}"
@@ -107,9 +127,11 @@ class Paginator(discord.ui.View):
         if self.page_num == len(self.embeds):
             self.after.disabled = True
             self.last.disabled = True
-        await interaction.response.edit_message(embed=self.embeds[self.page_num-1], view=self)
+        await interaction.response.edit_message(
+            embed=self.embeds[self.page_num - 1], view=self
+        )
 
-    @discord.ui.button(label='>>', style=discord.ButtonStyle.blurple)
+    @discord.ui.button(label=">>", style=discord.ButtonStyle.blurple)
     async def last(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.page_num = len(self.embeds)
         self.index.label = f"{self.page_num}/{len(self.embeds)}"
@@ -117,7 +139,9 @@ class Paginator(discord.ui.View):
         self.before.disabled = False
         self.after.disabled = True
         self.last.disabled = True
-        await interaction.response.edit_message(embed=self.embeds[self.page_num-1], view=self)
+        await interaction.response.edit_message(
+            embed=self.embeds[self.page_num - 1], view=self
+        )
 
     async def on_timeout(self):
         self.first.disabled = True
@@ -133,12 +157,14 @@ class ConfirmButton(discord.ui.View):
         super().__init__()
         self.answer = None
 
-    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
-    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
+    async def confirm(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         self.answer = True
         self.stop()
 
-    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.red)
+    @discord.ui.button(label="Cancel", style=discord.ButtonStyle.red)
     async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.answer = False
         self.stop()
