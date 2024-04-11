@@ -15,7 +15,7 @@ import redis.asyncio as redis
 import redis as redis_sync
 
 _SCORE = (15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
-r = redis.Redis(host="redis", port=6379)
+r = redis.Redis(host="redis", port=6379, socket_keepalive=True)
 rs = redis_sync.Redis(host="redis", port=6379)
 
 

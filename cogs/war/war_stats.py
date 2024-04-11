@@ -17,7 +17,7 @@ from db import db
 
 import utils
 
-r = redis.Redis(host="redis", port=6379)
+r = redis.Redis(host="redis", port=637, socket_keepalive=True)
 rs = redis_sync.Redis(host="redis", port=6379)
 
 
