@@ -1,24 +1,17 @@
 import discord
-from matplotlib.pylab import f
-from numpy import average
-import redis.asyncio as redis
 import json
-
-import redis as redis_sync
 
 from discord import app_commands
 from discord.ext import commands
 from datetime import UTC, datetime
 from utils import ConfirmButton, COLLATION
+from numpy import average
 from cogs.war.base import Base
 from autocomplete import track_autocomplete
 from bson import ObjectId
-from db import db
+from db import db, rs, r
 
 import utils
-
-r = redis.Redis(host="redis", port=637, socket_keepalive=True)
-rs = redis_sync.Redis(host="redis", port=6379)
 
 
 class WarStats(Base):
