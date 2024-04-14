@@ -5,7 +5,7 @@ from discord import app_commands
 from discord.ext import commands
 from datetime import UTC, datetime
 from utils import ConfirmButton, COLLATION
-from numpy import average
+from statistics import mean
 from cogs.war.base import Base
 from autocomplete import track_autocomplete
 from bson import ObjectId
@@ -182,7 +182,7 @@ class WarStats(Base):
         final_stats = {}
         for tracq, scores in track_stats.items():
             final_stats[tracq] = {
-                "average": round(average(scores)),
+                "average": round(mean(scores), 1),
                 "count": len(scores),
             }
 
