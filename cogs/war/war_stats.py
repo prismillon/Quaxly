@@ -175,7 +175,7 @@ class WarStats(Base):
                     continue
                 if tracq not in track_stats:
                     track_stats[tracq] = []
-                track_stats[tracq].append(diff)
+                track_stats[tracq].append(int(diff))
 
         track_stats = dict(filter(lambda x: len(x[1]) >= minimum, track_stats.items()))
 
