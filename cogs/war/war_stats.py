@@ -264,8 +264,11 @@ class WarStats(Base):
                 title=f"{war['tag']} vs {war['enemy_tag']}",
                 timestamp=datetime.fromisoformat(war["date"]),
             )
+
+            war_result_arr = [int(diff) for diff in war["diff"]]
+
             embed.add_field(
-                name="final result", value=f"`{sum(war['diff']):+}`", inline=True
+                name="final result", value=f"`{sum(war_result_arr):+}`", inline=True
             )
             embed.add_field(name="war id", value=f"`{war['_id']}`", inline=True)
             embed.add_field(
