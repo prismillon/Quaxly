@@ -265,10 +265,10 @@ class WarStats(Base):
                 timestamp=datetime.fromisoformat(war["date"]),
             )
 
-            war_result_arr = [int(diff) for diff in war["diff"]]
+            war_diff_arr = [int(diff) for diff in war["diff"]]
 
             embed.add_field(
-                name="final result", value=f"`{sum(war_result_arr):+}`", inline=True
+                name="final result", value=f"`{sum(war_diff_arr):+}`", inline=True
             )
             embed.add_field(name="war id", value=f"`{war['_id']}`", inline=True)
             embed.add_field(
@@ -281,7 +281,7 @@ class WarStats(Base):
                 if index == 20:
                     race_text += "[...]\n"
                     break
-                race_text += f"{index+1:2}: {war['diff'][index]:>+3} | {track}\n"
+                race_text += f"{index+1:2}: {war_diff_arr[index]:>+3} | {track}\n"
             embed.add_field(name="race list", value=f"{race_text}`", inline=False)
             embeds.append(embed)
 
