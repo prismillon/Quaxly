@@ -140,7 +140,7 @@ async def display_time(
             total = 0
             embed.title = f"{player.display_name} {speed.name} {items.name}"
             embed.set_thumbnail(url=player.display_avatar)
-            if len(data[mode]) == 0:
+            if mode not in data or len(data[mode]) == 0:
                 return await interaction.response.send_message(
                     content="No time to display sorry", ephemeral=True
                 )
