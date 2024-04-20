@@ -74,7 +74,7 @@ async def display_time(
 
     if track:
         if player:
-            if not data[mode] or track["_id"] not in [
+            if mode not in data or track["_id"] not in [
                 tracq["trackRef"] for tracq in data[mode]
             ]:
                 return await interaction.response.send_message(
