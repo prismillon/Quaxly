@@ -56,6 +56,7 @@ async def display_time(
 
     mode = items.value + speed.value + "Tracks"
     embed = discord.Embed(color=0x47E0FF, description="")
+    data = None
 
     if track:
         track = await db.Tracks.find_one({"trackName": track}, collation=COLLATION)
