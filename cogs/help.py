@@ -17,7 +17,7 @@ class Help(commands.Cog):
 
         embeds[-1].add_field(
             name="register user",
-            value="```/register_user (player)```this command is useful when someone just joined your server but is already using the bot in other servers, it will add the user selected (you if not provided) in the server list",
+            value="```/register_user```this command is useful when you just joined your server but you are already using the bot in other servers, it will add you in the server list",
         )
         embeds[-1].add_field(
             name="remove user",
@@ -34,7 +34,7 @@ class Help(commands.Cog):
         )
         embeds[-1].add_field(
             name="display time",
-            value="```/display_time speed items (track) (player)```this command show times from users that are registered in the server, track and player are optionnal, if you do not provide any it will show the best time on each track and who own it, if track is selected it will show the ranking on the track, if player is selected it will show the user times, and if both it will soon be able to display the time and an optionnal link attached to it",
+            value="```/display_time speed items (track) (player)```this command show times from users that are registered in the server, track and player are optionnal, if you do not provide any it will show the best time on each track and who own it, if track is selected it will show the ranking on the track, if player is selected it will show the user times or the users in the role",
             inline=False,
         )
 

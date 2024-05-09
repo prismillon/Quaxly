@@ -1,5 +1,4 @@
 import discord
-import config
 import os
 
 from discord.ext import commands
@@ -26,4 +25,4 @@ async def setup_hook():
         await bot.load_extension(f"cogs.{cmd.replace('.py', '')}")
 
 
-bot.run(config.TOKEN, root_logger=True)
+bot.run(os.getenv("DISCORD_TOKEN"), root_logger=True)

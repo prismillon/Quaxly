@@ -6,15 +6,12 @@ from db import db
 
 @app_commands.command()
 @app_commands.guild_only()
-@app_commands.describe(player="the player you want to register")
-async def register_user(
-    interaction: discord.Interaction, player: discord.Member = None
-):
-    """register a user in the timetrial database of the server"""
+async def register_user(interaction: discord.Interaction):
+    """register yourself in the timetrial database of the server"""
 
     embed = discord.Embed(color=0x47E0FF, description="")
 
-    player = player or interaction.user
+    player = interaction.user
 
     embed.set_thumbnail(url=player.avatar)
 
