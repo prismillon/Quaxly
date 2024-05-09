@@ -1,3 +1,4 @@
+from urllib.robotparser import RobotFileParser
 import discord
 
 from discord import app_commands
@@ -49,7 +50,7 @@ async def display_time(
     speed: Choice[str],
     items: Choice[str],
     track: str = None,
-    player: discord.Member = None,
+    player: discord.Member | discord.Role = None,
 ):
     """display a specific time, a category or even all times"""
 
@@ -64,12 +65,20 @@ async def display_time(
             )
 
     if player:
-        data = await db.Users.find_one({"discordId": player.id})
-        if not data or interaction.guild.id not in [
-            server["serverId"] for server in data["servers"]
-        ]:
+        if isinstance(player, discord.Member):
+            data = await db.Users.find_one({"discordId": player.id})
+            if not data or interaction.guild.id not in [
+                server["serverId"] for server in data["servers"]
+            ]:
+                return await interaction.response.send_message(
+                    content="player is not registered in the server", ephemeral=True
+                )
+        elif isinstance(player, discord.Role):
+            data = [user.id for user in player.members]
+            player = None
+        else:
             return await interaction.response.send_message(
-                content="player is not registered in the server", ephemeral=True
+                content="an error occured please report this", ephemeral=True
             )
 
     if track:
@@ -99,6 +108,8 @@ async def display_time(
                 if user[mode]
                 and track["_id"] in [tracq["trackRef"] for tracq in user[mode]]
             ]
+            if data:
+                users = list(filter(lambda user: user["discordId"] in data, users))
             if len(users) == 0:
                 return await interaction.response.send_message(
                     content="no time to display sorry", ephemeral=True
@@ -175,6 +186,8 @@ async def display_time(
             ).to_list(None)
             embed.title = f"{speed.name} {items.name}"
             embed.set_thumbnail(url=interaction.guild.icon)
+            if data:
+                users = list(filter(lambda user: user["discordId"] in data, users))
             if len(users) == 0:
                 return await interaction.response.send_message(
                     content="No time to display sorry", ephemeral=True
