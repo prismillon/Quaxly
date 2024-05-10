@@ -8,7 +8,7 @@ import redis
 mongodb_url = os.environ.get("MONGODB_URL") or "mongodb://localhost:27017"
 
 client = AsyncIOMotorClient(mongodb_url)
-db = client["quaxly"]
+db = client["Quaxly"]
 
 redis_url = os.environ.get("REDIS_URL") or "localhost"
 
