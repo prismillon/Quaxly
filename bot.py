@@ -11,8 +11,6 @@ bot = commands.AutoShardedBot(
     command_prefix=commands.when_mentioned,
     intents=intents,
     help_command=None,
-    activity=discord.Activity(type=discord.ActivityType.watching, name="starting..."),
-    status=discord.Status("dnd"),
 )
 
 
