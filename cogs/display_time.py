@@ -1,9 +1,9 @@
-from urllib.robotparser import RobotFileParser
 import discord
 
 from discord import app_commands
 from discord.app_commands import Choice
 from autocomplete import track_autocomplete
+from statistics import mean
 from db import db
 from utils import COLLATION
 
@@ -160,13 +160,18 @@ async def display_time(
                 users = await db.Users.find(
                     {"servers.serverId": interaction.guild.id, mode: {"$exists": True}}
                 ).to_list(None)
+                race_ranking = []
                 for index, track in enumerate(track_list_raw):
                     if index % 16 == 0:
                         fields.append("")
                     if track["_id"] in [tracq["trackRef"] for tracq in data[mode]]:
+                        race_rank_string = player_ranking_in_server(
+                            data, mode, users, track
+                        )
+                        race_ranking.append(int(race_rank_string.split("/")[0]))
                         fields[
                             -1
-                        ] += f"**{track['trackName']}**: `{discord.utils.find(lambda x: x['trackRef'] == track['_id'], data[mode])['time']} - {player_ranking_in_server(data, mode, users, track)}`\n"
+                        ] += f"**{track['trackName']}**: `{discord.utils.find(lambda x: x['trackRef'] == track['_id'], data[mode])['time']} - {race_rank_string}`\n"
                         time = discord.utils.find(
                             lambda x: x["trackRef"] == track["_id"], data[mode]
                         )["time"]
@@ -179,7 +184,13 @@ async def display_time(
                     if len(field) > 0:
                         embed.add_field(name=f"{fields_title[index]}", value=field)
                 if len(data[mode]) == len(track_list_raw):
-                    embed.set_footer(text=f"total time: {format_time(total)}")
+                    embed.set_footer(
+                        text=f"total time: {format_time(total)}, average ranking: {mean(race_ranking)}"
+                    )
+                else:
+                    embed.set_footer(
+                        text=f"average ranking: {round(mean(race_ranking), 1)}"
+                    )
 
         else:
             users = await db.Users.find(
@@ -222,7 +233,7 @@ async def display_time(
                         )
                         fields[
                             -1
-                        ] += f"**{track['trackName']}**: `{discord.utils.find(lambda x: x['trackRef'] == track['_id'], has_best_time[mode])['time']} - {member.display_name if not isinstance(member, str) else member}`\n"
+                        ] += f"**{track['trackName']}**: `{discord.utils.find(lambda x: x['trackRef'] == track['_id'], has_best_time[mode])['time']}` - {member.display_name if not isinstance(member, str) else member}\n"
                 for index, field in enumerate(fields):
                     if len(field) > 0:
                         embed.add_field(name=f"{fields_title[index]}", value=field)
