@@ -14,6 +14,18 @@ class Startup(commands.Cog):
         await lounge_data.lounge_api_full()
         await mkc_data.mkc_api_full()
         await lounge_season.lounge_season()
+        if not discord.utils.find(
+            lambda player: player["discordId"] == str(169497208406802432),
+            lounge_data.data(),
+        ):
+            embed = discord.Embed(
+                color=0x97F9D8,
+                title="weird api response?",
+                description=lounge_data.data(),
+            )
+            await self.bot.get_channel(1065611483897147502).send(
+                text="<@169497208406802432> api error?", embed=embed
+            )
 
     @commands.Cog.listener()
     async def on_ready(self):
