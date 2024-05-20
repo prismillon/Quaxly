@@ -1,11 +1,9 @@
 .DS_Store
 __pycache__
 mk.db*
-cogs/logging.py
 mk.db-journal
 docker-compose.yml
 .vscode
 venv
-.idea
 data
 .env

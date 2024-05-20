@@ -185,7 +185,7 @@ async def display_time(
                         embed.add_field(name=f"{fields_title[index]}", value=field)
                 if len(data[mode]) == len(track_list_raw):
                     embed.set_footer(
-                        text=f"total time: {format_time(total)}, average ranking: {mean(race_ranking)}"
+                        text=f"total time: {format_time(total)}, average ranking: {round(mean(race_ranking), 1)}"
                     )
                 else:
                     embed.set_footer(
