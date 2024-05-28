@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bullseye
+FROM python:3.12.3-slim-bullseye
 RUN apt update && apt install git -y
 WORKDIR /app
 COPY requirements.txt ./

@@ -1,6 +1,6 @@
 import discord
 
-from discord import app_commands
+from discord import Member, app_commands
 from discord.app_commands import Choice
 from autocomplete import track_autocomplete
 from statistics import mean
@@ -94,6 +94,16 @@ async def display_time(
                 embed.title = f"{track['trackName']} {speed.name} {items.name}"
                 embed.set_thumbnail(url=track["trackUrl"])
                 member = interaction.guild.get_member(player.id) or f"<@{player.id}>"
+
+                if (
+                    isinstance(member, Member)
+                    and not interaction.channel.permissions_for(member).send_messages
+                ):
+                    return await interaction.response.send_message(
+                        content="user is missing permission in this channel",
+                        ephemeral=True,
+                    )
+
                 time = discord.utils.find(
                     lambda x: x["trackRef"] == track["_id"], data[mode]
                 )
@@ -111,6 +121,7 @@ async def display_time(
             ]
             if data:
                 users = list(filter(lambda user: user["discordId"] in data, users))
+
             if len(users) == 0:
                 return await interaction.response.send_message(
                     content="no time to display sorry", ephemeral=True
@@ -130,11 +141,25 @@ async def display_time(
                         interaction.guild.get_member(user["discordId"])
                         or f"<@{user['discordId']}>"
                     )
+
+                    if (
+                        isinstance(member, Member)
+                        and not interaction.channel.permissions_for(
+                            member
+                        ).send_messages
+                    ):
+                        continue
+
                     time = discord.utils.find(
                         lambda x: x["trackRef"] == track["_id"], user[mode]
                     )
                     embed.description += f"{rank}. {member.display_name if not isinstance(member, str) else member} - `{time['time']}`\n"
                     rank += 1
+
+                if rank == 1:
+                    return await interaction.response.send_message(
+                        content="no time to display sorry", ephemeral=True
+                    )
     else:
         track_list_raw = await db.Tracks.find({}).to_list(None)
         track_list_raw = sorted(track_list_raw, key=lambda x: x["id"])
@@ -152,10 +177,15 @@ async def display_time(
             total = 0
             embed.title = f"{player.display_name} {speed.name} {items.name}"
             embed.set_thumbnail(url=player.display_avatar)
-            if mode not in data or len(data[mode]) == 0:
+            if (
+                mode not in data
+                or len(data[mode]) == 0
+                or not interaction.channel.permissions_for(player).send_messages
+            ):
                 return await interaction.response.send_message(
                     content="No time to display sorry", ephemeral=True
                 )
+
             else:
                 users = await db.Users.find(
                     {"servers.serverId": interaction.guild.id, mode: {"$exists": True}}
@@ -200,6 +230,16 @@ async def display_time(
             embed.set_thumbnail(url=interaction.guild.icon)
             if data:
                 users = list(filter(lambda user: user["discordId"] in data, users))
+
+            users = list(
+                filter(
+                    lambda user: interaction.channel.permissions_for(
+                        interaction.guild.get_member(user["discordId"])
+                    ).send_messages,
+                    users,
+                )
+            )
+
             if len(users) == 0:
                 return await interaction.response.send_message(
                     content="No time to display sorry", ephemeral=True
