@@ -134,6 +134,12 @@ class WarBot(Base):
     ):
         """start a war in the channel"""
 
+        if not interaction.channel.permissions_for(interaction.guild.me).send_messages:
+            return await interaction.response.send_message(
+                content="missing send message permission in this channel, can't start war",
+                ephemeral=True,
+            )
+
         date = datetime.now(UTC)
         self.active_war[interaction.channel.id] = {
             "channel_id": interaction.channel.id,
