@@ -231,14 +231,15 @@ async def display_time(
             if data:
                 users = list(filter(lambda user: user["discordId"] in data, users))
 
-            users = list(
-                filter(
-                    lambda user: interaction.channel.permissions_for(
-                        interaction.guild.get_member(user["discordId"])
-                    ).send_messages,
-                    users,
+            if interaction.guild.chunked:
+                users = list(
+                    filter(
+                        lambda user: interaction.channel.permissions_for(
+                            interaction.guild.get_member(user["discordId"])
+                        ).send_messages,
+                        users,
+                    )
                 )
-            )
 
             if len(users) == 0:
                 return await interaction.response.send_message(
