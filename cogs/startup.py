@@ -25,7 +25,7 @@ class Startup(commands.Cog):
             )
             print(lounge_data.data())
             await self.bot.get_channel(1065611483897147502).send(
-                text="<@169497208406802432> api error?", embed=embed
+                content="<@169497208406802432> api error?", embed=embed
             )
 
     @commands.Cog.listener()
