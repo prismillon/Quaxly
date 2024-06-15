@@ -6,7 +6,6 @@ import re
 
 
 from autocomplete import mkc_team_autocomplete
-from datetime import datetime
 from discord import app_commands
 from utils import lounge_data, statChoices, mkc_data, lounge_season
 from discord.app_commands import Choice, Range

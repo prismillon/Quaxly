@@ -23,6 +23,7 @@ class Startup(commands.Cog):
                 title="weird api response?",
                 description=lounge_data.data(),
             )
+            print(lounge_data.data())
             await self.bot.get_channel(1065611483897147502).send(
                 text="<@169497208406802432> api error?", embed=embed
             )
