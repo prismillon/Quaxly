@@ -6,7 +6,7 @@ from db import db
 
 @app_commands.command()
 @app_commands.guild_only()
-async def register_user(interaction: discord.Interaction):
+async def register(interaction: discord.Interaction):
     """register yourself in the timetrial database of the server"""
 
     embed = discord.Embed(color=0x47E0FF, description="")
@@ -71,5 +71,5 @@ async def remove_user(interaction: discord.Interaction, player: discord.Member =
 
 
 async def setup(bot):
-    bot.tree.add_command(register_user)
+    bot.tree.add_command(register)
     bot.tree.add_command(remove_user)
