@@ -5,6 +5,7 @@ import re
 from datetime import datetime, timedelta, UTC
 from discord.ext import commands, tasks
 from discord import app_commands
+from discord.app_commands import Range
 from cogs.war.base import Base
 from bson import ObjectId
 from autocomplete import mkc_tag_autocomplete
@@ -173,6 +174,54 @@ class WarBot(Base):
             return await interaction.response.send_message("stopped war")
         await interaction.response.send_message("no active war")
 
+    @app_commands.command(name="edit_race")
+    @app_commands.guild_only()
+    @app_commands.describe(race_nb="the race number", spots="the new spots")
+    async def edit_race(
+        self, interaction: discord.Interaction, race_nb: Range[int, 1], spots: str
+    ):
+        """edit a race number spots"""
+        if interaction.channel.id not in self.active_war:
+            return await interaction.response.send_message(
+                content="no active war", ephemeral=True
+            )
+
+        war = self.active_war[interaction.channel.id]
+
+        if len(war["spots"]) < race_nb:
+            return await interaction.response.send_message(
+                content="invalid race number", ephemeral=True
+            )
+
+        if not re.fullmatch("^((?!--)[0-9+-])+$", spots):
+            return await interaction.response.send_message(
+                content="invalid spots format", ephemeral=True
+            )
+
+        spots = text_to_score(spots)
+        scored = sum(map(lambda r: _SCORE[r - 1], spots))
+        war["spots"][race_nb - 1] = spots
+        war["home_score"][race_nb - 1] = scored
+        war["enemy_score"][race_nb - 1] = 82 - scored
+        war["diff"][race_nb - 1] = scored - (82 - scored)
+        await db.Wars.update_one(
+            {"_id": war["_id"]},
+            {
+                "$set": {
+                    "spots": war["spots"],
+                    "diff": war["diff"],
+                    "home_score": war["home_score"],
+                    "enemy_score": war["enemy_score"],
+                }
+            },
+        )
+        self.active_war[interaction.channel.id] = war
+        await r.set(
+            interaction.channel.id,
+            json.dumps(self.active_war[interaction.channel.id], default=str),
+        )
+        return await interaction.response.send_message(embed=make_embed(war))
+
     @tasks.loop(minutes=1)
     async def remove_expired_war(self):
         expired_date = datetime.now(UTC) - timedelta(hours=3)
@@ -195,7 +244,6 @@ class WarBot(Base):
             track = await db.Tracks.find_one(
                 {"trackName": data[2]}, collation=COLLATION
             )
-            print(track)
             if not track:
                 return
             war["tracks"][int(data[1]) - 1] = track["trackName"]

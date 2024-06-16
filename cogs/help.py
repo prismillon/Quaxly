@@ -17,7 +17,7 @@ class Help(commands.Cog):
 
         embeds[-1].add_field(
             name="register user",
-            value="```/register_user```this command is useful when you just joined your server but you are already using the bot in other servers, it will add you in the server list",
+            value="```/register```this command is useful when you just joined your server but you are already using the bot in other servers, it will add you in the server list",
         )
         embeds[-1].add_field(
             name="remove user",
