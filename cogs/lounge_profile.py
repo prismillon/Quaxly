@@ -85,6 +85,7 @@ def create_plot(base, history):
 
 @app_commands.command()
 @app_commands.autocomplete(player=name_autocomplete)
+@app_commands.allowed_installs(guilds=True, users=True)
 @app_commands.describe(player="The player you want to check lounge profile from")
 async def lounge_profile(interaction: discord.Interaction, player: str = None):
     """lounge profile of a player"""

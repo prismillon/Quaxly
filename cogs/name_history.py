@@ -9,6 +9,7 @@ from utils import lounge_data
 
 
 @app_commands.command()
+@app_commands.allowed_installs(guilds=True, users=True)
 @app_commands.autocomplete(player=name_autocomplete)
 @app_commands.describe(player="The player you want to check lounge name history from")
 async def name_history(interaction: discord.Interaction, player: str = None):

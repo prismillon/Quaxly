@@ -76,6 +76,7 @@ async def fc_to_stat(fc: str, season: int):
 
 @app_commands.command()
 @app_commands.guild_only()
+@app_commands.allowed_installs(guilds=True, users=True)
 @app_commands.choices(stat=statChoices)
 @app_commands.describe(
     role="the role you want to check stats from",
@@ -151,6 +152,7 @@ async def role_stats(
 
 @app_commands.command()
 @app_commands.autocomplete(team=mkc_team_autocomplete)
+@app_commands.allowed_installs(guilds=True, users=True)
 @app_commands.choices(stat=statChoices)
 @app_commands.describe(
     team="the team you want to check stats from",
@@ -271,6 +273,7 @@ async def mkc_stats(
 
 
 @app_commands.command()
+@app_commands.allowed_installs(guilds=True, users=True)
 @app_commands.describe(
     room="message with the list of fc", team_size="the size of the team for this event"
 )
