@@ -25,7 +25,8 @@ class Logging(commands.Cog):
         )
         if interaction.guild_id:
             embed.set_footer(
-                text=interaction.guild.name, icon_url=interaction.guild.icon
+                text=interaction.guild.name or "user install",
+                icon_url=interaction.guild.icon,
             )
         else:
             embed.set_footer(text="dms")
