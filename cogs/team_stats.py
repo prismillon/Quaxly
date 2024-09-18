@@ -82,9 +82,7 @@ async def role_stats(
 
     embeds = [discord.Embed(color=0x47E0FF, title=f"{role.name} average {stat.name}")]
 
-    member_tasks = [
-        id_to_stat(member.id, stat=stat, season=season) for member in role.members
-    ]
+    member_tasks = [id_to_stat(member.id, season=season) for member in role.members]
     user_data_array = sorted(
         list(
             filter(
