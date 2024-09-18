@@ -7,7 +7,7 @@ import re
 
 from autocomplete import mkc_team_autocomplete
 from discord import app_commands
-from utils import lounge_data, statChoices, mkc_data, lounge_season
+from utils import statChoices, mkc_data, lounge_season, lounge_data
 from discord.app_commands import Choice, Range
 
 
@@ -18,30 +18,18 @@ async def check_for_none(data: list) -> bool:
     return False
 
 
-async def id_to_stat(
-    discord_id: int, stat: Choice[str] = statChoices[0], season: int = None
-):
+async def id_to_stat(discord_id: int, season: int = None):
     season = f"&season={season}" if season else ""
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            "https://www.mk8dx-lounge.com/api/player?discordId="
-            + str(discord_id)
-            + season
+            f"https://www.mk8dx-lounge.com/api/player/details?discordId={discord_id}{season}"
         ) as response:
             if response.status == 200:
                 user_data = await response.json()
-                if "discordId" not in user_data:
-                    return None
-                if stat.value == "eventsPlayed":
-                    async with session.get(
-                        "https://www.mk8dx-lounge.com/api/player/details?name="
-                        + user_data["name"]
-                        + season
-                    ) as response:
-                        if response.status == 200:
-                            user_data = await response.json()
-                            user_data["discordId"] = discord_id
-                            user_data["id"] = user_data["playerId"]
+                if "eventsPlayed" not in user_data:
+                    user_data["eventsPlayed"] = 0
+                user_data["discordId"] = discord_id
+                user_data["id"] = user_data["playerId"]
                 if "mmr" not in user_data:
                     return None
                 if "maxMmr" not in user_data:
@@ -49,25 +37,22 @@ async def id_to_stat(
                 return user_data
 
 
-async def fc_to_stat(fc: str, season: int):
+async def fc_to_stat(fc: str, season: int = None):
+    season = f"&season={season}" if season else ""
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            f"https://www.mk8dx-lounge.com/api/player/leaderboard?season={season}&search=switch="
-            + fc
+            f"https://www.mk8dx-lounge.com/api/player/details?fc={fc}{season}"
         ) as response:
             if response.status == 200:
                 user_data = await response.json()
-                if len(user_data["data"]) != 1:
-                    return None
-                user_data = user_data["data"][0]
-                user = discord.utils.find(
-                    lambda player: player["name"].lower() == user_data["name"].lower(),
+                user_data["discordId"] = discord.utils.find(
+                    lambda player: player["mkcId"] == user_data["mkcId"],
                     lounge_data.data(),
                 )
-                if not user:
-                    return None
-                user_data["discordId"] = user["discordId"]
-                if "mmr" not in user_data or "discordId" not in user_data:
+                if "eventsPlayed" not in user_data:
+                    user_data["eventsPlayed"] = 0
+                user_data["id"] = user_data["playerId"]
+                if "mmr" not in user_data:
                     return None
                 if "maxMmr" not in user_data:
                     user_data["maxMmr"] = user_data["mmr"]
@@ -274,11 +259,19 @@ async def mkc_stats(
 
 @app_commands.command()
 @app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.choices(stat=statChoices)
 @app_commands.describe(
-    room="message with the list of fc", team_size="the size of the team for this event"
+    room="message with the list of fc",
+    team_size="the size of the team for this event",
+    stat="the type of stats",
+    season="the season you want this info from",
 )
 async def fc_stats(
-    interaction: discord.Interaction, room: str, team_size: Range[int, 1, 6] = 1
+    interaction: discord.Interaction,
+    room: str,
+    team_size: Range[int, 1, 6] = 1,
+    stat: Choice[str] = None,
+    season: int = None,
 ):
     """get stats from a room with 12 friend codes"""
 
@@ -290,7 +283,8 @@ async def fc_stats(
 
     await interaction.response.defer()
 
-    season = lounge_season.data()
+    season = season or lounge_season.data()
+
     players_fc = re.findall("\d{4}-\d{4}-\d{4}", room)
     players_api_request = [fc_to_stat(fc, season) for fc in players_fc]
     players_profile = await asyncio.gather(*players_api_request)
@@ -303,19 +297,19 @@ async def fc_stats(
 
     embed = discord.Embed(
         color=0x47E0FF,
-        title=f"room average {round(statistics.fmean([user['mmr'] for user in filter(lambda x: x is not None, players_profile)]))}",
+        title=f"room average {stat.name}: {round(statistics.fmean([user[stat.value] for user in filter(lambda x: x is not None, players_profile)]))}",
     )
 
     for index, team in enumerate(teams):
         title = f"team {index+1}: "
         if await check_for_none(team):
-            title += f"{round(statistics.fmean([user['mmr'] for user in filter(lambda x: x is not None, team)]))}"
+            title += f"{round(statistics.fmean([user[stat.value] for user in filter(lambda x: x is not None, team)]))}"
         else:
             title += "N/A"
         value = ""
         for member in team:
             value += (
-                f"[{member['name']}](https://www.mk8dx-lounge.com/PlayerDetails/{member['id']}): {member['mmr']}\n"
+                f"[{member['name']}](https://www.mk8dx-lounge.com/PlayerDetails/{member['id']}): {member[stat.value]}\n"
                 if member
                 else "not in lounge\n"
             )
