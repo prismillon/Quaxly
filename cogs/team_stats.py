@@ -45,10 +45,11 @@ async def fc_to_stat(fc: str, season: int = None):
         ) as response:
             if response.status == 200:
                 user_data = await response.json()
-                user_data["discordId"] = discord.utils.find(
+                player = discord.utils.find(
                     lambda player: player["mkcId"] == user_data["mkcId"],
                     lounge_data.data(),
-                )["discordId"]
+                )
+                user_data["discordId"] = player["discordId"] if player else None
                 if "eventsPlayed" not in user_data:
                     user_data["eventsPlayed"] = 0
                 user_data["id"] = user_data["playerId"]
