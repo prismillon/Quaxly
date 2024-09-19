@@ -32,6 +32,8 @@ jobs:
           push: true
           context: .
           tags: ${{ vars.REGISTRY_URL }}/library/quaxly:latest
+          cache-from: type=gha
+          cache-to: type=gha
 
   deploy:
     runs-on: ubuntu-latest
