@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from utils import ConfirmButton, COLLATION
 from statistics import mean
 from cogs.war.base import Base
-from autocomplete import track_autocomplete
+from autocomplete import mkc_tag_autocomplete, track_autocomplete
 from bson import ObjectId
 from db import db, rs, r
 
@@ -154,19 +154,33 @@ class WarStats(Base):
         minimum="the minimum number of times the track has been played for it to count",
         track="the track you want to check stats from",
     )
-    @app_commands.autocomplete(track=track_autocomplete)
+    @app_commands.autocomplete(track=track_autocomplete, team=mkc_tag_autocomplete)
     async def stats(
         self,
         interaction: discord.Interaction,
         channel: discord.TextChannel = None,
         minimum: app_commands.Range[int, 1] = 1,
         track: str = None,
+        team: str = None,
     ) -> None:
         """check race stats in the specified channel"""
 
         channel = channel or interaction.channel
 
-        raw_stats = await db.Wars.find({"channel_id": channel.id}).to_list(None)
+        if team:
+            raw_stats = await db.Wars.find(
+                {
+                    "channel_id": channel.id,
+                    "$or": [{"tag": team}, {"enemy_tag": team}],
+                }
+            ).to_list(None)
+            if len(raw_stats) == 0:
+                return await interaction.response.send_message(
+                    content=f"no stats registered in this channel against the team {team}",
+                    ephemeral=True,
+                )
+        else:
+            raw_stats = await db.Wars.find({"channel_id": channel.id}).to_list(None)
 
         track_stats = {}
         for war in raw_stats:
