@@ -48,7 +48,7 @@ async def fc_to_stat(fc: str, season: int = None):
                 user_data["discordId"] = discord.utils.find(
                     lambda player: player["mkcId"] == user_data["mkcId"],
                     lounge_data.data(),
-                )
+                )["discordId"]
                 if "eventsPlayed" not in user_data:
                     user_data["eventsPlayed"] = 0
                 user_data["id"] = user_data["playerId"]

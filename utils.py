@@ -30,16 +30,13 @@ class LoungeData:
             ) as response:
                 if response.status == 200:
                     _data_full = await response.json()
+                    if len(_data_full["players"]) == 0:
+                        return
                     self._data = [
                         player
                         for player in _data_full["players"]
                         if "discordId" in player
                     ]
-                    if not discord.utils.find(
-                        lambda player: player["discordId"] == str(169497208406802432),
-                        self._data,
-                    ):
-                        print(_data_full)
 
     def data(self):
         return self._data
