@@ -283,6 +283,7 @@ async def fc_stats(
     await interaction.response.defer()
 
     season = season or lounge_season.data()
+    stat = stat or statChoices[0]
 
     players_fc = re.findall("\d{4}-\d{4}-\d{4}", room)
     players_api_request = [fc_to_stat(fc, season) for fc in players_fc]
