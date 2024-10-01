@@ -1,3 +1,4 @@
+from datetime import datetime
 import discord
 import aiohttp
 import numpy as np
@@ -116,6 +117,7 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
     seasons = {}
     season_played = []
     country_name = ""
+    name_history_string = ""
     for i in range(4, lounge_season.data() + 1):
         seasons[i] = {}
 
@@ -137,6 +139,10 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
                         continue
                     seasons[season]["base"] = data["mmrChanges"][-1]["newMmr"]
                     seasons[season]["endingMmr"] = data["mmr"]
+
+                    if name_history_string == "":
+                        for change in data["nameHistory"]:
+                            name_history_string += f"{discord.utils.format_dt(datetime.fromisoformat(change['changedOn']), 'f')}: {change['name']}\n"
 
                     if len(data["mmrChanges"]) > 1:
                         season_played.append(season)
@@ -179,6 +185,7 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
     embed.add_field(name="seasons played", value=str(season_played)[1:-1], inline=True)
     if country_name != "":
         embed.add_field(name="Country", value=country_name, inline=True)
+    embed.add_field(name="name history", value=name_history_string, inline=False)
     embed.set_thumbnail(url=mmr_to_rank(seasons[season_played[-1]]["endingMmr"])[0])
     embed.color = mmr_to_rank(seasons[season_played[-1]]["endingMmr"])[1]
 
