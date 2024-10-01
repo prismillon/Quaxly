@@ -113,7 +113,7 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
     await interaction.response.defer()
 
     scores = []
-    parteners_scores = []
+    partners_scores = []
     seasons = {}
     season_played = []
     country_name = ""
@@ -152,7 +152,7 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
                         season_history.append(match["mmrDelta"])
                         if match["reason"] == "Table":
                             scores.append(match["score"])
-                            parteners_scores += match["partnerScores"]
+                            partners_scores += match["partnerScores"]
                     seasons[season]["history"] = season_history
                 else:
                     return await interaction.followup.send(
@@ -172,8 +172,8 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
         value=str(
             round(
                 (
-                    sum(parteners_scores) / len(parteners_scores)
-                    if len(parteners_scores) != 0
+                    sum(partners_scores) / len(partners_scores)
+                    if len(partners_scores) != 0
                     else 0
                 ),
                 2,
