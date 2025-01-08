@@ -127,8 +127,8 @@ class Help(commands.Cog):
             value="```/tracks```show a message with all the cup in the game as button, pressing a button will show you the track name to use for the 4 tracks of the selected cup",
         )
         embeds[-1].add_field(
-            name="latency",
-            value="```/latency```show the bot latency to the api it use mostly (discord, lounge and mkcentral)",
+            name="debug",
+            value="```/debug```show the bot debug info",
         )
         embeds[-1].add_field(
             name="lineup",
