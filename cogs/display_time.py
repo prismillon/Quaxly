@@ -274,7 +274,7 @@ async def display_time(
                         )
                         fields[
                             -1
-                        ] += f"**{track['trackName']}**: `{discord.utils.find(lambda x: x['trackRef'] == track['_id'], has_best_time[mode])['time']}` - {member.display_name if not isinstance(member, str) else member}\n"
+                        ] += f"**{track['trackName']}**: `{discord.utils.find(lambda x: x['trackRef'] == track['_id'], has_best_time[mode])['time']}`\n{member.display_name if not isinstance(member, str) else member}\n"
                 for index, field in enumerate(fields):
                     if len(field) > 0:
                         embed.add_field(name=f"{fields_title[index]}", value=field)
