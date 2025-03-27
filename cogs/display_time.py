@@ -20,6 +20,22 @@ def format_time(total_ms: int) -> str:
     return f"{hours}h {minutes:02}m {seconds:02}s {milliseconds:03}ms"
 
 
+def get_mode_display_name(mode: str) -> str:
+    """Convert mode string to a descriptive name"""
+    # Remove 'Tracks' suffix
+    mode = mode.replace("Tracks", "")
+
+    # Extract components
+    items = mode[:2]  # 'sh' or 'ni'
+    speed = mode[2:]  # '150' or '200'
+
+    # Convert to descriptive names
+    items_desc = "Shroom" if items == "sh" else "No Item"
+    speed_desc = f"{speed}cc"
+
+    return f"{items_desc} {speed_desc}"
+
+
 def parse_time_to_ms(time_str: str) -> int:
     """Convert a time string in format MM:SS.mmm to milliseconds"""
     minutes, seconds_ms = time_str.split(":")
@@ -99,7 +115,7 @@ async def display_single_track_single_player(
             content="no time to display sorry", ephemeral=True
         )
 
-    embed.title = f"{track['trackName']} {mode.replace('Tracks', '')}"
+    embed.title = f"{track['trackName']} {get_mode_display_name(mode)}"
     embed.set_thumbnail(url=track["trackUrl"])
     member = interaction.guild.get_member(player.id) or f"<@{player.id}>"
 
@@ -135,7 +151,7 @@ async def display_single_track_all_players(
             content="no time to display sorry", ephemeral=True
         )
 
-    embed.title = f"{track['trackName']} {mode.replace('Tracks', '')}"
+    embed.title = f"{track['trackName']} {get_mode_display_name(mode)}"
     embed.set_thumbnail(url=track["trackUrl"])
     users = sorted(
         users,
@@ -170,7 +186,7 @@ async def display_all_tracks_single_player(
 ) -> discord.InteractionResponse:
     """Display all tracks for a single player"""
     total = 0
-    embed.title = f"{player.display_name} {mode.replace('Tracks', '')}"
+    embed.title = f"{player.display_name} {get_mode_display_name(mode)}"
     embed.set_thumbnail(url=player.display_avatar)
 
     if not has_track(data, track_list_raw[0]["_id"], mode) or not can_send_messages(
@@ -223,7 +239,7 @@ async def display_all_tracks_all_players(
     users = await db.Users.find(
         {"servers.serverId": interaction.guild.id, mode: {"$exists": True}}
     ).to_list(None)
-    embed.title = f"{mode.replace('Tracks', '')}"
+    embed.title = f"{get_mode_display_name(mode)}"
     embed.set_thumbnail(url=interaction.guild.icon)
 
     if data:
