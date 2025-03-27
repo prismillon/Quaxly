@@ -30,7 +30,7 @@ def get_mode_display_name(mode: str) -> str:
     speed = mode[2:]  # '150' or '200'
 
     # Convert to descriptive names
-    items_desc = "Shroom" if items == "sh" else "No Item"
+    items_desc = "Shrooms" if items == "sh" else "No Item"
     speed_desc = f"{speed}cc"
 
     return f"{items_desc} {speed_desc}"
