@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 
 from discord import app_commands
+from discord.ext import commands
 from autocomplete import name_autocomplete
 from utils import lounge_season, lounge_data
 
@@ -208,5 +209,5 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
     return await interaction.followup.send(content="player not found", ephemeral=True)
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot):
     bot.tree.add_command(lounge_profile)
