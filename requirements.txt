@@ -1,7 +1,7 @@
-aiohttp==3.11.14
+aiohttp==3.12.6
 discord.py==2.5.2
 matplotlib==3.10.1
-motor==3.7.0
+motor==3.7.1
 numpy==2.2.4
-pymongo==4.11.3
-redis==5.2.1
+pymongo==4.12.1
+redis==6.2.0
