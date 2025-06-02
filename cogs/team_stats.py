@@ -14,7 +14,7 @@ from discord.app_commands import Choice, Range
 
 MAX_FIELDS = 21
 MAX_EMBEDS = 10
-LOUNGE_API = "https://www.mk8dx-lounge.com/api"
+LOUNGE_API = "https://lounge.mkcentral.com/api"
 MKC_API = "https://www.mariokartcentral.com/mkc/api"
 
 
