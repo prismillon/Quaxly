@@ -8,8 +8,9 @@ from utils import ConfirmButton, COLLATION
 from statistics import mean
 from cogs.war.base import Base
 from autocomplete import mkc_tag_autocomplete, track_autocomplete
-from bson import ObjectId
-from db import db, rs, r
+from database import get_db_session
+from models import WarEvent, Race, GAME_MK8DX
+from db import rs, r  # Keep Redis imports for overlay functionality
 
 import utils
 
@@ -18,12 +19,13 @@ class WarStats(Base):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.active_toad_war = {}
+
+        # Load cached wars from Redis (keep Redis for overlay functionality)
         cached_war = rs.keys("*")
 
         for war in cached_war:
             war_data = rs.get(war)
             war_data = json.loads(war_data)
-            war_data["_id"] = ObjectId(war_data["_id"])
 
             if "incoming_track" not in war_data:
                 self.active_toad_war[int(war)] = war_data
@@ -40,23 +42,39 @@ class WarStats(Base):
             enemy_tag = extract_tag[1]
             date = datetime.now(UTC)
 
-            self.active_toad_war[message.channel.id] = {
-                "channel_id": message.channel.id,
-                "date": date.isoformat(),
-                "tag": tag,
-                "enemy_tag": enemy_tag,
-                "home_score": [],
-                "enemy_score": [],
-                "spots": [],
-                "diff": [],
-                "tracks": [],
-            }
+            # Create war event in PostgreSQL
+            with get_db_session() as session:
+                war_event = WarEvent(
+                    game=GAME_MK8DX,
+                    channel_id=message.channel.id,
+                    date=date,
+                    tag=tag,
+                    enemy_tag=enemy_tag,
+                )
+                session.add(war_event)
+                session.commit()
 
-            await db.Wars.insert_one(self.active_toad_war[message.channel.id])
-            await r.set(
-                message.channel.id,
-                json.dumps(self.active_toad_war[message.channel.id], default=str),
-            )
+                # Prepare data for Redis (for overlay functionality)
+                war_data = {
+                    "id": war_event.id,
+                    "channel_id": message.channel.id,
+                    "date": date.isoformat(),
+                    "tag": tag,
+                    "enemy_tag": enemy_tag,
+                    "home_score": [],
+                    "enemy_score": [],
+                    "spots": [],
+                    "diff": [],
+                    "tracks": [],
+                }
+
+                self.active_toad_war[message.channel.id] = war_data
+
+                # Store in Redis for overlay
+                await r.set(
+                    message.channel.id,
+                    json.dumps(war_data, default=str),
+                )
             return
 
         if message.channel.id not in self.active_toad_war:
@@ -84,67 +102,69 @@ class WarStats(Base):
             )
             diff = race_data["fields"][3]["value"]
             race_id = race_data["title"].replace("Score for Race ", "")
-            self.active_toad_war[message.channel.id]["spots"].append(spots)
-            self.active_toad_war[message.channel.id]["diff"].append(diff)
-            self.active_toad_war[message.channel.id]["tracks"].append(track)
-            self.active_toad_war[message.channel.id]["home_score"].append(
-                41 + int(diff) / 2
-            )
-            self.active_toad_war[message.channel.id]["enemy_score"].append(
-                41 - int(diff) / 2
-            )
 
+            war = self.active_toad_war[message.channel.id]
+            war["spots"].append(spots)
+            war["diff"].append(diff)
+            war["tracks"].append(track)
+            war["home_score"].append(41 + int(diff) / 2)
+            war["enemy_score"].append(41 - int(diff) / 2)
+
+            # Update PostgreSQL
+            with get_db_session() as session:
+                war_event = (
+                    session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
+                )
+
+                if war_event:
+                    # Create new race record
+                    race = Race(
+                        war_event_id=war_event.id,
+                        game=war_event.game,
+                        race_number=len(war["spots"]),
+                        track_name=track if track != "NULL" else None,
+                        home_score=41 + int(diff) / 2,
+                        enemy_score=41 - int(diff) / 2,
+                        score_diff=int(diff),
+                        positions=spots,
+                    )
+                    session.add(race)
+                    session.commit()
+
+            # Update Redis for overlay
             await r.set(
                 message.channel.id,
-                json.dumps(self.active_toad_war[message.channel.id], default=str),
-            )
-            war = self.active_toad_war[message.channel.id]
-            await db.Wars.update_one(
-                {"_id": war["_id"]},
-                {
-                    "$set": {
-                        "spots": war["spots"],
-                        "diff": war["diff"],
-                        "tracks": war["tracks"],
-                        "home_score": war["home_score"],
-                        "enemy_score": war["enemy_score"],
-                    }
-                },
+                json.dumps(war, default=str),
             )
 
         elif "Total Score after Race" in race_data["title"]:
             race_id = int(race_data["title"].replace("Total Score after Race ", ""))
-            self.active_toad_war[message.channel.id]["spots"] = self.active_toad_war[
-                message.channel.id
-            ]["spots"][:race_id]
-            self.active_toad_war[message.channel.id]["diff"] = self.active_toad_war[
-                message.channel.id
-            ]["diff"][:race_id]
-            self.active_toad_war[message.channel.id]["tracks"] = self.active_toad_war[
-                message.channel.id
-            ]["tracks"][:race_id]
-            self.active_toad_war[message.channel.id]["home_score"] = (
-                self.active_toad_war[message.channel.id]["home_score"][:race_id]
-            )
-            self.active_toad_war[message.channel.id]["enemy_score"] = (
-                self.active_toad_war[message.channel.id]["enemy_score"][:race_id]
-            )
+            war = self.active_toad_war[message.channel.id]
+
+            # Truncate data to the specified race
+            war["spots"] = war["spots"][:race_id]
+            war["diff"] = war["diff"][:race_id]
+            war["tracks"] = war["tracks"][:race_id]
+            war["home_score"] = war["home_score"][:race_id]
+            war["enemy_score"] = war["enemy_score"][:race_id]
+
+            # Update PostgreSQL - remove races after the specified race
+            with get_db_session() as session:
+                war_event = (
+                    session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
+                )
+
+                if war_event:
+                    # Delete races after the specified race_id
+                    session.query(Race).filter(
+                        Race.war_event_id == war_event.id, Race.race_number > race_id
+                    ).delete()
+                    session.commit()
+
+            # Update Redis for overlay
             await r.set(
                 message.channel.id,
-                json.dumps(self.active_toad_war[message.channel.id], default=str),
-            )
-            war = self.active_toad_war[message.channel.id]
-            await db.Wars.update_one(
-                {"_id": war["_id"]},
-                {
-                    "$set": {
-                        "spots": war["spots"],
-                        "diff": war["diff"],
-                        "tracks": war["tracks"],
-                        "home_score": war["home_score"],
-                        "enemy_score": war["enemy_score"],
-                    }
-                },
+                json.dumps(war, default=str),
             )
 
     @app_commands.command()
@@ -167,91 +187,92 @@ class WarStats(Base):
 
         channel = channel or interaction.channel
 
-        if team:
-            raw_stats = await db.Wars.find(
-                {
-                    "channel_id": channel.id,
-                    "$or": [{"tag": team}, {"enemy_tag": team}],
-                }
-            ).to_list(None)
-            if len(raw_stats) == 0:
+        with get_db_session() as session:
+            # Build query based on parameters
+            query = session.query(WarEvent).filter(WarEvent.channel_id == channel.id)
+
+            if team:
+                query = query.filter(
+                    (WarEvent.tag == team) | (WarEvent.enemy_tag == team)
+                )
+
+            war_events = query.all()
+
+            if len(war_events) == 0:
+                content = f"no stats registered in this channel"
+                if team:
+                    content += f" against the team {team}"
                 return await interaction.response.send_message(
-                    content=f"no stats registered in this channel against the team {team}",
+                    content=content,
                     ephemeral=True,
                 )
-        else:
-            raw_stats = await db.Wars.find({"channel_id": channel.id}).to_list(None)
 
-        track_stats = {}
-        for war in raw_stats:
-            for tracq, diff in zip(war["tracks"], war["diff"]):
-                if not tracq:
-                    continue
-                if tracq not in track_stats:
-                    track_stats[tracq] = []
-                track_stats[tracq].append(int(diff))
+            # Get race data
+            track_stats = {}
+            for war_event in war_events:
+                for race in war_event.races:
+                    if not race.track_name:
+                        continue
+                    if race.track_name not in track_stats:
+                        track_stats[race.track_name] = []
+                    track_stats[race.track_name].append(race.score_diff)
 
-        track_stats = dict(filter(lambda x: len(x[1]) >= minimum, track_stats.items()))
+            # Filter by minimum occurrences
+            track_stats = dict(
+                filter(lambda x: len(x[1]) >= minimum, track_stats.items())
+            )
 
-        final_stats = {}
-        for tracq, scores in track_stats.items():
-            final_stats[tracq] = {
-                "average": round(mean(scores), 1),
-                "count": len(scores),
-            }
+            final_stats = {}
+            for track_name, scores in track_stats.items():
+                final_stats[track_name] = {
+                    "average": round(mean(scores), 1),
+                    "count": len(scores),
+                    "best": max(scores),
+                    "worst": min(scores),
+                }
 
         if track:
             if track not in final_stats:
                 return await interaction.response.send_message(
-                    content=f"no stats registered in this channel for the track {track}",
-                    ephemeral=True,
+                    content=f"no stats for {track}", ephemeral=True
                 )
-            embed = discord.Embed(color=0x47E0FF, title=f"stats for {track}")
-            embed.add_field(
-                name="average", value=final_stats[track]["average"], inline=True
-            )
-            embed.add_field(
-                name="count", value=final_stats[track]["count"], inline=True
-            )
-            track_data = await db.Tracks.find_one(
-                {"trackName": track}, collation=COLLATION
-            )
-            embed.set_thumbnail(url=track_data["trackUrl"])
-            return await interaction.response.send_message(embed=embed)
+            else:
+                embed = discord.Embed(
+                    color=0x47E0FF,
+                    title=f"Statistics for {track} in {channel.name}",
+                )
+                data = final_stats[track]
+                embed.add_field(name="Average", value=data["average"])
+                embed.add_field(name="Count", value=data["count"])
+                embed.add_field(name="Best", value=data["best"])
+                embed.add_field(name="Worst", value=data["worst"])
+                return await interaction.response.send_message(embed=embed)
 
-        if len(final_stats) == 0:
+        if not final_stats:
             return await interaction.response.send_message(
-                content="no stats registered in this channel", ephemeral=True
+                content="no tracks with enough data", ephemeral=True
             )
 
-        final_stats = {
-            k: v
-            for k, v in sorted(
-                final_stats.items(), key=lambda item: item[1]["average"], reverse=True
-            )
-        }
-
-        stats = [
-            f"```{track:4} | {final_stats[track]['average']:>3} | {final_stats[track]['count']}```\n"
-            for track in final_stats
-        ]
-
-        embeds = []
-
-        for index, stat in enumerate(stats):
-            if index % 10 == 0:
-                embeds.append(
-                    discord.Embed(
-                        color=0x47E0FF,
-                        description="",
-                        title=f"race stats [ {index + 1} -> {index + 10 if len(stats) >= index + 10 else len(stats)} ]",
-                    )
-                )
-            embeds[-1].description += stat
-
-        await interaction.response.send_message(
-            embed=embeds[0], view=utils.Paginator(interaction, embeds)
+        embed = discord.Embed(
+            color=0x47E0FF,
+            title=f"Statistics in {channel.name}",
         )
+
+        # Sort by average (best first)
+        sorted_stats = sorted(
+            final_stats.items(), key=lambda x: x[1]["average"], reverse=True
+        )
+
+        description = "```\nTrack    | Avg  | Count | Best | Worst\n"
+        description += "-" * 42 + "\n"
+
+        for track_name, data in sorted_stats:
+            description += f"{track_name:8} | {data['average']:4.1f} | {data['count']:5} | {data['best']:4} | {data['worst']:5}\n"
+
+        description += "```"
+        embed.description = description
+
+        return await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="list")
     @app_commands.guild_only()
@@ -259,54 +280,45 @@ class WarStats(Base):
     async def warlist(
         self, interaction: discord.Interaction, channel: discord.TextChannel = None
     ):
-        """check the list of war that have been recorded"""
+        """list the most recent wars in the channel"""
 
         channel = channel or interaction.channel
 
-        raw_stats = await db.Wars.find({"channel_id": channel.id}).to_list(None)
-
-        if len(raw_stats) == 0:
-            return await interaction.response.send_message(
-                content="no wars registered in this channel", ephemeral=True
+        with get_db_session() as session:
+            war_events = (
+                session.query(WarEvent)
+                .filter(WarEvent.channel_id == channel.id)
+                .order_by(WarEvent.date.desc())
+                .limit(10)
+                .all()
             )
 
-        embeds = []
+            if not war_events:
+                return await interaction.response.send_message(
+                    content="no wars found in this channel", ephemeral=True
+                )
 
-        for war in raw_stats:
-            embed = discord.Embed(
-                color=0x47E0FF,
-                title=f"{war['tag']} vs {war['enemy_tag']}",
-                timestamp=datetime.fromisoformat(war["date"]),
-            )
-
-            war_diff_arr = [int(diff) for diff in war["diff"]]
-
-            embed.add_field(
-                name="final result", value=f"`{sum(war_diff_arr):+}`", inline=True
-            )
-            embed.add_field(name="war id", value=f"`{war['_id']}`", inline=True)
-            embed.add_field(
-                name="date",
-                value=discord.utils.format_dt(datetime.fromisoformat(war["date"])),
-                inline=True,
-            )
-            race_text = "`\r"
-            for index, track in enumerate(war["tracks"]):
-                if index == 20:
-                    race_text += "[...]\n"
-                    break
-                race_text += f"{index+1:2}: {war_diff_arr[index]:>+3} | {track}\n"
-            embed.add_field(name="race list", value=f"{race_text}`", inline=False)
-            embeds.append(embed)
-
-        if len(embeds) == 0:
-            return await interaction.response.send_message(
-                content="no wars to display in this channel", ephemeral=True
-            )
-
-        await interaction.response.send_message(
-            embed=embeds[0], view=utils.Paginator(interaction, embeds)
+        embed = discord.Embed(
+            color=0x47E0FF,
+            title=f"Recent wars in {channel.name}",
         )
+
+        for war_event in war_events:
+            # Calculate total scores
+            total_home_score = sum(race.home_score for race in war_event.races)
+            total_enemy_score = sum(race.enemy_score for race in war_event.races)
+            race_count = len(war_event.races)
+
+            diff = total_home_score - total_enemy_score
+            diff_str = f"{diff:+.1f}" if diff != 0 else "0.0"
+
+            embed.add_field(
+                name=f"{war_event.tag} vs {war_event.enemy_tag}",
+                value=f"**{total_home_score:.1f} - {total_enemy_score:.1f}** ({diff_str}) | {race_count} races\nID: `{war_event.id}` | {war_event.date.strftime('%Y-%m-%d %H:%M')}",
+                inline=False,
+            )
+
+        return await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
     @app_commands.guild_only()
@@ -320,65 +332,65 @@ class WarStats(Base):
         channel: discord.TextChannel = None,
         war_id: str = None,
     ):
-        """delete stats from a specific war or all of them"""
+        """delete a war from the database"""
 
         channel = channel or interaction.channel
 
         if not war_id:
-            war_count = len(
-                await db.Wars.find({"channel_id": channel.id}).to_list(None)
+            return await interaction.response.send_message(
+                content="please provide a war ID", ephemeral=True
             )
-            if war_count == 0:
+
+        try:
+            war_id_int = int(war_id)
+        except ValueError:
+            return await interaction.response.send_message(
+                content="invalid war ID format", ephemeral=True
+            )
+
+        with get_db_session() as session:
+            war_event = (
+                session.query(WarEvent)
+                .filter(WarEvent.id == war_id_int, WarEvent.channel_id == channel.id)
+                .first()
+            )
+
+            if not war_event:
                 return await interaction.response.send_message(
-                    content="this channel do not have any war stats", ephemeral=True
+                    content="war not found in this channel", ephemeral=True
                 )
 
-            embed = discord.Embed(color=0x47E0FF, title="delete all war stats")
-            embed.description = f"you are about to delete {war_count} wars"
-            view = ConfirmButton()
-            await interaction.response.send_message(
-                embed=embed, view=view, ephemeral=True
+            embed = discord.Embed(
+                color=0x47E0FF,
+                title="Delete War",
+                description=f"Are you sure you want to delete the war **{war_event.tag} vs {war_event.enemy_tag}**?\n"
+                f"Date: {war_event.date.strftime('%Y-%m-%d %H:%M')}\n"
+                f"Races: {len(war_event.races)}\n"
+                f"ID: `{war_event.id}`",
             )
-            await view.wait()
 
-            if view.answer:
-                await db.Wars.delete_many({"channel_id": channel.id})
-                embed.title = "war stats removed"
-                embed.description = "all war stats have been removed"
+        view = ConfirmButton()
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        await view.wait()
 
-            else:
-                embed.title = "action canceled"
-                embed.description = "data remained unchanged"
+        if view.answer:
+            with get_db_session() as session:
+                # Re-fetch the war event in this session
+                war_event = (
+                    session.query(WarEvent).filter(WarEvent.id == war_id_int).first()
+                )
 
+                if war_event:
+                    session.delete(war_event)  # Cascades to races
+                    session.commit()
+
+                    embed.title = "War Deleted"
+                    embed.description = f"War **{war_event.tag} vs {war_event.enemy_tag}** has been deleted"
+                else:
+                    embed.title = "Error"
+                    embed.description = "War not found"
         else:
-            war = await db.Wars.find(
-                {"_id": ObjectId(war_id), "channel_id": channel.id}
-            ).to_list(None)
+            embed.title = "Action Canceled"
+            embed.description = "War was not deleted"
 
-            if len(war) != 1:
-                return await interaction.response.send_message(
-                    content="this war does not exist or does not belong to this channel",
-                    ephemeral=True,
-                )
-
-            embed = discord.Embed(color=0x47E0FF, title=f"delete war n°{war_id}")
-            embed.description = "you are about to delete this wars"
-            view = ConfirmButton()
-
-            await interaction.response.send_message(
-                embed=embed, view=view, ephemeral=True
-            )
-            await view.wait()
-
-            if view.answer:
-                await db.Wars.delete_one(
-                    {"_id": ObjectId(war_id), "channel_id": channel.id}
-                )
-                embed.title = f"war n°{war_id} removed"
-                embed.description = "successfully deleted the war race data"
-
-            else:
-                embed.title = "action canceled"
-                embed.description = "data remained unchanged"
-
-        await interaction.edit_original_response(embed=embed, view=None)
+        return await interaction.edit_original_response(embed=embed, view=None)
