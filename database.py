@@ -22,7 +22,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 ScopedSession = scoped_session(SessionLocal)
 
-redis_url = os.environ.get("REDIS_URL") or "localhost"
+redis_url = os.getenv("REDIS_URL", "localhost")
 r = redis.asyncio.Redis(host=redis_url, port=6379, socket_keepalive=True)
 rs = redis.Redis(host=redis_url, port=6379)
 
