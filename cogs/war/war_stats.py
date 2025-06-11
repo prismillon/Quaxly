@@ -10,7 +10,7 @@ from cogs.war.base import Base
 from autocomplete import mkc_tag_autocomplete, track_autocomplete
 from database import get_db_session
 from models import WarEvent, Race, GAME_MK8DX
-from db import rs, r  # Keep Redis imports for overlay functionality
+from database import rs, r  # Keep Redis imports for overlay functionality
 
 import utils
 
