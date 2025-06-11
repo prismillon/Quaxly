@@ -7,9 +7,7 @@ import redis.asyncio
 import redis
 from contextlib import contextmanager
 
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL", "postgresql://user:pass@localhost:5432/quaxly"
-)
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:pass@localhost:5432/quaxly")
 
 engine = create_engine(
     DATABASE_URL,
