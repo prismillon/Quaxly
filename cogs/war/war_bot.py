@@ -7,9 +7,10 @@ from discord.ext import commands, tasks
 from discord import app_commands
 from discord.app_commands import Range
 from cogs.war.base import Base
-from bson import ObjectId
 from autocomplete import mkc_tag_autocomplete
-from db import db, rs, r
+from database import get_db_session
+from models import WarEvent, Race, GAME_MK8DX
+from db import rs, r  # Keep Redis imports for overlay functionality
 from utils import COLLATION
 
 
@@ -112,12 +113,13 @@ class WarBot(Base):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.active_war = {}
+
+        # Load cached wars from Redis (keep Redis for overlay functionality)
         cached_war = rs.keys("*")
 
         for war in cached_war:
             war_data = rs.get(war)
             war_data = json.loads(war_data)
-            war_data["_id"] = ObjectId(war_data["_id"])
 
             if "incoming_track" in war_data:
                 self.active_war[int(war)] = war_data
@@ -142,23 +144,43 @@ class WarBot(Base):
             )
 
         date = datetime.now(UTC)
-        self.active_war[interaction.channel.id] = {
-            "channel_id": interaction.channel.id,
-            "date": date.isoformat(),
-            "tag": tag,
-            "enemy_tag": enemy_tag,
-            "home_score": [],
-            "enemy_score": [],
-            "spots": [],
-            "diff": [],
-            "tracks": [],
-            "incoming_track": None,
-        }
-        await db.Wars.insert_one(self.active_war[interaction.channel.id])
-        await r.set(
-            interaction.channel.id,
-            json.dumps(self.active_war[interaction.channel.id], default=str),
-        )
+
+        # Create war event in PostgreSQL
+        with get_db_session() as session:
+            war_event = WarEvent(
+                game=GAME_MK8DX,  # Default to MK8DX for compatibility
+                channel_id=interaction.channel.id,
+                date=date,
+                tag=tag,
+                enemy_tag=enemy_tag,
+                incoming_track=None,
+            )
+            session.add(war_event)
+            session.commit()
+
+            # Prepare data for Redis (for overlay functionality)
+            war_data = {
+                "id": war_event.id,
+                "channel_id": interaction.channel.id,
+                "date": date.isoformat(),
+                "tag": tag,
+                "enemy_tag": enemy_tag,
+                "home_score": [],
+                "enemy_score": [],
+                "spots": [],
+                "diff": [],
+                "tracks": [],
+                "incoming_track": None,
+            }
+
+            self.active_war[interaction.channel.id] = war_data
+
+            # Store in Redis for overlay
+            await r.set(
+                interaction.channel.id,
+                json.dumps(war_data, default=str),
+            )
+
         return await interaction.response.send_message(
             f"started war between `{tag}` and `{enemy_tag}` \n(obs overlay: https://waroverlay.prismillon.com/overlay/{interaction.channel.id})"
         )
@@ -198,133 +220,128 @@ class WarBot(Base):
                 content="invalid spots format", ephemeral=True
             )
 
-        spots = text_to_score(spots)
-        scored = sum(map(lambda r: _SCORE[r - 1], spots))
-        war["spots"][race_nb - 1] = spots
-        war["home_score"][race_nb - 1] = scored
-        war["enemy_score"][race_nb - 1] = 82 - scored
-        war["diff"][race_nb - 1] = scored - (82 - scored)
-        await db.Wars.update_one(
-            {"_id": war["_id"]},
-            {
-                "$set": {
-                    "spots": war["spots"],
-                    "diff": war["diff"],
-                    "home_score": war["home_score"],
-                    "enemy_score": war["enemy_score"],
-                }
-            },
-        )
-        self.active_war[interaction.channel.id] = war
-        await r.set(
-            interaction.channel.id,
-            json.dumps(self.active_war[interaction.channel.id], default=str),
-        )
-        return await interaction.response.send_message(embed=make_embed(war))
+        new_spots = text_to_score(spots)
+        war["spots"][race_nb - 1] = new_spots
+        new_diff = sum(_SCORE[spot - 1] for spot in new_spots) - 41
+        war["diff"][race_nb - 1] = new_diff
+        war["home_score"][race_nb - 1] = 41 + new_diff / 2
+        war["enemy_score"][race_nb - 1] = 41 - new_diff / 2
+
+        # Update PostgreSQL
+        with get_db_session() as session:
+            # Find the war event
+            war_event = session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
+
+            if war_event:
+                # Find the specific race
+                race = (
+                    session.query(Race)
+                    .filter(
+                        Race.war_event_id == war_event.id, Race.race_number == race_nb
+                    )
+                    .first()
+                )
+
+                if race:
+                    race.positions = new_spots
+                    race.score_diff = new_diff
+                    race.home_score = 41 + new_diff / 2
+                    race.enemy_score = 41 - new_diff / 2
+                    session.commit()
+
+        # Update Redis for overlay
+        await r.set(interaction.channel.id, json.dumps(war, default=str))
+
+        embed = make_embed(war)
+        return await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="track")
+    @app_commands.guild_only()
+    @app_commands.describe(track="the track")
+    async def incoming_track(self, interaction: discord.Interaction, track: str = None):
+        """set or remove the next track"""
+
+        if interaction.channel.id not in self.active_war:
+            return await interaction.response.send_message(
+                content="no active war", ephemeral=True
+            )
+
+        war = self.active_war[interaction.channel.id]
+        war["incoming_track"] = track
+
+        # Update PostgreSQL
+        with get_db_session() as session:
+            war_event = session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
+
+            if war_event:
+                war_event.incoming_track = track
+                session.commit()
+
+        # Update Redis for overlay
+        await r.set(interaction.channel.id, json.dumps(war, default=str))
+
+        if track:
+            return await interaction.response.send_message(f"next track: `{track}`")
+        else:
+            return await interaction.response.send_message("removed next track")
 
     @tasks.loop(minutes=1)
     async def remove_expired_war(self):
-        expired_date = datetime.now(UTC) - timedelta(hours=3)
-        for channel_id, data in list(self.active_war.items()):
-            if datetime.fromisoformat(data["date"]) < expired_date:
-                await r.delete(channel_id)
-                self.active_war.pop(channel_id)
+        expired_date = datetime.now(UTC) - timedelta(hours=6)
+        to_remove = []
+        for channel_id, war in self.active_war.items():
+            war_date = datetime.fromisoformat(war["date"])
+            if war_date < expired_date:
+                to_remove.append(channel_id)
+        for channel_id in to_remove:
+            await r.delete(channel_id)
+            self.active_war.pop(channel_id)
 
     @commands.Cog.listener(name="on_message")
     async def war_score(self, message: discord.Message):
-        if message.channel.id not in self.active_war or message.content == "":
+        if message.channel.id not in self.active_war:
+            return
+
+        if not re.fullmatch("^((?!--)[0-9+-])+$", message.content):
             return
 
         war = self.active_war[message.channel.id]
+        positions = text_to_score(message.content)
+        diff = sum(_SCORE[position - 1] for position in positions) - 41
+        home_score = 41 + diff / 2
+        enemy_score = 41 - diff / 2
 
-        if message.content.startswith("race "):
-            data = message.content.split(" ")
-            if not data[1].isnumeric() or len(data) != 3:
-                return
-            track = await db.Tracks.find_one(
-                {"trackName": data[2]}, collation=COLLATION
-            )
-            if not track:
-                return
-            war["tracks"][int(data[1]) - 1] = track["trackName"]
-            self.active_war[message.channel.id] = war
-            await db.Wars.update_one(
-                {"_id": war["_id"]}, {"$set": {"tracks": war["tracks"]}}
-            )
-            await r.set(
-                message.channel.id,
-                json.dumps(self.active_war[message.channel.id], default=str),
-            )
-            return await message.reply(embed=make_embed(war), mention_author=False)
+        war["spots"].append(positions)
+        war["diff"].append(diff)
+        war["tracks"].append(war["incoming_track"])
+        war["home_score"].append(home_score)
+        war["enemy_score"].append(enemy_score)
+        war["incoming_track"] = None
 
-        if " " in message.content:
-            return
+        # Update PostgreSQL
+        with get_db_session() as session:
+            war_event = session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
 
-        if message.content.lower() == "back":
-            race_id = len(war["spots"])
-            war["spots"] = war["spots"][: race_id - 1]
-            war["diff"] = war["diff"][: race_id - 1]
-            war["tracks"] = war["tracks"][: race_id - 1]
-            war["home_score"] = war["home_score"][: race_id - 1]
-            war["enemy_score"] = war["enemy_score"][: race_id - 1]
-            await db.Wars.update_one(
-                {"_id": war["_id"]},
-                {
-                    "$set": {
-                        "spots": war["spots"],
-                        "diff": war["diff"],
-                        "tracks": war["tracks"],
-                        "home_score": war["home_score"],
-                        "enemy_score": war["enemy_score"],
-                    }
-                },
-            )
-            self.active_war[message.channel.id] = war
-            await r.set(
-                message.channel.id,
-                json.dumps(self.active_war[message.channel.id], default=str),
-            )
-            return await message.reply(embed=make_embed(war), mention_author=False)
+            if war_event:
+                # Create new race record
+                race = Race(
+                    war_event_id=war_event.id,
+                    game=war_event.game,
+                    race_number=len(war["spots"]),
+                    track_name=war["tracks"][-1],
+                    home_score=home_score,
+                    enemy_score=enemy_score,
+                    score_diff=diff,
+                    positions=positions,
+                )
+                session.add(race)
 
-        if re.fullmatch("^((?!--)[0-9+-])+$", message.content):
-            spots = text_to_score(message.content)
-            scored = sum(map(lambda r: _SCORE[r - 1], spots))
-            war["spots"].append(spots)
-            war["home_score"].append(scored)
-            war["enemy_score"].append(82 - scored)
-            war["diff"].append(war["home_score"][-1] - war["enemy_score"][-1])
-            war["tracks"].append(war["incoming_track"])
-            war["incoming_track"] = None
-            await db.Wars.update_one(
-                {"_id": war["_id"]},
-                {
-                    "$set": {
-                        "spots": war["spots"],
-                        "diff": war["diff"],
-                        "tracks": war["tracks"],
-                        "home_score": war["home_score"],
-                        "enemy_score": war["enemy_score"],
-                    }
-                },
-            )
-            self.active_war[message.channel.id] = war
-            await r.set(
-                message.channel.id,
-                json.dumps(self.active_war[message.channel.id], default=str),
-            )
-            return await message.reply(embed=make_embed(war), mention_author=False)
+                # Clear incoming track
+                war_event.incoming_track = None
+                session.commit()
 
-        track = await db.Tracks.find_one(
-            {"trackName": message.content}, collation=COLLATION
-        )
+        # Update Redis for overlay
+        await r.set(message.channel.id, json.dumps(war, default=str))
 
-        if track:
-            war["incoming_track"] = track["trackName"]
-            return await message.reply(
-                embed=discord.Embed(
-                    color=0x47E0FF, title=f"{track['trackName']} | {track['fullName']}"
-                ).set_image(
-                    url=f"http://japan-mk.blog.jp/mk8dx.info-4/table/{track['id']:02d}.jpg"
-                ),
-                mention_author=False,
-            )
+        embed = make_embed(war)
+        return await message.channel.send(embed=embed)

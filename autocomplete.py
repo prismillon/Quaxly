@@ -5,27 +5,38 @@ import os
 from discord.app_commands import Choice
 from typing import List
 from utils import lounge_data, mkc_data
-from db import db
-
-TRACKS = db.Tracks.find({})
+from database import get_db_session
+from models import Track, GAME_MK8DX
 
 
 async def track_autocomplete(
     interaction: discord.Interaction, current: str
 ) -> List[Choice[str]]:
-    tcopy = copy.deepcopy(TRACKS)
-    tracks = await tcopy.to_list(None)
-    tracks = sorted(tracks, key=lambda x: x["id"])
-    return [
-        Choice(name=track["trackName"], value=track["trackName"])
-        for track in tracks
-        if track["trackName"].lower().startswith(current.lower())
-    ][:25]
+    """Autocomplete for MK8DX track names (for compatibility with existing commands)"""
+    with get_db_session() as session:
+        tracks = (
+            session.query(Track)
+            .filter(Track.game == GAME_MK8DX)
+            .order_by(Track.track_id)
+            .all()
+        )
+
+        filtered_tracks = [
+            track
+            for track in tracks
+            if track.track_name.lower().startswith(current.lower())
+        ][:25]
+
+        return [
+            Choice(name=track.track_name, value=track.track_name)
+            for track in filtered_tracks
+        ]
 
 
 async def time_autocomplete(
     interaction: discord.Interaction, current: str
 ) -> List[Choice[str]]:
+    """Time format autocomplete helper"""
     if len(current) == 0:
         return [Choice(name="Format: 1:23.456", value="Format: 1:23.456")]
     elif len(current) == 6:
@@ -41,6 +52,7 @@ async def time_autocomplete(
 async def name_autocomplete(
     interaction: discord.Interaction, current: str
 ) -> List[Choice[str]]:
+    """Lounge player name autocomplete"""
     return [
         Choice(name=player["name"], value=player["name"])
         for player in filter(
@@ -53,6 +65,7 @@ async def name_autocomplete(
 async def mkc_team_autocomplete(
     interaction: discord.Interaction, current: str
 ) -> List[Choice[str]]:
+    """MKC team name autocomplete"""
     return [
         Choice(name=team["team_name"], value=str(team["team_name"]))
         for team in filter(
@@ -65,6 +78,7 @@ async def mkc_team_autocomplete(
 async def mkc_tag_autocomplete(
     interaction: discord.Interaction, current: str
 ) -> List[Choice[str]]:
+    """MKC team tag autocomplete"""
     return [
         Choice(name=team["team_name"], value=str(team["team_tag"]))
         for team in filter(
@@ -77,6 +91,7 @@ async def mkc_tag_autocomplete(
 async def cmd_autocomplete(
     interaction: discord.Interaction, current: str
 ) -> List[Choice[str]]:
+    """Command autocomplete for extension management"""
     return [
         Choice(name=cmd.replace(".py", ""), value=f"cogs.{cmd.replace('.py', '')}")
         for cmd in filter(

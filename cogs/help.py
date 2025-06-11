@@ -25,16 +25,38 @@ class Help(commands.Cog):
         )
         embeds[-1].add_field(
             name="save time",
-            value="```/save_time speed items track time```this command save a time, if your time is better than the previous one it will override it, if not a confirmation prompt will be showed if you still want to override (you will be registered in the server if you were not already)",
+            value="```/save_time items track time```this command save a time for Mario Kart World, if your time is better than the previous one it will override it, if not a confirmation prompt will be showed if you still want to override (you will be registered in the server if you were not already)",
             inline=False,
         )
         embeds[-1].add_field(
             name="delete time",
-            value="```/delete_time (speed) (items) (track) (time)```this command delete times, all conditions are optional, the bot will delete times that respect the conditions provided, this command always show a confirmation prompt with all the times that are going to be removed",
+            value="```/delete_time items track```this command delete times for the specified items and track combination, this command always shows a confirmation prompt with all the times that are going to be removed",
         )
         embeds[-1].add_field(
             name="display time",
-            value="```/display_time speed items (track) (player)```this command show times from users that are registered in the server, track and player are optionnal, if you do not provide any it will show the best time on each track and who own it, if track is selected it will show the ranking on the track, if player is selected it will show the user times or the users in the role",
+            value="```/display_time items (track) (player)```this command show times from users that are registered in the server, track and player are optional, if you do not provide any it will show the best time on each track and who owns it, if track is selected it will show the ranking on the track, if player is selected it will show the user times or the users in the role",
+            inline=False,
+        )
+
+        embeds.append(discord.Embed(color=0x47E0FF, title="MK8DX Time Trials commands"))
+
+        embeds[-1].add_field(
+            name="dx save time",
+            value="```/dx save_time speed items track time```this command save a time for Mario Kart 8 Deluxe, if your time is better than the previous one it will override it, if not a confirmation prompt will be showed if you still want to override (you will be registered in the server if you were not already)",
+            inline=False,
+        )
+        embeds[-1].add_field(
+            name="dx delete time",
+            value="```/dx delete_time speed items (track)```this command delete times for MK8DX, if track is not provided it will delete all times for the specified speed and items combination, this command always shows a confirmation prompt with all the times that are going to be removed",
+        )
+        embeds[-1].add_field(
+            name="dx display time",
+            value="```/dx display_time speed items (track) (player)```this command show MK8DX times from users that are registered in the server, track and player are optional, if you do not provide any it will show the best time on each track and who owns it, if track is selected it will show the ranking on the track, if player is selected it will show the user times or the users in the role",
+            inline=False,
+        )
+        embeds[-1].add_field(
+            name="dx import time",
+            value="```/dx import_time speed items (name)```this command imports times from Cadoizzob bot for MK8DX, name is optional and defaults to your display name, make sure your name matches the one in Cadoizzob",
             inline=False,
         )
 
@@ -47,12 +69,12 @@ class Help(commands.Cog):
         )
         embeds[-1].add_field(
             name="mkc stats",
-            value="```/mkc_stats team (stat) (season)```show the stats of everyone in a mkc roaster, the total average and the 6 best average, stat let you choose the type of stats (default is mmr), season let you choose the season to check the stats from (default to current season)",
+            value="```/mkc_stats team (stat) (season)```show the stats of everyone in a mkc 150cc team roster, the total average and the 6 best average, stat let you choose the type of stats (default is mmr), season let you choose the season to check the stats from (default to current season)",
             inline=False,
         )
         embeds[-1].add_field(
             name="fc stats",
-            value="```/fc_stats room (team_size)```show the stats of a room using friend code, it need to be a room of 12 and while team_size is optionnal you should set it to have proper stats for each teams, room is where you paste your room info",
+            value="```/fc_stats room (team_size) (stat) (season)```show the stats of a room using friend codes, it needs to be a room of 12 and while team_size is optional you should set it to have proper stats for each teams, room is where you paste your room info",
             inline=False,
         )
         embeds[-1].add_field(
@@ -62,7 +84,7 @@ class Help(commands.Cog):
         )
         embeds[-1].add_field(
             name="lounge profile",
-            value="```/lounge_profile (player)```show the lounge profile of the selected player (you if player is not provided)",
+            value="```/lounge_profile (player)```show the lounge profile of the selected player (you if player is not provided) with MMR graph and detailed statistics",
             inline=False,
         )
 
@@ -70,13 +92,13 @@ class Help(commands.Cog):
             discord.Embed(
                 color=0x47E0FF,
                 title="War stats commands",
-                description="this section is about stats on played tracks in war, using <@177162177432649728> Quaxly will do stats on each tracks for you (each channel count as a different team and only people that have access to the channel can see the stats of the channel)",
+                description="this section is about stats on played tracks in war, using <@177162177432649728> (Toad) Quaxly will automatically track stats on each track for you (each channel counts as a different team and only people that have access to the channel can see the stats of the channel)",
             )
         )
 
         embeds[-1].add_field(
             name="war list",
-            value="```/war list (channel)```show the list of recorded war with it's id for the selected channel (if no channel is provided it will use the current one)",
+            value="```/war list (channel)```show the list of recorded wars with their IDs for the selected channel (if no channel is provided it will use the current one)",
             inline=False,
         )
         embeds[-1].add_field(
@@ -86,7 +108,7 @@ class Help(commands.Cog):
         )
         embeds[-1].add_field(
             name="war stats",
-            value="```/war stats (channel) (minimum) (track)```show the stats for each track from best to worst in the selected channel (if no channel is provided it will use the current one), minimum is the minimum time a track need to be played to count in the stats it default to 1, track is an option to view stats from one track only",
+            value="```/war stats (channel) (minimum) (track) (team)```show the stats for each track from best to worst in the selected channel (if no channel is provided it will use the current one), minimum is the minimum times a track needs to be played to count in the stats (default to 1), track is an option to view stats from one track only, team lets you filter by a specific team tag",
             inline=False,
         )
 
@@ -94,29 +116,23 @@ class Help(commands.Cog):
             discord.Embed(
                 color=0x47E0FF,
                 title="War bot commands",
-                description="this is a war bot implementation like sokuji",
+                description="this is a war bot implementation like sokuji with overlay support",
             )
         )
 
         embeds[-1].add_field(
             name="war start",
-            value="```/war start tag enemy_tag```start a war with selected teams",
+            value="```/war start tag enemy_tag```start a war with selected teams, provides an overlay link for streaming",
             inline=False,
         )
         embeds[-1].add_field(
             name="war system",
-            value="**1:** you are supposed to type the map abbreviation in the war channel when it gets picked\n\n**2:** type score all attached to each other in order (exemple: `134568`) to count a race\n**warning** bottom spots are added automatically so you never have to type 12 for exemple\n`-` is a range and if at the start can be used to specify the top spots (exemple: `-379` would be top3 7 9 and 12)\n\n**3:** misstyped something? Just type `back` and it will erase the last race\n\n**4:** want to add a track afterward? You can type `race <nb> <track>` to change it (example: `race 7 bdd`)",
+            value="**1:** you are supposed to type the map abbreviation in the war channel when it gets picked\n\n**2:** type score all attached to each other in order (example: `134568`) to count a race\n**warning** bottom spots are added automatically so you never have to type 12 for example\n`-` is a range and if at the start can be used to specify the top spots (example: `-379` would be top3 7 9 and 12)\n\n**3:** mistyped something? Just type `back` and it will erase the last race\n\n**4:** want to add a track afterward? You can type `race <nb> <track>` to change it (example: `race 7 bdd`)\n\n**5:** use `/war edit_race` to modify positions for a specific race\n\n**6:** use `/war track` to set the upcoming track before the race starts",
             inline=False,
         )
         embeds[-1].add_field(
             name="war stop",
-            value="```/war stop```stop the current war, you don't really have to type this if you do not usually type in the channel, war resets automatically if you start a new one and timeout after 3 hours",
-            inline=False,
-        )
-
-        embeds[-1].add_field(
-            name="this section is very new",
-            value="if you need more information or my assistance my contact is on the last page",
+            value="```/war stop```stop the current war, you don't really have to type this if you don't usually type in the channel, wars reset automatically if you start a new one and timeout after some time",
             inline=False,
         )
 
@@ -124,15 +140,15 @@ class Help(commands.Cog):
 
         embeds[-1].add_field(
             name="tracks",
-            value="```/tracks```show a message with all the cup in the game as button, pressing a button will show you the track name to use for the 4 tracks of the selected cup",
+            value="```/tracks (game)```show a message with all the cups in the selected game as buttons (MK8DX or Mario Kart World), pressing a button will show you the track name to use for the 4 tracks of the selected cup. For Mario Kart World it shows a simple list of all tracks.",
         )
         embeds[-1].add_field(
             name="debug",
-            value="```/debug```show the bot debug info",
+            value="```/debug```show the bot debug info including API response times",
         )
         embeds[-1].add_field(
-            name="lineup",
-            value="```/lineup players time host enemy_tag tag```this command help to make a lineup ping with useful information and formating fast (it will ping users in the lineup with information)\n- `players`: you need to ping with @ the list of players (6 maximum)\n- `time`: the time this war is scheduled for (this now support unix timestamp like this `<t:1691154240:t>` that display as this <t:1691154240:t> with everyone local time)\n- `host`: you can set an FC or ping with an @ the host and the bot will display who it is and the fc, if it can't it will display your original input\n- `tags`: just the team names nothing special",
+            name="lineup (DEPRECATED)",
+            value="```/lineup players time host enemy_tag tag```⚠️ **This command is deprecated and will be removed in a future update.** It is no longer maintained and may not work properly. Please use alternative methods for creating lineups.",
             inline=False,
         )
         embeds[-1].add_field(

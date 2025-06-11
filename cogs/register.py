@@ -1,42 +1,55 @@
 import discord
 
 from discord import app_commands
-from db import db
+from discord.ext import commands
+from database import get_db_session
+from models import User, UserServer
 
 
 @app_commands.command()
 @app_commands.guild_only()
 async def register(interaction: discord.Interaction):
-    """register yourself in the timetrial database of the server"""
+    """Register yourself in the timetrial database of the server"""
 
     embed = discord.Embed(color=0x47E0FF, description="")
-
     player = interaction.user
-
     embed.set_thumbnail(url=player.avatar)
 
-    user = await db.Users.find_one({"discordId": player.id})
+    with get_db_session() as session:
+        user = session.query(User).filter(User.discord_id == player.id).first()
 
-    if not user:
-        await db.Users.insert_one(
-            {"discordId": player.id, "servers": [{"serverId": interaction.guild_id}]}
-        )
+        if not user:
+            user = User(discord_id=player.id)
+            session.add(user)
+            session.flush()
 
-    else:
-        if interaction.guild_id not in [
-            server["serverId"] for server in user["servers"]
-        ]:
-            await db.Users.update_one(
-                {"discordId": player.id},
-                {"$push": {"servers": {"serverId": interaction.guild_id}}},
-            )
+            user_server = UserServer(user_id=user.id, server_id=interaction.guild_id)
+            session.add(user_server)
+            session.commit()
+
         else:
-            return await interaction.response.send_message(
-                content="player is already in the list", ephemeral=True
+            user_server = (
+                session.query(UserServer)
+                .filter(
+                    UserServer.user_id == user.id,
+                    UserServer.server_id == interaction.guild_id,
+                )
+                .first()
             )
 
-    embed.title = "registered !"
-    embed.description = f"{player.display_name} has been added to the list"
+            if user_server:
+                return await interaction.response.send_message(
+                    content="You are already registered in this server", ephemeral=True
+                )
+
+            user_server = UserServer(user_id=user.id, server_id=interaction.guild_id)
+            session.add(user_server)
+            session.commit()
+
+    embed.title = "Registered!"
+    embed.description = (
+        f"{player.display_name} has been added to the server's time trial database"
+    )
     await interaction.response.send_message(embed=embed)
 
 
@@ -44,32 +57,44 @@ async def register(interaction: discord.Interaction):
 @app_commands.guild_only()
 @app_commands.describe(player="the player you want to remove")
 async def remove_user(interaction: discord.Interaction, player: discord.Member = None):
-    """remove a user from the timetrial database of the server"""
+    """Remove a user from the timetrial database of the server"""
 
     embed = discord.Embed(color=0x47E0FF, description="")
-
     player = player or interaction.user
-
     embed.set_thumbnail(url=player.avatar)
 
-    user = await db.Users.find_one({"discordId": player.id})
+    with get_db_session() as session:
+        user = session.query(User).filter(User.discord_id == player.id).first()
 
-    if not user or interaction.guild_id not in [
-        server["serverId"] for server in user["servers"]
-    ]:
-        return await interaction.response.send_message(
-            content="player is not in the list", ephemeral=True
+        if not user:
+            return await interaction.response.send_message(
+                content="Player is not registered", ephemeral=True
+            )
+
+        user_server = (
+            session.query(UserServer)
+            .filter(
+                UserServer.user_id == user.id,
+                UserServer.server_id == interaction.guild_id,
+            )
+            .first()
         )
 
-    await db.Users.update_one(
-        {"discordId": player.id},
-        {"$pull": {"servers": {"serverId": interaction.guild_id}}},
+        if not user_server:
+            return await interaction.response.send_message(
+                content="Player is not registered in this server", ephemeral=True
+            )
+
+        session.delete(user_server)
+        session.commit()
+
+    embed.title = "Removed!"
+    embed.description = (
+        f"{player.display_name} has been removed from the server's time trial database"
     )
-    embed.title = "removed !"
-    embed.description = f"{player.display_name} has been removed from the list"
     return await interaction.response.send_message(embed=embed)
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot):
     bot.tree.add_command(register)
     bot.tree.add_command(remove_user)
