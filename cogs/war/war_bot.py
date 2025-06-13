@@ -295,12 +295,13 @@ class WarBot(Base):
             return
 
         war = self.active_war[message.channel.id]
-        positions = text_to_score(message.content)
-        diff = sum(_SCORE[position - 1] for position in positions) - 41
-        home_score = 41 + diff / 2
-        enemy_score = 41 - diff / 2
+        spots = text_to_score(message.content)
+        scored = sum(map(lambda r: _SCORE[r - 1], spots))
+        home_score = scored
+        enemy_score = 82 - scored
+        diff = home_score - enemy_score
 
-        war["spots"].append(positions)
+        war["spots"].append(spots)
         war["diff"].append(diff)
         war["tracks"].append(war["incoming_track"])
         war["home_score"].append(home_score)
@@ -319,7 +320,7 @@ class WarBot(Base):
                     home_score=home_score,
                     enemy_score=enemy_score,
                     score_diff=diff,
-                    positions=positions,
+                    positions=spots,
                 )
                 session.add(race)
 
