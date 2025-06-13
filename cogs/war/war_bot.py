@@ -11,7 +11,6 @@ from autocomplete import mkc_tag_autocomplete
 from database import get_db_session
 from models import WarEvent, Race, GAME_MK8DX
 from database import rs, r
-from utils import COLLATION
 
 
 _SCORE = (15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)

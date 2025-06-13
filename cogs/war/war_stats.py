@@ -4,15 +4,13 @@ import json
 from discord import app_commands
 from discord.ext import commands
 from datetime import UTC, datetime
-from utils import ConfirmButton, COLLATION
+from utils import ConfirmButton
 from statistics import mean
 from cogs.war.base import Base
 from autocomplete import mkc_tag_autocomplete, track_autocomplete
 from database import get_db_session
 from models import WarEvent, Race, GAME_MK8DX
 from database import rs, r
-
-import utils
 
 
 class WarStats(Base):
