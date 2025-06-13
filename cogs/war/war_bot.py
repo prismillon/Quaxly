@@ -10,7 +10,7 @@ from cogs.war.base import Base
 from autocomplete import mkc_tag_autocomplete
 from database import get_db_session
 from models import WarEvent, Race, GAME_MK8DX
-from database import rs, r  # Keep Redis imports for overlay functionality
+from database import rs, r
 from utils import COLLATION
 
 
@@ -114,7 +114,6 @@ class WarBot(Base):
         self.bot = bot
         self.active_war = {}
 
-        # Load cached wars from Redis (keep Redis for overlay functionality)
         cached_war = rs.keys("*")
 
         for war in cached_war:
@@ -145,10 +144,9 @@ class WarBot(Base):
 
         date = datetime.now(UTC)
 
-        # Create war event in PostgreSQL
         with get_db_session() as session:
             war_event = WarEvent(
-                game=GAME_MK8DX,  # Default to MK8DX for compatibility
+                game=GAME_MK8DX,
                 channel_id=interaction.channel.id,
                 date=date,
                 tag=tag,
@@ -158,7 +156,6 @@ class WarBot(Base):
             session.add(war_event)
             session.commit()
 
-            # Prepare data for Redis (for overlay functionality)
             war_data = {
                 "id": war_event.id,
                 "channel_id": interaction.channel.id,
@@ -175,7 +172,6 @@ class WarBot(Base):
 
             self.active_war[interaction.channel.id] = war_data
 
-            # Store in Redis for overlay
             await r.set(
                 interaction.channel.id,
                 json.dumps(war_data, default=str),
@@ -220,20 +216,17 @@ class WarBot(Base):
                 content="invalid spots format", ephemeral=True
             )
 
-        new_spots = text_to_score(spots)
-        war["spots"][race_nb - 1] = new_spots
-        new_diff = sum(_SCORE[spot - 1] for spot in new_spots) - 41
-        war["diff"][race_nb - 1] = new_diff
-        war["home_score"][race_nb - 1] = 41 + new_diff / 2
-        war["enemy_score"][race_nb - 1] = 41 - new_diff / 2
+        spots = text_to_score(spots)
+        scored = sum(map(lambda r: _SCORE[r - 1], spots))
+        war["spots"][race_nb - 1] = spots
+        war["home_score"][race_nb - 1] = scored
+        war["enemy_score"][race_nb - 1] = 82 - scored
+        war["diff"][race_nb - 1] = scored - (82 - scored)
 
-        # Update PostgreSQL
         with get_db_session() as session:
-            # Find the war event
             war_event = session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
 
             if war_event:
-                # Find the specific race
                 race = (
                     session.query(Race)
                     .filter(
@@ -243,13 +236,12 @@ class WarBot(Base):
                 )
 
                 if race:
-                    race.positions = new_spots
-                    race.score_diff = new_diff
-                    race.home_score = 41 + new_diff / 2
-                    race.enemy_score = 41 - new_diff / 2
+                    race.positions = spots
+                    race.score_diff = scored - (82 - scored)
+                    race.home_score = scored
+                    race.enemy_score = 82 - scored
                     session.commit()
 
-        # Update Redis for overlay
         await r.set(interaction.channel.id, json.dumps(war, default=str))
 
         embed = make_embed(war)
@@ -269,7 +261,6 @@ class WarBot(Base):
         war = self.active_war[interaction.channel.id]
         war["incoming_track"] = track
 
-        # Update PostgreSQL
         with get_db_session() as session:
             war_event = session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
 
@@ -277,7 +268,6 @@ class WarBot(Base):
                 war_event.incoming_track = track
                 session.commit()
 
-        # Update Redis for overlay
         await r.set(interaction.channel.id, json.dumps(war, default=str))
 
         if track:
@@ -318,12 +308,10 @@ class WarBot(Base):
         war["enemy_score"].append(enemy_score)
         war["incoming_track"] = None
 
-        # Update PostgreSQL
         with get_db_session() as session:
             war_event = session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
 
             if war_event:
-                # Create new race record
                 race = Race(
                     war_event_id=war_event.id,
                     game=war_event.game,
@@ -336,11 +324,9 @@ class WarBot(Base):
                 )
                 session.add(race)
 
-                # Clear incoming track
                 war_event.incoming_track = None
                 session.commit()
 
-        # Update Redis for overlay
         await r.set(message.channel.id, json.dumps(war, default=str))
 
         embed = make_embed(war)

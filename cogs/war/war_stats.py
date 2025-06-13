@@ -10,7 +10,7 @@ from cogs.war.base import Base
 from autocomplete import mkc_tag_autocomplete, track_autocomplete
 from database import get_db_session
 from models import WarEvent, Race, GAME_MK8DX
-from database import rs, r  # Keep Redis imports for overlay functionality
+from database import rs, r
 
 import utils
 
@@ -20,7 +20,6 @@ class WarStats(Base):
         self.bot = bot
         self.active_toad_war = {}
 
-        # Load cached wars from Redis (keep Redis for overlay functionality)
         cached_war = rs.keys("*")
 
         for war in cached_war:
@@ -42,7 +41,6 @@ class WarStats(Base):
             enemy_tag = extract_tag[1]
             date = datetime.now(UTC)
 
-            # Create war event in PostgreSQL
             with get_db_session() as session:
                 war_event = WarEvent(
                     game=GAME_MK8DX,
@@ -54,7 +52,6 @@ class WarStats(Base):
                 session.add(war_event)
                 session.commit()
 
-                # Prepare data for Redis (for overlay functionality)
                 war_data = {
                     "id": war_event.id,
                     "channel_id": message.channel.id,
@@ -70,7 +67,6 @@ class WarStats(Base):
 
                 self.active_toad_war[message.channel.id] = war_data
 
-                # Store in Redis for overlay
                 await r.set(
                     message.channel.id,
                     json.dumps(war_data, default=str),
@@ -110,14 +106,12 @@ class WarStats(Base):
             war["home_score"].append(41 + int(diff) / 2)
             war["enemy_score"].append(41 - int(diff) / 2)
 
-            # Update PostgreSQL
             with get_db_session() as session:
                 war_event = (
                     session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
                 )
 
                 if war_event:
-                    # Create new race record
                     race = Race(
                         war_event_id=war_event.id,
                         game=war_event.game,
@@ -131,7 +125,6 @@ class WarStats(Base):
                     session.add(race)
                     session.commit()
 
-            # Update Redis for overlay
             await r.set(
                 message.channel.id,
                 json.dumps(war, default=str),
@@ -141,27 +134,23 @@ class WarStats(Base):
             race_id = int(race_data["title"].replace("Total Score after Race ", ""))
             war = self.active_toad_war[message.channel.id]
 
-            # Truncate data to the specified race
             war["spots"] = war["spots"][:race_id]
             war["diff"] = war["diff"][:race_id]
             war["tracks"] = war["tracks"][:race_id]
             war["home_score"] = war["home_score"][:race_id]
             war["enemy_score"] = war["enemy_score"][:race_id]
 
-            # Update PostgreSQL - remove races after the specified race
             with get_db_session() as session:
                 war_event = (
                     session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
                 )
 
                 if war_event:
-                    # Delete races after the specified race_id
                     session.query(Race).filter(
                         Race.war_event_id == war_event.id, Race.race_number > race_id
                     ).delete()
                     session.commit()
 
-            # Update Redis for overlay
             await r.set(
                 message.channel.id,
                 json.dumps(war, default=str),
@@ -188,7 +177,6 @@ class WarStats(Base):
         channel = channel or interaction.channel
 
         with get_db_session() as session:
-            # Build query based on parameters
             query = session.query(WarEvent).filter(WarEvent.channel_id == channel.id)
 
             if team:
@@ -207,7 +195,6 @@ class WarStats(Base):
                     ephemeral=True,
                 )
 
-            # Get race data
             track_stats = {}
             for war_event in war_events:
                 for race in war_event.races:
@@ -217,7 +204,6 @@ class WarStats(Base):
                         track_stats[race.track_name] = []
                     track_stats[race.track_name].append(race.score_diff)
 
-            # Filter by minimum occurrences
             track_stats = dict(
                 filter(lambda x: len(x[1]) >= minimum, track_stats.items())
             )
@@ -258,7 +244,6 @@ class WarStats(Base):
             title=f"Statistics in {channel.name}",
         )
 
-        # Sort by average (best first)
         sorted_stats = sorted(
             final_stats.items(), key=lambda x: x[1]["average"], reverse=True
         )
@@ -304,7 +289,6 @@ class WarStats(Base):
         )
 
         for war_event in war_events:
-            # Calculate total scores
             total_home_score = sum(race.home_score for race in war_event.races)
             total_enemy_score = sum(race.enemy_score for race in war_event.races)
             race_count = len(war_event.races)
@@ -375,13 +359,12 @@ class WarStats(Base):
 
         if view.answer:
             with get_db_session() as session:
-                # Re-fetch the war event in this session
                 war_event = (
                     session.query(WarEvent).filter(WarEvent.id == war_id_int).first()
                 )
 
                 if war_event:
-                    session.delete(war_event)  # Cascades to races
+                    session.delete(war_event)
                     session.commit()
 
                     embed.title = "War Deleted"
