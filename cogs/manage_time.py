@@ -8,7 +8,7 @@ from discord.app_commands import Choice
 from database import get_db_session
 from models import Track, TimeRecord, User, Cup, GAME_MKWORLD, UserServer
 from game_utils import get_game_tracks
-from utils import ConfirmButton, COLLATION
+from utils import ConfirmButton
 
 
 def time_diff(new_time, previous_time):

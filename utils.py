@@ -13,11 +13,6 @@ statChoices = [
     Choice(name="events", value="eventsPlayed"),
 ]
 
-COLLATION = {
-    "locale": "en",
-    "strength": 1,
-}
-
 
 class LoungeData:
     def __init__(self):
