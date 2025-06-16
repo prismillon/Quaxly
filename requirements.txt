@@ -1,4 +1,4 @@
-aiohttp==3.12.12
+aiohttp==3.12.13
 discord.py==2.5.2
 matplotlib==3.10.1
 numpy==2.2.4
