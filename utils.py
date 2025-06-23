@@ -109,7 +109,7 @@ class MkcData:
 
 class LoungeSeason:
     def __init__(self):
-        self._data = None
+        self._data = {}
         self.base_url = "https://lounge.mkcentral.com/api"
 
     async def lounge_season(self, game: str = "mkworld"):
@@ -119,10 +119,10 @@ class LoungeSeason:
             ) as response:
                 if response.status == 200:
                     _data_full = await response.json()
-                    self._data = _data_full.get("season", 0)
+                    self._data[game] = _data_full.get("season", 0)
 
-    def data(self):
-        return self._data
+    def data(self, game: str = "mkworld"):
+        return self._data.get(game)
 
 
 class Paginator(discord.ui.View):

@@ -103,7 +103,7 @@ async def lounge_profile(
     embed = discord.Embed(color=0x47E0FF)
     game_value = game.value if game else "mkworld"
 
-    if lounge_season.data() is not None:
+    if lounge_season.data(game_value) is None:
         return await interaction.response.send_message(
             content="bot not ready yet please wait 1 minute", ephemeral=True
         )
@@ -127,7 +127,7 @@ async def lounge_profile(
     season_played = []
     country_name = ""
     name_history_string = ""
-    for i in range(4, lounge_season.data() + 1):
+    for i in range(4, lounge_season.data(game_value) + 1):
         seasons[i] = {}
 
     async with aiohttp.ClientSession() as session:
