@@ -7,12 +7,14 @@ from discord import app_commands
 from discord.ext import commands
 
 
-async def get_host_string(host: str, interaction: discord.Interaction):
-    url = "https://www.mk8dx-lounge.com/api/player?"
+async def get_host_string(
+    host: str, interaction: discord.Interaction, game: str = "mkworld"
+):
+    base_url = "https://lounge.mkcentral.com/api/player/details?"
 
     if re.match("^([0-9]{4}-){2}[0-9]{4}$", host):
         async with aiohttp.ClientSession() as session:
-            async with session.get(f"{url}fc={host}") as response:
+            async with session.get(f"{base_url}fc={host}&game={game}") as response:
                 if response.status == 200:
                     json_data = await response.json()
                     if "discordId" in json_data:
@@ -23,8 +25,10 @@ async def get_host_string(host: str, interaction: discord.Interaction):
         and interaction.guild.get_member(int(re.findall("[0-9]+", host)[0])) is not None
     ):
         async with aiohttp.ClientSession() as session:
-            host = re.findall("[0-9]+", host)[0]
-            async with session.get(f"{url}discordid={host}") as response:
+            host_id = re.findall("[0-9]+", host)[0]
+            async with session.get(
+                f"{base_url}discordId={host_id}&game={game}"
+            ) as response:
                 if response.status == 200:
                     json_data = await response.json()
                     if "discordId" in json_data and "switchFc" in json_data:

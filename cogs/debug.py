@@ -22,7 +22,7 @@ class Debug(commands.Cog):
         async with aiohttp.ClientSession() as session:
             lounge_debug = datetime.now()
             async with session.get(
-                "https://www.mk8dx-lounge.com/api/player?discordId=169497208406802432"
+                "https://lounge.mkcentral.com/api/player?discordId=169497208406802432"
             ) as response:
                 if response.status == 200:
                     embed.add_field(
@@ -33,7 +33,7 @@ class Debug(commands.Cog):
                     embed.add_field(name="lounge API", value="no response")
             mkc_debug = datetime.now()
             async with session.get(
-                "https://www.mariokartcentral.com/mkc/api/registry/players/1", ssl=False
+                "https://mkcentral.com/api/registry/players/1", ssl=False
             ) as response:
                 if response.status == 200:
                     embed.add_field(
