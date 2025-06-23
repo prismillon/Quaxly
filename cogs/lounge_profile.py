@@ -8,7 +8,7 @@ from io import BytesIO
 from discord import app_commands
 from discord.ext import commands
 from autocomplete import name_autocomplete
-from utils import lounge_season, lounge_data
+from utils import lounge_season, lounge_data, gameChoices
 
 
 def mmr_to_rank(mmr):
@@ -88,11 +88,20 @@ def create_plot(base, history):
 @app_commands.command()
 @app_commands.autocomplete(player=name_autocomplete)
 @app_commands.allowed_installs(guilds=True, users=True)
-@app_commands.describe(player="The player you want to check lounge profile from")
-async def lounge_profile(interaction: discord.Interaction, player: str = None):
+@app_commands.choices(game=gameChoices)
+@app_commands.describe(
+    player="The player you want to check lounge profile from",
+    game="The game to check profile for",
+)
+async def lounge_profile(
+    interaction: discord.Interaction,
+    player: str = None,
+    game: discord.app_commands.Choice[str] = None,
+):
     """lounge profile of a player"""
 
     embed = discord.Embed(color=0x47E0FF)
+    game_value = game.value if game else "mkworld"
 
     if not lounge_season.data():
         return await interaction.response.send_message(
@@ -100,9 +109,8 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
         )
 
     if not player:
-        lounge_user = discord.utils.find(
-            lambda player: player["discordId"] == str(interaction.user.id),
-            lounge_data.data(),
+        lounge_user = await lounge_data.find_player_by_discord_id(
+            interaction.user.id, game_value
         )
         if not lounge_user:
             return await interaction.response.send_message(
@@ -125,10 +133,7 @@ async def lounge_profile(interaction: discord.Interaction, player: str = None):
     async with aiohttp.ClientSession() as session:
         for season in seasons:
             async with session.get(
-                "https://www.mk8dx-lounge.com/api/player/details?name="
-                + player
-                + "&season="
-                + str(season)
+                f"https://lounge.mkcentral.com/api/player/details?name={player}&game={game_value}&season={season}"
             ) as response:
                 if response.status == 200:
                     data = await response.json()

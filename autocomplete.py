@@ -53,12 +53,17 @@ async def name_autocomplete(
     interaction: discord.Interaction, current: str
 ) -> List[Choice[str]]:
     """Lounge player name autocomplete"""
+    if not current:
+        return []
+
+    players = await lounge_data.search_players(search=current, limit=25)
+    if not players:
+        return []
+
     return [
         Choice(name=player["name"], value=player["name"])
-        for player in filter(
-            lambda player: player["name"].lower().startswith(current.lower()),
-            lounge_data.data(),
-        )
+        for player in players
+        if player.get("name", "").lower().startswith(current.lower())
     ][:25]
 
 
@@ -66,12 +71,17 @@ async def mkc_team_autocomplete(
     interaction: discord.Interaction, current: str
 ) -> List[Choice[str]]:
     """MKC team name autocomplete"""
+    if not current:
+        return []
+
+    teams = await mkc_data.search_teams(search=current, limit=25)
+    if not teams:
+        return []
+
     return [
-        Choice(name=team["team_name"], value=str(team["team_name"]))
-        for team in filter(
-            lambda team: team["team_name"].lower().startswith(current.lower()),
-            mkc_data.data(),
-        )
+        Choice(name=team["name"], value=team["name"])
+        for team in teams
+        if team.get("name", "").lower().startswith(current.lower())
     ][:25]
 
 
@@ -79,12 +89,17 @@ async def mkc_tag_autocomplete(
     interaction: discord.Interaction, current: str
 ) -> List[Choice[str]]:
     """MKC team tag autocomplete"""
+    if not current:
+        return []
+
+    teams = await mkc_data.search_teams(search=current, limit=25)
+    if not teams:
+        return []
+
     return [
-        Choice(name=team["team_name"], value=str(team["team_tag"]))
-        for team in filter(
-            lambda team: team["team_name"].lower().startswith(current.lower()),
-            mkc_data.data(),
-        )
+        Choice(name=team["name"], value=team["tag"])
+        for team in teams
+        if team.get("name", "").lower().startswith(current.lower()) and team.get("tag")
     ][:25]
 
 

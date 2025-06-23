@@ -9,24 +9,25 @@ import re
 from autocomplete import mkc_team_autocomplete
 from discord import app_commands
 from discord.ext import commands
-from utils import statChoices, mkc_data, lounge_season, lounge_data
+from utils import statChoices, gameChoices, mkc_data, lounge_season, lounge_data
 from discord.app_commands import Choice, Range
 
 MAX_FIELDS = 21
 MAX_EMBEDS = 10
 LOUNGE_API = "https://lounge.mkcentral.com/api"
-MKC_API = "https://www.mariokartcentral.com/mkc/api"
 
 
 async def check_for_none(data: list) -> bool:
     return any(item is not None for item in data)
 
 
-async def id_to_stat(discord_id: int, season: Optional[int] = None):
+async def id_to_stat(
+    discord_id: int, season: Optional[int] = None, game: str = "mkworld"
+):
     season = f"&season={season}" if season else ""
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            f"{LOUNGE_API}/player/details?discordId={discord_id}{season}"
+            f"{LOUNGE_API}/player/details?discordId={discord_id}&game={game}{season}"
         ) as response:
             if response.status == 200:
                 user_data = await response.json()
@@ -39,23 +40,20 @@ async def id_to_stat(discord_id: int, season: Optional[int] = None):
                 return user_data
 
 
-async def fc_to_stat(fc: str, season: Optional[int] = None):
+async def fc_to_stat(fc: str, season: Optional[int] = None, game: str = "mkworld"):
     season = f"&season={season}" if season else ""
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            f"{LOUNGE_API}/player/details?fc={fc}{season}"
+            f"{LOUNGE_API}/player/details?fc={fc}&game={game}{season}"
         ) as response:
             if response.status == 200:
                 user_data = await response.json()
                 if "mmr" not in user_data:
                     return None
-                player = discord.utils.find(
-                    lambda p: p["mkcId"] == user_data["mkcId"],
-                    lounge_data.data(),
-                )
+                # Discord ID should be in the response from the new API
+                user_data["discordId"] = user_data.get("discordId")
                 user_data.setdefault("eventsPlayed", 0)
                 user_data.setdefault("maxMmr", user_data["mmr"])
-                user_data["discordId"] = player["discordId"] if player else None
                 user_data["id"] = user_data["playerId"]
                 return user_data
 
@@ -72,7 +70,7 @@ async def create_stat_embeds(
             embeds.append(discord.Embed())
         embeds[-1].add_field(
             name=user["name"],
-            value=f"<@{user['discordId']}> ([{user[stat_field]}](https://www.mk8dx-lounge.com/PlayerDetails/{user['id']}))",
+            value=f"<@{user['discordId']}> ([{user[stat_field]}](https://lounge.mkcentral.com/PlayerDetails/{user['id']}))",
         )
 
     if len(embeds) > MAX_EMBEDS:
@@ -91,24 +89,30 @@ async def create_stat_embeds(
 @app_commands.command()
 @app_commands.guild_only()
 @app_commands.allowed_installs(guilds=True, users=True)
-@app_commands.choices(stat=statChoices)
+@app_commands.choices(stat=statChoices, game=gameChoices)
 @app_commands.describe(
     role="the role you want to check stats from",
     stat="the type of stats",
     season="the season you want this info from",
+    game="the game to check stats for",
 )
 async def role_stats(
     interaction: discord.Interaction,
     role: discord.Role,
     stat: Choice[str] = None,
     season: Optional[int] = None,
+    game: Choice[str] = None,
 ):
     """Check stats of a discord role"""
     await interaction.response.defer()
     stat = stat or statChoices[0]
+    game_value = game.value if game else "mkworld"
 
     try:
-        member_tasks = [id_to_stat(member.id, season=season) for member in role.members]
+        member_tasks = [
+            id_to_stat(member.id, season=season, game=game_value)
+            for member in role.members
+        ]
         user_data = sorted(
             list(filter(None, await asyncio.gather(*member_tasks))),
             key=lambda k: k[stat.value],
@@ -141,34 +145,28 @@ async def role_stats(
 @app_commands.command()
 @app_commands.autocomplete(team=mkc_team_autocomplete)
 @app_commands.allowed_installs(guilds=True, users=True)
-@app_commands.choices(stat=statChoices)
+@app_commands.choices(stat=statChoices, game=gameChoices)
 @app_commands.describe(
     team="the team you want to check stats from",
     stat="the type of stats",
     season="the season you want this info from",
+    game="the game to check stats for",
 )
 async def mkc_stats(
     interaction: discord.Interaction,
     team: str,
     stat: Choice[str] = None,
     season: Optional[int] = None,
+    game: Choice[str] = None,
 ):
-    """Check stats of a mkc 150cc team"""
+    """Check stats of a Mario Kart Central team"""
     season = season or lounge_season.data()
     stat = stat or statChoices[0]
-
-    if not mkc_data.data():
-        await interaction.response.send_message(
-            content="mario kart central api is not loaded yet, please retry in a few seconds",
-            ephemeral=True,
-        )
-        return
+    game_value = game.value if game else "mkworld"
 
     await interaction.response.defer()
 
-    team_info = discord.utils.find(
-        lambda t: t["team_name"].lower() == team.lower(), mkc_data.data()
-    )
+    team_info = await mkc_data.find_team_by_name(team)
 
     if not team_info:
         await interaction.followup.send(
@@ -179,27 +177,65 @@ async def mkc_stats(
         )
         return
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-            f"{MKC_API}/registry/teams/{team_info['team_id']}", ssl=False
-        ) as response:
-            if response.status == 200:
-                team_data = await response.json()
+    team_data = await mkc_data.get_team_details(team_info["id"])
 
-    if not team_data or not team_data["rosters"]["150cc"]:
+    if not team_data:
         await interaction.followup.send(
             embed=discord.Embed(
                 title="team not found",
-                description="could not find the team you typed in the mkc 150cc database",
+                description="could not get team details from mkc database",
+            )
+        )
+        return
+
+    target_roster = None
+    for roster in team_data.get("rosters", []):
+        if roster.get("game") == game_value:
+            if game_value == "mk8dx":
+                if roster.get("mode") == "150cc":
+                    target_roster = roster
+                    break
+            else:
+                if roster.get("is_active", True):
+                    target_roster = roster
+                    break
+
+    if not target_roster and game_value == "mk8dx":
+        for roster in team_data.get("rosters", []):
+            if roster.get("game") == game_value:
+                target_roster = roster
+                break
+
+    if not target_roster or not target_roster.get("players"):
+        game_name = (
+            "Mario Kart 8 Deluxe" if game_value == "mk8dx" else "Mario Kart World"
+        )
+        await interaction.followup.send(
+            embed=discord.Embed(
+                title="team not found",
+                description=f"could not find an active {game_name} roster for this team",
             )
         )
         return
 
     try:
-        member_tasks = [
-            fc_to_stat(member["custom_field"], season=season)
-            for member in team_data["rosters"]["150cc"]["members"]
-        ]
+        member_tasks = []
+        for player in target_roster["players"]:
+            fc = (
+                player.get("friend_code") or player.get("fc") or player.get("switch_fc")
+            )
+            if fc:
+                member_tasks.append(fc_to_stat(fc, season=season, game=game_value))
+
+        if not member_tasks:
+            await interaction.followup.send(
+                embed=discord.Embed(
+                    title="no friend codes found",
+                    description="could not find any friend codes for this team",
+                )
+            )
+            return
+
         user_data = sorted(
             list(filter(None, await asyncio.gather(*member_tasks))),
             key=lambda k: k[stat.value],
@@ -215,11 +251,12 @@ async def mkc_stats(
             )
             return
 
-        thumbnail = (
-            f"https://www.mariokartcentral.com/mkc/storage/{team_data['team_logo']}"
-        )
+        thumbnail = None
+        if team_data.get("logo"):
+            thumbnail = f"https://mkcentral.com{team_data['logo']}"
+
         embeds = await create_stat_embeds(
-            f"{team_info['team_name']} average {stat.name}",
+            f"{team_info['name']} average {stat.name}",
             user_data,
             stat.value,
             thumbnail,
@@ -237,12 +274,13 @@ async def mkc_stats(
 
 @app_commands.command()
 @app_commands.allowed_installs(guilds=True, users=True)
-@app_commands.choices(stat=statChoices)
+@app_commands.choices(stat=statChoices, game=gameChoices)
 @app_commands.describe(
     room="message with the list of fc",
     team_size="the size of the team for this event",
     stat="the type of stats",
     season="the season you want this info from",
+    game="the game to check stats for",
 )
 async def fc_stats(
     interaction: discord.Interaction,
@@ -250,6 +288,7 @@ async def fc_stats(
     team_size: Range[int, 1, 6] = None,
     stat: Choice[str] = None,
     season: Optional[int] = None,
+    game: Choice[str] = None,
 ):
     """Get stats from a room with friend codes"""
     friend_codes = re.findall(r"\d{4}-\d{4}-\d{4}", room)
@@ -277,8 +316,11 @@ async def fc_stats(
     await interaction.response.defer()
     season = season or lounge_season.data()
     stat = stat or statChoices[0]
+    game_value = game.value if game else "mkworld"
 
-    players = await asyncio.gather(*[fc_to_stat(fc, season) for fc in friend_codes])
+    players = await asyncio.gather(
+        *[fc_to_stat(fc, season, game_value) for fc in friend_codes]
+    )
     valid_players = list(filter(None, players))
 
     if not valid_players:
@@ -308,7 +350,7 @@ async def fc_stats(
             value = ""
             for member in team:
                 if member:
-                    value += f"[{member['name']}](https://www.mk8dx-lounge.com/PlayerDetails/{member['id']}): {member[stat.value]}\n"
+                    value += f"[{member['name']}](https://lounge.mkcentral.com/PlayerDetails/{member['id']}): {member[stat.value]}\n"
                 else:
                     value += "not in lounge\n"
 
@@ -321,7 +363,7 @@ async def fc_stats(
 
         value = ""
         for player in sorted_players:
-            value += f"[{player['name']}](https://www.mk8dx-lounge.com/PlayerDetails/{player['id']}): {player[stat.value]}\n"
+            value += f"[{player['name']}](https://lounge.mkcentral.com/PlayerDetails/{player['id']}): {player[stat.value]}\n"
 
         if value:
             embed.description = value

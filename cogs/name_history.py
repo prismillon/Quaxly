@@ -5,20 +5,29 @@ import re
 from discord import app_commands
 from autocomplete import name_autocomplete
 from datetime import datetime, timedelta
-from utils import lounge_data
+from utils import lounge_data, gameChoices
 
 
 @app_commands.command()
 @app_commands.allowed_installs(guilds=True, users=True)
 @app_commands.autocomplete(player=name_autocomplete)
-@app_commands.describe(player="The player you want to check lounge name history from")
-async def name_history(interaction: discord.Interaction, player: str = None):
+@app_commands.choices(game=gameChoices)
+@app_commands.describe(
+    player="The player you want to check lounge name history from",
+    game="The game to check name history for",
+)
+async def name_history(
+    interaction: discord.Interaction,
+    player: str = None,
+    game: discord.app_commands.Choice[str] = None,
+):
     """lounge name history of a player"""
 
+    game_value = game.value if game else "mkworld"
+
     if not player:
-        lounge_user = discord.utils.find(
-            lambda player: player["discordId"] == str(interaction.user.id),
-            lounge_data.data(),
+        lounge_user = await lounge_data.find_player_by_discord_id(
+            interaction.user.id, game_value
         )
         if not lounge_user:
             return await interaction.response.send_message(
@@ -32,7 +41,7 @@ async def name_history(interaction: discord.Interaction, player: str = None):
 
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            "https://www.mk8dx-lounge.com/api/player/details?name=" + player
+            f"https://lounge.mkcentral.com/api/player/details?name={player}&game={game_value}"
         ) as response:
             if response.status == 200:
                 data = await response.json()
