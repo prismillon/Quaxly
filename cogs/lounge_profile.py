@@ -103,7 +103,7 @@ async def lounge_profile(
     embed = discord.Embed(color=0x47E0FF)
     game_value = game.value if game else "mkworld"
 
-    if not lounge_season.data():
+    if lounge_season.data() is not None:
         return await interaction.response.send_message(
             content="bot not ready yet please wait 1 minute", ephemeral=True
         )
