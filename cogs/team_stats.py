@@ -50,7 +50,6 @@ async def fc_to_stat(fc: str, season: Optional[int] = None, game: str = "mkworld
                 user_data = await response.json()
                 if "mmr" not in user_data:
                     return None
-                # Discord ID should be in the response from the new API
                 user_data["discordId"] = user_data.get("discordId")
                 user_data.setdefault("eventsPlayed", 0)
                 user_data.setdefault("maxMmr", user_data["mmr"])
@@ -160,9 +159,9 @@ async def mkc_stats(
     game: Choice[str] = None,
 ):
     """Check stats of a Mario Kart Central team"""
-    season = season or lounge_season.data()
-    stat = stat or statChoices[0]
     game_value = game.value if game else "mkworld"
+    season = season or lounge_season.data(game_value)
+    stat = stat or statChoices[0]
 
     await interaction.response.defer()
 
@@ -314,9 +313,9 @@ async def fc_stats(
             return
 
     await interaction.response.defer()
-    season = season or lounge_season.data()
-    stat = stat or statChoices[0]
     game_value = game.value if game else "mkworld"
+    season = season or lounge_season.data(game_value)
+    stat = stat or statChoices[0]
 
     players = await asyncio.gather(
         *[fc_to_stat(fc, season, game_value) for fc in friend_codes]

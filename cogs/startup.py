@@ -11,7 +11,8 @@ class Startup(commands.Cog):
 
     @tasks.loop(minutes=10)
     async def api_list(self):
-        await lounge_season.lounge_season()
+        await lounge_season.lounge_season("mkworld")
+        await lounge_season.lounge_season("mk8dx")
         test_player = await lounge_data.find_player_by_discord_id(
             169497208406802432, "mkworld"
         )
