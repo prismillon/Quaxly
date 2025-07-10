@@ -291,10 +291,29 @@ class WarBot(Base):
         if message.channel.id not in self.active_war:
             return
 
+        war = self.active_war[message.channel.id]
+
+        if message.content.lower() == "back":
+            race_id = len(war["spots"])
+            war["spots"] = war["spots"][: race_id - 1]
+            war["diff"] = war["diff"][: race_id - 1]
+            war["tracks"] = war["tracks"][: race_id - 1]
+            war["home_score"] = war["home_score"][: race_id - 1]
+            war["enemy_score"] = war["enemy_score"][: race_id - 1]
+            self.active_war[message.channel.id] = war
+            with get_db_session() as session:
+                await session.query(Race).filter(
+                    Race.war_event_id == war["id"] and Race.race_number == race_id
+                ).delete()
+            await r.set(
+                message.channel.id,
+                json.dumps(war, default=str),
+            )
+            return await message.reply(embed=make_embed(war), mention_author=False)
+
         if not re.fullmatch("^((?!--)[0-9+-])+$", message.content):
             return
 
-        war = self.active_war[message.channel.id]
         spots = text_to_score(message.content)
         scored = sum(map(lambda r: _SCORE[r - 1], spots))
         home_score = scored
