@@ -52,7 +52,7 @@ def get_track_by_name(session: Session, game: str, track_name: str) -> Optional[
     game = validate_game(game)
     return (
         session.query(Track)
-        .filter(Track.game == game, Track.track_name == track_name)
+        .filter(Track.game == game, Track.track_name.ilike(track_name))
         .first()
     )
 

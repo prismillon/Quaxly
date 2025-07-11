@@ -5,13 +5,14 @@ import re
 from datetime import datetime, timedelta, UTC
 from discord.ext import commands, tasks
 from discord import app_commands
-from discord.app_commands import Range
+from discord.app_commands import Range, Choice
 from cogs.war.base import Base
 from autocomplete import mkc_tag_autocomplete
 from database import get_db_session
 from models import WarEvent, Race, GAME_MK8DX, GAME_MKWORLD
 from database import rs, r
 from game_utils import get_track_by_name
+from utils import gameChoices
 
 
 _SCORE = (15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
@@ -128,13 +129,20 @@ class WarBot(Base):
     @app_commands.command(name="start")
     @app_commands.guild_only()
     @app_commands.autocomplete(tag=mkc_tag_autocomplete, enemy_tag=mkc_tag_autocomplete)
+    @app_commands.choices(game=gameChoices)
     @app_commands.describe(
         tag="the tag of your team", enemy_tag="the tag of the enemy team"
     )
     async def warstart(
-        self, interaction: discord.Interaction, tag: str, enemy_tag: str
+        self,
+        interaction: discord.Interaction,
+        tag: str,
+        enemy_tag: str,
+        game: Choice[str] = None,
     ):
         """start a war in the channel"""
+
+        game_value = game.value if game else "mkworld"
 
         if not interaction.channel.permissions_for(interaction.guild.me).send_messages:
             return await interaction.response.send_message(
@@ -146,7 +154,7 @@ class WarBot(Base):
 
         with get_db_session() as session:
             war_event = WarEvent(
-                game=GAME_MK8DX,
+                game=game_value,
                 channel_id=interaction.channel.id,
                 date=date,
                 tag=tag,
@@ -159,6 +167,7 @@ class WarBot(Base):
             war_data = {
                 "id": war_event.id,
                 "channel_id": interaction.channel.id,
+                "game": game_value,
                 "date": date.isoformat(),
                 "tag": tag,
                 "enemy_tag": enemy_tag,
@@ -247,86 +256,6 @@ class WarBot(Base):
         embed = make_embed(war)
         return await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="track")
-    @app_commands.guild_only()
-    @app_commands.describe(track="the track", race_nb="the race number to edit")
-    async def incoming_track(
-        self, interaction: discord.Interaction, track: str = None, race_nb: int = None
-    ):
-        """set or remove the next track, or edit a past race's track if race_nb is provided"""
-
-        if interaction.channel.id not in self.active_war:
-            return await interaction.response.send_message(
-                content="no active war", ephemeral=True
-            )
-
-        war = self.active_war[interaction.channel.id]
-
-        game = war.get("game")
-        if not game:
-            with get_db_session() as session:
-                war_event = (
-                    session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
-                )
-                if war_event:
-                    game = war_event.game
-                else:
-                    game = None
-        if track:
-            with get_db_session() as session:
-                track_obj = get_track_by_name(session, game, track)
-                if not track_obj:
-                    return await interaction.response.send_message(
-                        content=f"Track '{track}' not found for game '{game}'. Please use a valid track short name.",
-                        ephemeral=True,
-                    )
-
-        if race_nb:
-            if race_nb < 1 or race_nb > len(war["tracks"]):
-                return await interaction.response.send_message(
-                    content="invalid race number", ephemeral=True
-                )
-            war["tracks"][race_nb - 1] = track
-            with get_db_session() as session:
-                war_event = (
-                    session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
-                )
-                if war_event:
-                    race = (
-                        session.query(Race)
-                        .filter(
-                            Race.war_event_id == war_event.id,
-                            Race.race_number == race_nb,
-                        )
-                        .first()
-                    )
-                    if race:
-                        race.track_name = track
-                        session.commit()
-            await r.set(interaction.channel.id, json.dumps(war, default=str))
-            if track:
-                return await interaction.response.send_message(
-                    f"set track for race {race_nb}: `{track}`"
-                )
-            else:
-                return await interaction.response.send_message(
-                    f"removed track for race {race_nb}"
-                )
-        else:
-            war["incoming_track"] = track
-            with get_db_session() as session:
-                war_event = (
-                    session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
-                )
-                if war_event:
-                    war_event.incoming_track = track
-                    session.commit()
-            await r.set(interaction.channel.id, json.dumps(war, default=str))
-            if track:
-                return await interaction.response.send_message(f"next track: `{track}`")
-            else:
-                return await interaction.response.send_message("removed next track")
-
     @tasks.loop(minutes=1)
     async def remove_expired_war(self):
         expired_date = datetime.now(UTC) - timedelta(hours=6)
@@ -395,42 +324,53 @@ class WarBot(Base):
             )
             return await message.reply(embed=make_embed(war), mention_author=False)
 
-        if not re.fullmatch("^((?!--)[0-9+-])+$", message.content):
-            return
+        if re.fullmatch("^((?!--)[0-9+-])+$", message.content):
+            spots = text_to_score(message.content)
+            scored = sum(map(lambda r: _SCORE[r - 1], spots))
+            home_score = scored
+            enemy_score = 82 - scored
+            diff = home_score - enemy_score
 
-        spots = text_to_score(message.content)
-        scored = sum(map(lambda r: _SCORE[r - 1], spots))
-        home_score = scored
-        enemy_score = 82 - scored
-        diff = home_score - enemy_score
+            war["spots"].append(spots)
+            war["diff"].append(diff)
+            war["tracks"].append(war["incoming_track"])
+            war["home_score"].append(home_score)
+            war["enemy_score"].append(enemy_score)
+            war["incoming_track"] = None
 
-        war["spots"].append(spots)
-        war["diff"].append(diff)
-        war["tracks"].append(war["incoming_track"])
-        war["home_score"].append(home_score)
-        war["enemy_score"].append(enemy_score)
-        war["incoming_track"] = None
+            with get_db_session() as session:
+                war_event = (
+                    session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
+                )
+
+                if war_event:
+                    race = Race(
+                        war_event_id=war_event.id,
+                        game=war_event.game,
+                        race_number=len(war["spots"]),
+                        track_name=war["tracks"][-1],
+                        home_score=home_score,
+                        enemy_score=enemy_score,
+                        score_diff=diff,
+                        positions=spots,
+                    )
+                    session.add(race)
+
+                    war_event.incoming_track = None
+                    session.commit()
+
+            await r.set(message.channel.id, json.dumps(war, default=str))
+
+            embed = make_embed(war)
+            return await message.channel.send(embed=embed)
 
         with get_db_session() as session:
-            war_event = session.query(WarEvent).filter(WarEvent.id == war["id"]).first()
+            track = get_track_by_name(
+                session, war.get("game", GAME_MKWORLD), message.content
+            )
+            if not track:
+                return
 
-            if war_event:
-                race = Race(
-                    war_event_id=war_event.id,
-                    game=war_event.game,
-                    race_number=len(war["spots"]),
-                    track_name=war["tracks"][-1],
-                    home_score=home_score,
-                    enemy_score=enemy_score,
-                    score_diff=diff,
-                    positions=spots,
-                )
-                session.add(race)
-
-                war_event.incoming_track = None
-                session.commit()
-
-        await r.set(message.channel.id, json.dumps(war, default=str))
-
-        embed = make_embed(war)
-        return await message.channel.send(embed=embed)
+            war["incoming_track"] = track.track_name
+            self.active_war[message.channel.id] = war
+            await message.add_reaction("✅")
