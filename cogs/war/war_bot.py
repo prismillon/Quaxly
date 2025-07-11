@@ -285,7 +285,7 @@ class WarBot(Base):
                 )
             if not track:
                 return
-            war["tracks"][int(data[1]) - 1] = track["trackName"]
+            war["tracks"][int(data[1]) - 1] = track.track_name
             self.active_war[message.channel.id] = war
             with get_db_session() as session:
                 race = (
