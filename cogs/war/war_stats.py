@@ -3,8 +3,9 @@ import json
 
 from discord import app_commands
 from discord.ext import commands
+from discord.app_commands import Choice
 from datetime import UTC, datetime
-from utils import ConfirmButton
+from utils import ConfirmButton, gameChoices
 from statistics import mean
 from cogs.war.base import Base
 from autocomplete import mkc_tag_autocomplete, track_autocomplete
@@ -162,6 +163,7 @@ class WarStats(Base):
         track="the track you want to check stats from",
     )
     @app_commands.autocomplete(track=track_autocomplete, team=mkc_tag_autocomplete)
+    @app_commands.choices(game=gameChoices)
     async def stats(
         self,
         interaction: discord.Interaction,
@@ -169,13 +171,17 @@ class WarStats(Base):
         minimum: app_commands.Range[int, 1] = 1,
         track: str = None,
         team: str = None,
+        game: Choice[str] = None,
     ) -> None:
         """check race stats in the specified channel"""
 
         channel = channel or interaction.channel
+        game_value = game.value if game else "mkworld"
 
         with get_db_session() as session:
-            query = session.query(WarEvent).filter(WarEvent.channel_id == channel.id)
+            query = session.query(WarEvent).filter(
+                WarEvent.channel_id == channel.id & WarEvent.game == game_value
+            )
 
             if team:
                 query = query.filter(

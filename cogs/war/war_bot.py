@@ -9,7 +9,7 @@ from discord.app_commands import Range, Choice
 from cogs.war.base import Base
 from autocomplete import mkc_tag_autocomplete
 from database import get_db_session
-from models import WarEvent, Race, GAME_MK8DX, GAME_MKWORLD
+from models import WarEvent, Race, GAME_MKWORLD
 from database import rs, r
 from game_utils import get_track_by_name
 from utils import gameChoices
@@ -291,7 +291,7 @@ class WarBot(Base):
                 race = (
                     session.query(Race)
                     .filter(
-                        Race.war_event_id == war["id"] and Race.race_number == data[1]
+                        Race.war_event_id == war["id"] & Race.race_number == data[1]
                     )
                     .first()
                 )
@@ -314,7 +314,7 @@ class WarBot(Base):
 
             with get_db_session() as session:
                 session.query(Race).filter(
-                    Race.war_event_id == war["id"] and Race.race_number == race_id
+                    Race.war_event_id == war["id"] & Race.race_number == race_id
                 ).delete()
                 session.commit()
 
