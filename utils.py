@@ -34,20 +34,6 @@ class LoungeData:
                     return data.get("data", [])
                 return None
 
-    async def get_all_players(
-        self, game: str = "mkworld", season: int = 0
-    ) -> Optional[List[dict]]:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                f"{self.base_url}/player/leaderboard?game={game}&season={season}&limit=10000"
-            ) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    return [
-                        player for player in data.get("data", []) if player.get("id")
-                    ]
-                return None
-
     async def find_player_by_discord_id(
         self, discord_id: int, game: str = "mkworld"
     ) -> Optional[dict]:
