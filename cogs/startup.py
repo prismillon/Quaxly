@@ -1,6 +1,6 @@
 import discord
 
-from utils import lounge_data, mkc_data, lounge_season
+from utils import lounge_data, lounge_season
 from discord.ext import commands, tasks
 
 

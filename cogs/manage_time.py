@@ -6,9 +6,9 @@ from statistics import mean
 from discord import app_commands
 from discord.app_commands import Choice
 from database import get_db_session
-from models import Track, TimeRecord, User, Cup, GAME_MKWORLD, UserServer
+from models import Track, TimeRecord, User, GAME_MKWORLD, UserServer
 from game_utils import get_game_tracks
-from utils import ConfirmButton
+from utils import ConfirmButton, itemChoices
 
 
 def time_diff(new_time, previous_time):
@@ -105,12 +105,6 @@ async def time_autocomplete(
         return [app_commands.Choice(name=current, value=current)]
 
 
-item_choices = [
-    Choice(name="Shrooms", value="sh"),
-    Choice(name="No items", value="ni"),
-]
-
-
 @app_commands.command()
 @app_commands.guild_only()
 @app_commands.describe(
@@ -118,7 +112,7 @@ item_choices = [
     track="the track you are playing on",
     time="your time formatted like this -> 1:23.456",
 )
-@app_commands.choices(items=item_choices)
+@app_commands.choices(items=itemChoices)
 @app_commands.autocomplete(track=track_autocomplete, time=time_autocomplete)
 async def save_time(
     interaction: discord.Interaction,
@@ -228,7 +222,7 @@ async def save_time(
     items="did you use shrooms?",
     track="the track you played on",
 )
-@app_commands.choices(items=item_choices)
+@app_commands.choices(items=itemChoices)
 @app_commands.autocomplete(track=track_autocomplete)
 async def delete_time(
     interaction: discord.Interaction,
@@ -343,7 +337,7 @@ async def delete_time(
     track="the track you want to see times for",
     player="the player you want to display",
 )
-@app_commands.choices(items=item_choices)
+@app_commands.choices(items=itemChoices)
 @app_commands.autocomplete(track=track_autocomplete)
 async def display_time(
     interaction: discord.Interaction,
