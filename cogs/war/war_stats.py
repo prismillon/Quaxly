@@ -180,7 +180,7 @@ class WarStats(Base):
 
         with get_db_session() as session:
             query = session.query(WarEvent).filter(
-                WarEvent.channel_id == channel.id & WarEvent.game == game_value
+                (WarEvent.channel_id == channel.id) & (WarEvent.game == game_value)
             )
 
             if team:

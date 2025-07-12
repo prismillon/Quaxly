@@ -291,7 +291,7 @@ class WarBot(Base):
                 race = (
                     session.query(Race)
                     .filter(
-                        Race.war_event_id == war["id"] & Race.race_number == data[1]
+                        (Race.war_event_id == war["id"]) & (Race.race_number == data[1])
                     )
                     .first()
                 )
@@ -314,7 +314,7 @@ class WarBot(Base):
 
             with get_db_session() as session:
                 session.query(Race).filter(
-                    Race.war_event_id == war["id"] & Race.race_number == race_id
+                    (Race.war_event_id == war["id"]) & (Race.race_number == race_id)
                 ).delete()
                 session.commit()
 
