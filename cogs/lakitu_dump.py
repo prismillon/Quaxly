@@ -7,12 +7,12 @@ from discord.app_commands import Choice
 from discord import app_commands
 
 from database import get_db_session
-from models import GAME_MKWORLD, TimeRecord, Track, User, get_user_by_discord_id
+from models import GAME_MKWORLD, TimeRecord, Track, get_user_by_discord_id
 from utils import itemChoices
 
 
 TIME_PATTERN = re.compile(
-    r"(?:3DS|DS|N64|Wii|Tour|GCN|SNES|NSW)?\s*([A-Za-z0-9\' \-?]+)\s+—\s+@[^:]+:\s+(\d:\d{2}\.\d{3})",
+    r"(?:^|\s)(?:(?:3DS|DS|N64|Wii|Tour|GCN|SNES|NSW)\s+)?([A-Za-z0-9\'\s\-?.]+?)\s+—\s+@[^:]+:\s+(\d:\d{2}\.\d{3})",
     re.IGNORECASE,
 )
 
@@ -92,7 +92,7 @@ class Dump(commands.Cog):
                     session.add(new_record)
                 session.commit()
 
-                response_lines.append(f"**{track}**: `{time}`")
+                response_lines.append(f"**{track.full_name}**: `{time}`")
 
         if len(response_lines) == 0:
             return await interaction.response.send_message(
