@@ -73,19 +73,23 @@ class Dump(commands.Cog):
 
                 time_ms = TimeRecord.time_to_milliseconds(time)
 
-                if existing_record and existing_record.time_milliseconds < time_ms:
-                    continue
-
-                new_record = TimeRecord(
-                    user_id=user.id,
-                    track_id=track.id,
-                    game=GAME_MKWORLD,
-                    time=time,
-                    race_type=items.value,
-                    speed=150,
-                    time_milliseconds=time_ms,
-                )
-                session.add(new_record)
+                if existing_record:
+                    if existing_record.time_milliseconds <= time_ms:
+                        continue
+                    else:
+                        existing_record.time = time
+                        existing_record.time_milliseconds = time_ms
+                else:
+                    new_record = TimeRecord(
+                        user_id=user.id,
+                        track_id=track.id,
+                        game=GAME_MKWORLD,
+                        time=time,
+                        race_type=items.value,
+                        speed=150,
+                        time_milliseconds=time_ms,
+                    )
+                    session.add(new_record)
                 session.commit()
 
                 response_lines.append(f"**{track}**: `{time}`")
