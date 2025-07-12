@@ -7,7 +7,7 @@ from discord.app_commands import Choice
 from discord import app_commands
 
 from database import get_db_session
-from models import GAME_MKWORLD, TimeRecord, Track
+from models import GAME_MKWORLD, TimeRecord, Track, User, get_user_by_discord_id
 from utils import itemChoices
 
 
@@ -41,6 +41,12 @@ class Dump(commands.Cog):
 
         response_lines = []
         with get_db_session() as session:
+            user = get_user_by_discord_id(session, interaction.user.id)
+            if not user:
+                return await interaction.response.send_message(
+                    "please use /register first", ephemeral=True
+                )
+
             for track_source, time in matches:
                 track = (
                     session.query(Track)
@@ -56,7 +62,7 @@ class Dump(commands.Cog):
                 existing_record = (
                     session.query(TimeRecord)
                     .filter(
-                        TimeRecord.user_id == interaction.user.id,
+                        TimeRecord.user_id == user.id,
                         TimeRecord.track_id == track.id,
                         TimeRecord.game == GAME_MKWORLD,
                         TimeRecord.race_type == items.value,
@@ -71,7 +77,7 @@ class Dump(commands.Cog):
                     continue
 
                 new_record = TimeRecord(
-                    user_id=interaction.user.id,
+                    user_id=user.id,
                     track_id=track.id,
                     game=GAME_MKWORLD,
                     time=time,
