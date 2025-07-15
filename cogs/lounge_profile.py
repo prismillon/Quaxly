@@ -8,6 +8,7 @@ from io import BytesIO
 from discord import app_commands
 from discord.ext import commands
 from autocomplete import name_autocomplete
+from models import GAME_MK8DX
 from utils import lounge_season, lounge_data, gameChoices
 
 
@@ -127,7 +128,9 @@ async def lounge_profile(
     season_played = []
     country_name = ""
     name_history_string = ""
-    for i in range(4, lounge_season.data(game_value) + 1):
+    for i in range(
+        4 if game.value == GAME_MK8DX else 0, lounge_season.data(game_value) + 1
+    ):
         seasons[i] = {}
 
     async with aiohttp.ClientSession() as session:
