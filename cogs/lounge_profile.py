@@ -129,7 +129,7 @@ async def lounge_profile(
     country_name = ""
     name_history_string = ""
     for i in range(
-        4 if game.value == GAME_MK8DX else 0, lounge_season.data(game_value) + 1
+        4 if game_value == GAME_MK8DX else 0, lounge_season.data(game_value) + 1
     ):
         seasons[i] = {}
 
