@@ -172,7 +172,7 @@ async def lounge_profile(
             content="player has not played yet", ephemeral=True
         )
     seasons = {k: v for k, v in seasons.items() if v is not None}
-    embed.title = f"{player}'s profile"
+    embed.title = f"{player}'s {game_value} profile"
     embed.add_field(
         name="avg score", value=str(round(sum(scores) / len(scores), 2)), inline=True
     )
