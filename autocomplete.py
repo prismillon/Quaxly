@@ -1,12 +1,12 @@
-import copy
-import discord
 import os
-
-from discord.app_commands import Choice
 from typing import List
-from utils import lounge_data, mkc_data
+
+import discord
+from discord.app_commands import Choice
+
 from database import get_db_session
-from models import Track, GAME_MK8DX
+from models import GAME_MK8DX, Track
+from utils import lounge_data, mkc_data
 
 
 async def track_autocomplete(

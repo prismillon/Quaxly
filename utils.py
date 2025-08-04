@@ -1,7 +1,7 @@
+from typing import List, Optional
+
 import aiohttp
 import discord
-
-from typing import List, Optional
 from discord.app_commands import Choice
 
 allowed_tables = ["Sh150", "Ni150", "Sh200", "Ni200"]

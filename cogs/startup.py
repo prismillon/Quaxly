@@ -1,7 +1,7 @@
 import discord
+from discord.ext import commands, tasks
 
 from utils import lounge_data, lounge_season
-from discord.ext import commands, tasks
 
 
 class Startup(commands.Cog):

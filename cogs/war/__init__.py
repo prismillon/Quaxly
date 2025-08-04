@@ -1,4 +1,5 @@
 from discord.ext import commands
+
 from cogs.war.war_bot import WarBot
 from cogs.war.war_stats import WarStats
 

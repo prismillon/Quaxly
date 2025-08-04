@@ -1,11 +1,13 @@
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy.pool import QueuePool
-from models import Base
 import os
-import redis.asyncio
-import redis
 from contextlib import contextmanager
+
+import redis
+import redis.asyncio
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.pool import QueuePool
+
+from models import Base
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:pass@localhost:5432/quaxly")
 

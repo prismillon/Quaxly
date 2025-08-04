@@ -1,13 +1,15 @@
-import discord
 from statistics import mean
 
+import discord
 from discord import Member, app_commands
 from discord.app_commands import Choice
-from .autocomplete import dx_track_autocomplete
-from database import get_db_session
-from models import User, Track, TimeRecord, UserServer, GAME_MK8DX
-from game_utils import get_track_by_name, get_game_tracks
+
 import utils
+from database import get_db_session
+from game_utils import get_game_tracks, get_track_by_name
+from models import GAME_MK8DX, TimeRecord, User, UserServer
+
+from .autocomplete import dx_track_autocomplete
 
 
 def format_time(total_ms):
@@ -285,9 +287,9 @@ class DisplayTimeCommands:
                                 interaction.guild.id,
                             )
                             race_ranking.append(int(race_rank_string.split("/")[0]))
-                            fields[
-                                -1
-                            ] += f"**{track.track_name}**: `{time_record.time} - {race_rank_string}`\n"
+                            fields[-1] += (
+                                f"**{track.track_name}**: `{time_record.time} - {race_rank_string}`\n"
+                            )
                             total += time_record.time_milliseconds
 
                     for index, field in enumerate(fields):
@@ -335,9 +337,9 @@ class DisplayTimeCommands:
                                 interaction.guild.get_member(best_time.user.discord_id)
                                 or f"<@{best_time.user.discord_id}>"
                             )
-                            fields[
-                                -1
-                            ] += f"**{track.track_name}**: `{best_time.time}`\n{member.display_name if not isinstance(member, str) else member}\n"
+                            fields[-1] += (
+                                f"**{track.track_name}**: `{best_time.time}`\n{member.display_name if not isinstance(member, str) else member}\n"
+                            )
 
                     for index, field in enumerate(fields):
                         if len(field) > 0:

@@ -1,8 +1,9 @@
 import discord
 from discord import app_commands
+
 from database import get_db_session
-from models import Track, TimeRecord, User, GAME_MK8DX
 from game_utils import get_game_tracks
+from models import GAME_MK8DX
 
 
 async def dx_track_autocomplete(

@@ -1,15 +1,13 @@
 import re
-import discord
 
-from discord import Embed
-from discord.ext import commands
+import discord
+from discord import Embed, app_commands
 from discord.app_commands import Choice
-from discord import app_commands
+from discord.ext import commands
 
 from database import get_db_session
 from models import GAME_MKWORLD, TimeRecord, Track, get_user_by_discord_id
 from utils import itemChoices
-
 
 TIME_PATTERN = re.compile(
     r"(?:^|\s)(?:(?:3DS|DS|N64|Wii|Tour|GCN|SNES|NSW)\s+)?([A-Za-z0-9\'\s\-?.]+?)\s+—\s+@[^:]+:\s+(\d:\d{2}\.\d{3})",

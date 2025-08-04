@@ -1,12 +1,13 @@
-import discord
 from typing import List, Optional
 
+import discord
 from discord import app_commands
 from discord.app_commands import Choice
-from database import get_db_session
 from discord.ext import commands
-from models import Cup, Track, GAME_MK8DX, GAME_MKWORLD
-from game_utils import get_game_tracks, get_game_cups
+
+from database import get_db_session
+from game_utils import get_game_cups, get_game_tracks
+from models import GAME_MK8DX, GAME_MKWORLD, Cup, Track
 
 
 class CupsButtons(discord.ui.View):

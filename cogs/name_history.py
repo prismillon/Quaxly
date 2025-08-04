@@ -1,11 +1,11 @@
-import discord
-import aiohttp
-import re
-
-from discord import app_commands
-from autocomplete import name_autocomplete
 from datetime import datetime, timedelta
-from utils import lounge_data, gameChoices
+
+import aiohttp
+import discord
+from discord import app_commands
+
+from autocomplete import name_autocomplete
+from utils import gameChoices, lounge_data
 
 
 @app_commands.command()

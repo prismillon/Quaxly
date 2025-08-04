@@ -1,8 +1,8 @@
-import discord
-
 from typing import Literal, Optional
+
+import discord
 from discord.ext import commands
-from discord.ext.commands import Greedy, Context
+from discord.ext.commands import Context, Greedy
 
 
 @commands.command()

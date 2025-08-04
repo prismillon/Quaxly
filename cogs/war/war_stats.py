@@ -1,17 +1,17 @@
-import discord
 import json
-
-from discord import app_commands
-from discord.ext import commands
-from discord.app_commands import Choice
 from datetime import UTC, datetime
-from utils import ConfirmButton, gameChoices
 from statistics import mean
-from cogs.war.base import Base
+
+import discord
+from discord import app_commands
+from discord.app_commands import Choice
+from discord.ext import commands
+
 from autocomplete import mkc_tag_autocomplete, track_autocomplete
-from database import get_db_session
-from models import WarEvent, Race, GAME_MK8DX
-from database import rs, r
+from cogs.war.base import Base
+from database import get_db_session, r, rs
+from models import GAME_MK8DX, Race, WarEvent
+from utils import ConfirmButton, gameChoices
 
 
 class WarStats(Base):
@@ -191,7 +191,7 @@ class WarStats(Base):
             war_events = query.all()
 
             if len(war_events) == 0:
-                content = f"no stats registered in this channel"
+                content = "no stats registered in this channel"
                 if team:
                     content += f" against the team {team}"
                 return await interaction.response.send_message(

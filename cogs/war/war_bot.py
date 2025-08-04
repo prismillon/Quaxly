@@ -1,19 +1,18 @@
-import discord
 import json
 import re
+from datetime import UTC, datetime, timedelta
 
-from datetime import datetime, timedelta, UTC
-from discord.ext import commands, tasks
+import discord
 from discord import app_commands
-from discord.app_commands import Range, Choice
-from cogs.war.base import Base
-from autocomplete import mkc_tag_autocomplete
-from database import get_db_session
-from models import WarEvent, Race, GAME_MKWORLD
-from database import rs, r
-from game_utils import get_track_by_name
-from utils import gameChoices
+from discord.app_commands import Choice, Range
+from discord.ext import commands, tasks
 
+from autocomplete import mkc_tag_autocomplete
+from cogs.war.base import Base
+from database import get_db_session, r, rs
+from game_utils import get_track_by_name
+from models import GAME_MKWORLD, Race, WarEvent
+from utils import gameChoices
 
 _SCORE = (15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
