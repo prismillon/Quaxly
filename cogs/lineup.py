@@ -87,7 +87,6 @@ class EditModal(discord.ui.Modal, title="edit lineup"):
     tag = discord.ui.TextInput(label="tag", required=False)
 
     async def on_submit(self, interaction: discord.Interaction):
-
         if self.time.value != "":
             self.embed.remove_field(1)
             self.embed.insert_field_at(

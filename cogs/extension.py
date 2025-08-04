@@ -1,8 +1,8 @@
 import discord
-
 from discord import app_commands
-from autocomplete import cmd_autocomplete
 from discord.ext import commands
+
+from autocomplete import cmd_autocomplete
 
 
 class Extensions(commands.Cog):

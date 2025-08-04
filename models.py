@@ -1,19 +1,20 @@
+import re
+
 from sqlalchemy import (
+    DECIMAL,
+    JSON,
+    BigInteger,
     Column,
-    Integer,
-    String,
     DateTime,
-    Text,
     ForeignKey,
     Index,
-    BigInteger,
-    JSON,
-    DECIMAL,
+    Integer,
+    String,
+    Text,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-import re
 
 Base = declarative_base()
 

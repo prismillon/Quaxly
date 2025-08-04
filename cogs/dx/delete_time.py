@@ -1,13 +1,14 @@
 import discord
-
 from discord import app_commands
 from discord.app_commands import Choice
-from .autocomplete import dx_track_autocomplete
-from utils import ConfirmButton
-from database import get_db_session
-from models import User, Track, TimeRecord, GAME_MK8DX
-from game_utils import get_track_by_name, get_user_times_for_game
+
 import utils
+from database import get_db_session
+from game_utils import get_track_by_name
+from models import GAME_MK8DX, TimeRecord, User
+from utils import ConfirmButton
+
+from .autocomplete import dx_track_autocomplete
 
 
 class DeleteTimeCommands:

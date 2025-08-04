@@ -1,13 +1,14 @@
 import datetime
-import discord
 import re
 from statistics import mean
 
+import discord
 from discord import app_commands
 from discord.app_commands import Choice
+
 from database import get_db_session
-from models import Track, TimeRecord, User, GAME_MKWORLD, UserServer
 from game_utils import get_game_tracks
+from models import GAME_MKWORLD, TimeRecord, Track, User, UserServer
 from utils import ConfirmButton, itemChoices
 
 
@@ -479,9 +480,6 @@ async def display_time(
         else:
             all_tracks = get_game_tracks(session, game)
             all_tracks = sorted(all_tracks, key=lambda x: x.track_id)
-
-            fields = []
-            fields_title = []
 
             cups_dict = {}
             for track in all_tracks:

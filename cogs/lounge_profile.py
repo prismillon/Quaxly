@@ -1,15 +1,16 @@
 from datetime import datetime
-import discord
-import aiohttp
-import numpy as np
-import matplotlib.pyplot as plt
 from io import BytesIO
 
+import aiohttp
+import discord
+import matplotlib.pyplot as plt
+import numpy as np
 from discord import app_commands
 from discord.ext import commands
+
 from autocomplete import name_autocomplete
 from models import GAME_MK8DX
-from utils import lounge_season, lounge_data, gameChoices
+from utils import gameChoices, lounge_data, lounge_season
 
 
 def mmr_to_rank(mmr):

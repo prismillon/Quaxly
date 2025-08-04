@@ -1,21 +1,18 @@
-"""
-Utility functions for working with multi-game database structure.
-Provides helpers for game-specific queries and operations.
-"""
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
+
+from database import get_db_session
 from models import (
-    Cup,
-    Track,
-    TimeRecord,
-    WarEvent,
-    Race,
-    User,
     VALID_GAMES,
+    Cup,
+    Race,
+    TimeRecord,
+    Track,
+    User,
+    WarEvent,
     get_leaderboard,
 )
-from database import get_db_session
-from typing import List, Optional, Dict, Any
 
 
 def validate_game(game: str) -> str:
@@ -187,7 +184,7 @@ def print_game_stats(game: Optional[str] = None):
                 print(f"  War Events: {stats['war_events']}")
                 print(f"  Races: {stats['races']}")
 
-            print(f"\nOverall Totals:")
+            print("\nOverall Totals:")
             print(f"  Total Users: {all_stats['total']['users']}")
             print(f"  Total Time Records: {all_stats['total']['total_time_records']}")
             print(f"  Total War Events: {all_stats['total']['total_war_events']}")

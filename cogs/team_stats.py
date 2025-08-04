@@ -1,16 +1,16 @@
+import asyncio
+import re
+import statistics
 from typing import Optional
 
-import discord
 import aiohttp
-import asyncio
-import statistics
-import re
+import discord
+from discord import app_commands
+from discord.app_commands import Choice, Range
+from discord.ext import commands
 
 from autocomplete import mkc_team_autocomplete
-from discord import app_commands
-from discord.ext import commands
-from utils import statChoices, gameChoices, mkc_data, lounge_season, lounge_data
-from discord.app_commands import Choice, Range
+from utils import gameChoices, lounge_season, mkc_data, statChoices
 
 MAX_FIELDS = 21
 MAX_EMBEDS = 10
@@ -337,7 +337,7 @@ async def fc_stats(
         embed = discord.Embed(title=f"room average {stat.name}: {room_avg}")
 
         for i, team in enumerate(teams):
-            title = f"team {i+1}: "
+            title = f"team {i + 1}: "
             if await check_for_none(team):
                 team_avg = round(
                     statistics.fmean([p[stat.value] for p in filter(None, team)])

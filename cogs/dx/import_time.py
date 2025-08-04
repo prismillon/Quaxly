@@ -1,14 +1,15 @@
 import re
-import discord
+from datetime import datetime, timedelta
 
+import discord
 from discord import app_commands
 from discord.app_commands import Choice
 from discord.ext import commands, tasks
-from datetime import datetime, timedelta
-from database import get_db_session
-from models import User, Track, TimeRecord, UserServer, GAME_MK8DX
-from game_utils import get_track_by_name
+
 import utils
+from database import get_db_session
+from game_utils import get_track_by_name
+from models import GAME_MK8DX, TimeRecord, User, UserServer
 
 
 class ImportTimeCommands:
