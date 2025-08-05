@@ -1,0 +1,17 @@
+.github
+.venv
+.vscode
+db_setup/
+.env
+LICENCE.md
+README.md
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+.git/
+.gitignore
+dockerfile*
+data

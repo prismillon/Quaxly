@@ -1,15 +1,31 @@
-FROM debian:12-slim AS build
-RUN apt-get update && \
-  apt-get install --no-install-suggests --no-install-recommends --yes python3-venv gcc libpython3-dev && \
-  python3 -m venv /venv && \
-  /venv/bin/pip install --upgrade pip setuptools wheel
+FROM python:3.13-slim AS builder
 
-FROM build AS build-venv
-COPY requirements.txt /requirements.txt
-RUN /venv/bin/pip install --disable-pip-version-check -r /requirements.txt
+COPY --from=ghcr.io/astral-sh/uv /uv /uvx /bin/
 
-FROM gcr.io/distroless/python3-debian12
-COPY --from=build-venv /venv /venv
-COPY . /app
 WORKDIR /app
-ENTRYPOINT ["/venv/bin/python3", "bot.py"]
+
+COPY pyproject.toml uv.lock ./
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv sync --locked --no-install-project --no-editable
+
+COPY . .
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv sync --locked --no-editable
+
+FROM python:3.13-slim AS production
+
+RUN groupadd -r quaxly && useradd -r -g quaxly quaxly
+
+COPY --from=builder --chown=quaxly:quaxly /app/.venv /app/.venv
+COPY --chown=quaxly:quaxly . /app/
+
+ENV PATH="/app/.venv/bin:$PATH" \
+  PYTHONUNBUFFERED=1 \
+  PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /app
+USER quaxly
+
+CMD ["python", "main.py"]
