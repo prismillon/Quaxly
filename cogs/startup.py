@@ -1,31 +1,10 @@
 import discord
-from discord.ext import commands, tasks
-
-from utils import lounge_data, lounge_season
+from discord.ext import commands
 
 
 class Startup(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self._api_list_task = self.api_list.start()
-
-    @tasks.loop(minutes=10)
-    async def api_list(self):
-        await lounge_season.lounge_season("mkworld")
-        await lounge_season.lounge_season("mk8dx")
-        test_player = await lounge_data.find_player_by_discord_id(
-            169497208406802432, "mkworld"
-        )
-        if not test_player:
-            embed = discord.Embed(
-                color=0x97F9D8,
-                title="weird api response?",
-                description="Could not find test player - API may be down",
-            )
-            print("Lounge API test failed - could not find test player")
-            await self.bot.get_channel(1065611483897147502).send(
-                content="<@169497208406802432> api error?", embed=embed
-            )
 
     @commands.Cog.listener()
     async def on_ready(self):
