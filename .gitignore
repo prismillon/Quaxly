@@ -1,10 +1,7 @@
 .DS_Store
 __pycache__
-mk.db*
-mk.db-journal
-docker-compose.yml
 .vscode
-venv
+.venv
 data
 .env
 db_setup/
