@@ -2,7 +2,6 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
-from database import get_db_session
 from models import (
     VALID_GAMES,
     Cup,
@@ -152,54 +151,3 @@ def get_all_games_stats(session: Session) -> Dict[str, Dict[str, Any]]:
     }
 
     return all_stats
-
-
-def print_game_stats(game: Optional[str] = None):
-    """Print statistics for a specific game or all games"""
-    with get_db_session() as session:
-        if game:
-            game = validate_game(game)
-            stats = get_game_stats(session, game)
-            print(f"\n{stats['game']} Statistics:")
-            print("=" * 30)
-            print(f"Cups: {stats['cups']}")
-            print(f"Tracks: {stats['tracks']}")
-            print(f"Time Records: {stats['time_records']}")
-            print(f"Active Users: {stats['active_users']}")
-            print(f"War Events: {stats['war_events']}")
-            print(f"Races: {stats['races']}")
-        else:
-            all_stats = get_all_games_stats(session)
-            print("\nDatabase Statistics by Game:")
-            print("=" * 40)
-
-            for game_key, stats in all_stats.items():
-                if game_key == "total":
-                    continue
-                print(f"\n{stats['game']}:")
-                print(f"  Cups: {stats['cups']}")
-                print(f"  Tracks: {stats['tracks']}")
-                print(f"  Time Records: {stats['time_records']}")
-                print(f"  Active Users: {stats['active_users']}")
-                print(f"  War Events: {stats['war_events']}")
-                print(f"  Races: {stats['races']}")
-
-            print("\nOverall Totals:")
-            print(f"  Total Users: {all_stats['total']['users']}")
-            print(f"  Total Time Records: {all_stats['total']['total_time_records']}")
-            print(f"  Total War Events: {all_stats['total']['total_war_events']}")
-            print(f"  Total Races: {all_stats['total']['total_races']}")
-
-
-if __name__ == "__main__":
-    import sys
-
-    if len(sys.argv) > 1:
-        game_arg = sys.argv[1]
-        try:
-            print_game_stats(game_arg)
-        except ValueError as e:
-            print(f"Error: {e}")
-            sys.exit(1)
-    else:
-        print_game_stats()
