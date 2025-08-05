@@ -4,7 +4,6 @@ from io import BytesIO
 import aiohttp
 import discord
 import matplotlib.pyplot as plt
-import numpy as np
 from discord import app_commands
 from discord.ext import commands
 
@@ -56,7 +55,7 @@ def create_plot(base, history):
     for match in history:
         mmr += match
         mmrhistory.append(mmr)
-    xs = np.arange(len(mmrhistory))
+    xs = list(range(len(mmrhistory)))
     plt.style.use("lounge_style.mplstyle")
     lines = plt.plot(mmrhistory)
     plt.setp(lines, "color", "snow", "linewidth", 1.0)
