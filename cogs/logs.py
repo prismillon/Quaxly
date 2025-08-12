@@ -67,13 +67,10 @@ class Logging(commands.Cog):
                         embed.add_field(name=option["name"], value=option["value"])
                     break
                 embed.add_field(name=option["name"], value=option["value"])
-        msg = await self.bot.get_channel(1065611483897147502).send(
-            content=f"{error} <@169497208406802432>", embed=embed
-        )
+        await self.bot.get_channel(1065611483897147502).send(embed=embed)
         self.log.error(
             "Ignoring exception in command %r", interaction.command.name, exc_info=error
         )
-        await msg.edit(content="<@169497208406802432>")
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
