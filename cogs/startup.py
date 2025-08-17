@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 
+from utils import lounge_season
+
 
 class Startup(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -8,6 +10,8 @@ class Startup(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        await lounge_season.lounge_season("mkworld")
+        await lounge_season.lounge_season("mk8dx")
         await self.bot.wait_until_ready()
         await self.bot.change_presence(
             activity=discord.Activity(
