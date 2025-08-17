@@ -9,7 +9,7 @@ from discord.ext import commands
 
 from autocomplete import name_autocomplete
 from models import GAME_MK8DX
-from utils import gameChoices, lounge_data, lounge_season
+from utils import gameChoices, lounge_data
 
 
 def mmr_to_rank(mmr):
@@ -104,10 +104,13 @@ async def lounge_profile(
     embed = discord.Embed(color=0x47E0FF)
     game_value = game.value if game else "mkworld"
 
-    if lounge_season.data(game_value) is None:
-        return await interaction.response.send_message(
-            content="bot not ready yet please wait 1 minute", ephemeral=True
-        )
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"https://lounge.mkcentral.com/api/player/details?id=14324&game={game_value}"
+        ) as response:
+            if response.status == 200:
+                _data_full = await response.json()
+                lounge_season = _data_full.get("season", 0)
 
     if not player:
         lounge_user = await lounge_data.find_player_by_discord_id(
@@ -128,9 +131,7 @@ async def lounge_profile(
     season_played = []
     country_name = ""
     name_history_string = ""
-    for i in range(
-        4 if game_value == GAME_MK8DX else 0, lounge_season.data(game_value) + 1
-    ):
+    for i in range(4 if game_value == GAME_MK8DX else 0, lounge_season + 1):
         seasons[i] = {}
 
     async with aiohttp.ClientSession() as session:
