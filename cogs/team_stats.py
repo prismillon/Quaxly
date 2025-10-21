@@ -195,7 +195,8 @@ async def mkc_stats(
                     target_roster = roster
                     break
             else:
-                if roster.get("is_active", True):
+                is_active = roster.get("is_active")
+                if is_active == 1 or is_active is True:
                     target_roster = roster
                     break
 
@@ -220,9 +221,23 @@ async def mkc_stats(
     try:
         member_tasks = []
         for player in target_roster["players"]:
-            fc = (
-                player.get("friend_code") or player.get("fc") or player.get("switch_fc")
-            )
+            friend_codes = player.get("friend_codes", [])
+            fc = None
+
+            for fc_entry in friend_codes:
+                if fc_entry.get("is_primary"):
+                    fc = fc_entry.get("fc")
+                    break
+
+            if not fc:
+                for fc_entry in friend_codes:
+                    if fc_entry.get("is_active"):
+                        fc = fc_entry.get("fc")
+                        break
+
+            if not fc and friend_codes:
+                fc = friend_codes[0].get("fc")
+
             if fc:
                 member_tasks.append(fc_to_stat(fc, season=season, game=game_value))
 
