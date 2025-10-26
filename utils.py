@@ -90,7 +90,7 @@ class MkcData:
                     data = await response.json()
                     rosters = data.get("rosters", [])
                     for roster in rosters:
-                        if roster.get("id") == roster_id:
+                        if int(roster.get("id")) == int(roster_id):
                             roster["logo"] = data.get("logo")
                             return roster
                 return None
