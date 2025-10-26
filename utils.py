@@ -76,7 +76,7 @@ class MkcData:
                     for team in teams:
                         team_rosters = team.get("rosters", [])
                         for roster in team_rosters:
-                            if roster.game == "mkworld" or roster.game == "mk8dx":
+                            if roster["game"] == "mkworld" or roster["game"] == "mk8dx":
                                 rosters.append(roster)
                     return rosters[:limit] if limit else rosters
                 return None
