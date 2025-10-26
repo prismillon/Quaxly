@@ -80,11 +80,11 @@ async def mkc_team_autocomplete(
 
     choices = []
     for roster in rosters:
-        team_name = roster.get("team_name", "")
-        if team_name and team_name.lower().startswith(current.lower()):
+        name = roster.get("name", "")
+        if name and name.lower().startswith(current.lower()):
             choices.append(
                 Choice(
-                    name=f"{team_name} ({roster.get('game', '')})",
+                    name=f"{name} ({roster.get('game', '')})",
                     value=f"{roster.get('team_id')}-{roster.get('id')}",
                 )
             )
