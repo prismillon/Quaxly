@@ -40,7 +40,9 @@ async def id_to_stat(
                 return user_data
 
 
-async def fc_to_stat(fc: str, season: Optional[int] = None, game: str = "mkworld"):
+async def fc_to_stat(
+    fc: str, season: Optional[int] = None, game: str = "mkworld", discord_id: int = None
+):
     season = f"&season={season}" if season else ""
     async with aiohttp.ClientSession() as session:
         async with session.get(
@@ -50,7 +52,7 @@ async def fc_to_stat(fc: str, season: Optional[int] = None, game: str = "mkworld
                 user_data = await response.json()
                 if "mmr" not in user_data:
                     return None
-                user_data["discordId"] = user_data.get("discordId")
+                user_data["discordId"] = user_data.get("discordId", discord_id)
                 user_data.setdefault("eventsPlayed", 0)
                 user_data.setdefault("maxMmr", user_data["mmr"])
                 user_data["id"] = user_data["playerId"]
@@ -165,9 +167,7 @@ async def mkc_stats(
 
     await interaction.response.defer()
 
-    team_info = await mkc_data.find_team_by_name(team)
-
-    if not team_info:
+    if "-" not in team:
         await interaction.followup.send(
             embed=discord.Embed(
                 title="team not found",
@@ -176,9 +176,12 @@ async def mkc_stats(
         )
         return
 
-    team_data = await mkc_data.get_team_details(team_info["id"])
+    team_id = team.split("-")[0]
+    roster_id = team.split("-")[1]
 
-    if not team_data:
+    roster = await mkc_data.get_team_details(team_id, roster_id)
+
+    if not roster:
         await interaction.followup.send(
             embed=discord.Embed(
                 title="team not found",
@@ -187,42 +190,14 @@ async def mkc_stats(
         )
         return
 
-    target_roster = None
-    for roster in team_data.get("rosters", []):
-        if roster.get("game") == game_value:
-            if game_value == "mk8dx":
-                if roster.get("mode") == "150cc":
-                    target_roster = roster
-                    break
-            else:
-                is_active = roster.get("is_active")
-                if is_active == 1 or is_active is True:
-                    target_roster = roster
-                    break
-
-    if not target_roster and game_value == "mk8dx":
-        for roster in team_data.get("rosters", []):
-            if roster.get("game") == game_value:
-                target_roster = roster
-                break
-
-    if not target_roster or not target_roster.get("players"):
-        game_name = (
-            "Mario Kart 8 Deluxe" if game_value == "mk8dx" else "Mario Kart World"
-        )
-        await interaction.followup.send(
-            embed=discord.Embed(
-                title="team not found",
-                description=f"could not find an active {game_name} roster for this team",
-            )
-        )
-        return
-
     try:
         member_tasks = []
-        for player in target_roster["players"]:
+        for player in roster["players"]:
             friend_codes = player.get("friend_codes", [])
             fc = None
+            discord_data = player.get("discord")
+            if discord_data:
+                discord_id = discord_data.get("discord_id")
 
             for fc_entry in friend_codes:
                 if fc_entry.get("is_primary"):
@@ -239,7 +214,14 @@ async def mkc_stats(
                 fc = friend_codes[0].get("fc")
 
             if fc:
-                member_tasks.append(fc_to_stat(fc, season=season, game=game_value))
+                member_tasks.append(
+                    fc_to_stat(
+                        fc,
+                        season=season,
+                        game=game_value,
+                        discord_id=discord_id or None,
+                    )
+                )
 
         if not member_tasks:
             await interaction.followup.send(
@@ -266,11 +248,11 @@ async def mkc_stats(
             return
 
         thumbnail = None
-        if team_data.get("logo"):
-            thumbnail = f"https://mkcentral.com{team_data['logo']}"
+        if roster.get("logo"):
+            thumbnail = f"https://mkcentral.com{roster['logo']}"
 
         embeds = await create_stat_embeds(
-            f"{team_info['name']} average {stat.name}",
+            f"{roster['name']} average {stat.name}",
             user_data,
             stat.value,
             thumbnail,

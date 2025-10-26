@@ -74,15 +74,21 @@ async def mkc_team_autocomplete(
     if not current:
         return []
 
-    teams = await mkc_data.search_teams(search=current, limit=25)
-    if not teams:
+    rosters = await mkc_data.search_teams(search=current, limit=25)
+    if not rosters:
         return []
 
-    return [
-        Choice(name=team["name"], value=team["name"])
-        for team in teams
-        if team.get("name", "").lower().startswith(current.lower())
-    ][:25]
+    choices = []
+    for roster in rosters:
+        team_name = roster.get("team_name", "")
+        if team_name and team_name.lower().startswith(current.lower()):
+            choices.append(
+                Choice(
+                    name=f"{team_name} ({roster.get('game', '')})",
+                    value=f"{roster.get('team_id')}-{roster.get('id')}",
+                )
+            )
+    return choices[:25]
 
 
 async def mkc_tag_autocomplete(
@@ -92,15 +98,25 @@ async def mkc_tag_autocomplete(
     if not current:
         return []
 
-    teams = await mkc_data.search_teams(search=current, limit=25)
-    if not teams:
+    rosters = await mkc_data.search_teams(search=current, limit=25)
+    if not rosters:
         return []
 
-    return [
-        Choice(name=team["name"], value=team["tag"])
-        for team in teams
-        if team.get("name", "").lower().startswith(current.lower()) and team.get("tag")
-    ][:25]
+    # Group by team name to avoid duplicates
+    seen_teams = set()
+    choices = []
+    for roster in rosters:
+        team_name = roster.get("team_name", "")
+        tag = roster.get("tag")
+        if (
+            team_name
+            and tag
+            and team_name not in seen_teams
+            and team_name.lower().startswith(current.lower())
+        ):
+            seen_teams.add(team_name)
+            choices.append(Choice(name=team_name, value=tag))
+    return choices[:25]
 
 
 async def cmd_autocomplete(
