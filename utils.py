@@ -62,35 +62,38 @@ class MkcData:
         self.base_url = "https://mkcentral.com/api"
 
     async def search_teams(
-        self, search: str = "", limit: int = 50
+        self, search: str = "", limit: int = 25
     ) -> Optional[List[dict]]:
+        """Search for teams and return their rosters"""
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                f"{self.base_url}/registry/teams?name_or_tag={search}"
+                f"{self.base_url}/registry/teams?is_historical=false&is_active=true&sort_by_newest=false&min_player_count=6&name_or_tag={search}"
             ) as response:
                 if response.status == 200:
                     data = await response.json()
                     teams = data.get("teams", [])
-                    return teams[:limit] if limit else teams
+                    rosters = []
+                    for team in teams:
+                        team_rosters = team.get("rosters", [])
+                        for roster in team_rosters:
+                            if roster.game == "mkworld" or roster.game == "mk8dx":
+                                rosters.append(roster)
+                    return rosters[:limit] if limit else rosters
                 return None
 
-    async def get_team_details(self, team_id: int) -> Optional[dict]:
+    async def get_team_details(self, team_id: int, roster_id: int) -> Optional[dict]:
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 f"{self.base_url}/registry/teams/{team_id}"
             ) as response:
                 if response.status == 200:
-                    return await response.json()
+                    data = await response.json()
+                    rosters = data.get("rosters", [])
+                    for roster in rosters:
+                        if roster.get("id") == roster_id:
+                            roster["logo"] = data.get("logo")
+                            return roster
                 return None
-
-    async def find_team_by_name(self, name: str) -> Optional[dict]:
-        teams = await self.search_teams(search=name)
-        if teams:
-            for team in teams:
-                if team.get("name", "").lower() == name.lower():
-                    return team
-            return teams[0]
-        return None
 
 
 class LoungeSeason:
