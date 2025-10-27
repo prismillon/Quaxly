@@ -195,9 +195,10 @@ async def mkc_stats(
         for player in roster["players"]:
             friend_codes = player.get("friend_codes", [])
             fc = None
-            discord_data = player.get("discord")
+            discord_id = None
+            discord_data = player.get("discord", None)
             if discord_data:
-                discord_id = discord_data.get("discord_id")
+                discord_id = discord_data.get("discord_id", None)
 
             for fc_entry in friend_codes:
                 if fc_entry.get("is_primary"):
@@ -219,7 +220,7 @@ async def mkc_stats(
                         fc,
                         season=season,
                         game=game_value,
-                        discord_id=discord_id or None,
+                        discord_id=discord_id,
                     )
                 )
 
