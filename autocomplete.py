@@ -71,8 +71,6 @@ async def mkc_team_autocomplete(
     interaction: discord.Interaction, current: str
 ) -> List[Choice[str]]:
     """MKC team name autocomplete"""
-    if not current:
-        return []
 
     rosters = await mkc_data.search_teams(search=current, limit=25)
     if not rosters:
@@ -95,27 +93,20 @@ async def mkc_tag_autocomplete(
     interaction: discord.Interaction, current: str
 ) -> List[Choice[str]]:
     """MKC team tag autocomplete"""
-    if not current:
-        return []
-
     rosters = await mkc_data.search_teams(search=current, limit=25)
     if not rosters:
         return []
 
-    # Group by team name to avoid duplicates
-    seen_teams = set()
     choices = []
     for roster in rosters:
-        team_name = roster.get("team_name", "")
-        tag = roster.get("tag")
-        if (
-            team_name
-            and tag
-            and team_name not in seen_teams
-            and team_name.lower().startswith(current.lower())
-        ):
-            seen_teams.add(team_name)
-            choices.append(Choice(name=team_name, value=tag))
+        name = roster.get("name", "")
+        if name and name.lower().startswith(current.lower()):
+            choices.append(
+                Choice(
+                    name=f"{name} ({roster.get('game', '')})",
+                    value=roster.get("tag", name),
+                )
+            )
     return choices[:25]
 
 
