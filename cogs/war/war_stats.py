@@ -6,6 +6,7 @@ import discord
 from discord import app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
+from sqlalchemy.orm import joinedload
 
 from autocomplete import mkc_tag_autocomplete, track_autocomplete
 from cogs.war.base import Base
@@ -276,6 +277,7 @@ class WarStats(Base):
         with get_db_session() as session:
             war_events = (
                 session.query(WarEvent)
+                .options(joinedload(WarEvent.races))
                 .filter(WarEvent.channel_id == channel.id)
                 .order_by(WarEvent.date.desc())
                 .limit(10)
