@@ -24,10 +24,10 @@ async def check_for_none(data: list) -> bool:
 async def id_to_stat(
     discord_id: int, season: Optional[int] = None, game: str = "mkworld"
 ):
-    season = f"&season={season}" if season else ""
+    season_param = f"&season={season}" if season else ""
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            f"{LOUNGE_API}/player/details?discordId={discord_id}&game={game}{season}"
+            f"{LOUNGE_API}/player/details?discordId={discord_id}&game={game}{season_param}"
         ) as response:
             if response.status == 200:
                 user_data = await response.json()
@@ -43,10 +43,10 @@ async def id_to_stat(
 async def fc_to_stat(
     fc: str, season: Optional[int] = None, game: str = "mkworld", discord_id: int = None
 ):
-    season = f"&season={season}" if season else ""
+    season_param = f"&season={season}" if season else ""
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            f"{LOUNGE_API}/player/details?fc={fc}&game={game}{season}"
+            f"{LOUNGE_API}/player/details?fc={fc}&game={game}{season_param}"
         ) as response:
             if response.status == 200:
                 user_data = await response.json()
@@ -176,8 +176,8 @@ async def mkc_stats(
         )
         return
 
-    team_id = team.split("-")[0]
-    roster_id = team.split("-")[1]
+    team_id = int(team.split("-")[0])
+    roster_id = int(team.split("-")[1])
 
     roster = await mkc_data.get_team_details(team_id, roster_id)
 
@@ -256,7 +256,7 @@ async def mkc_stats(
             f"{roster['name']} average {stat.name}",
             user_data,
             stat.value,
-            thumbnail,
+            thumbnail or "",
         )
         await interaction.followup.send(embeds=embeds)
 
