@@ -289,24 +289,24 @@ class WarStats(Base):
                     content="no wars found in this channel", ephemeral=True
                 )
 
-        embed = discord.Embed(
-            color=0x47E0FF,
-            title=f"Recent wars in {channel.name}",
-        )
-
-        for war_event in war_events:
-            total_home_score = sum(race.home_score for race in war_event.races)
-            total_enemy_score = sum(race.enemy_score for race in war_event.races)
-            race_count = len(war_event.races)
-
-            diff = total_home_score - total_enemy_score
-            diff_str = f"{diff:+.1f}" if diff != 0 else "0.0"
-
-            embed.add_field(
-                name=f"{war_event.tag} vs {war_event.enemy_tag}",
-                value=f"**{total_home_score:.1f} - {total_enemy_score:.1f}** ({diff_str}) | {race_count} races\nID: `{war_event.id}` | {war_event.date.strftime('%Y-%m-%d %H:%M')}",
-                inline=False,
+            embed = discord.Embed(
+                color=0x47E0FF,
+                title=f"Recent wars in {channel.name}",
             )
+
+            for war_event in war_events:
+                total_home_score = sum(race.home_score for race in war_event.races)
+                total_enemy_score = sum(race.enemy_score for race in war_event.races)
+                race_count = len(war_event.races)
+
+                diff = total_home_score - total_enemy_score
+                diff_str = f"{diff:+.1f}" if diff != 0 else "0.0"
+
+                embed.add_field(
+                    name=f"{war_event.tag} vs {war_event.enemy_tag}",
+                    value=f"**{total_home_score:.1f} - {total_enemy_score:.1f}** ({diff_str}) | {race_count} races\nID: `{war_event.id}` | {war_event.date.strftime('%Y-%m-%d %H:%M')}",
+                    inline=False,
+                )
 
         return await interaction.response.send_message(embed=embed)
 

@@ -13,7 +13,7 @@ from sqlalchemy import (
     Text,
 )
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, relationship
 from sqlalchemy.sql import func
 
 Base = declarative_base()
@@ -34,7 +34,9 @@ class Cup(Base):
     cup_emoji_name = Column(String(50), nullable=False)
     cup_emoji_id = Column(String(50), nullable=False)
     cup_url = Column(Text)
-    tracks = relationship("Track", back_populates="cup", cascade="all, delete-orphan")
+    tracks: Mapped[list["Track"]] = relationship(
+        "Track", back_populates="cup", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         Index("ix_cups_game_emoji_name", "game", "cup_emoji_name"),
@@ -57,8 +59,8 @@ class Track(Base):
     cup_id = Column(Integer, ForeignKey("cups.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    cup = relationship("Cup", back_populates="tracks")
-    time_records = relationship(
+    cup: Mapped["Cup"] = relationship("Cup", back_populates="tracks")
+    time_records: Mapped[list["TimeRecord"]] = relationship(
         "TimeRecord", back_populates="track", cascade="all, delete-orphan"
     )
 
@@ -83,10 +85,10 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    server_memberships = relationship(
+    server_memberships: Mapped[list["UserServer"]] = relationship(
         "UserServer", back_populates="user", cascade="all, delete-orphan"
     )
-    time_records = relationship(
+    time_records: Mapped[list["TimeRecord"]] = relationship(
         "TimeRecord", back_populates="user", cascade="all, delete-orphan"
     )
     __table_args__ = (Index("ix_users_discord_id", "discord_id"),)
@@ -102,7 +104,7 @@ class UserServer(Base):
     server_id = Column(BigInteger, nullable=False)
     joined_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User", back_populates="server_memberships")
+    user: Mapped["User"] = relationship("User", back_populates="server_memberships")
     __table_args__ = (
         Index("ix_user_servers_user_server", "user_id", "server_id"),
         Index("ix_user_servers_server_id", "server_id"),
@@ -132,8 +134,8 @@ class TimeRecord(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    user = relationship("User", back_populates="time_records")
-    track = relationship("Track", back_populates="time_records")
+    user: Mapped["User"] = relationship("User", back_populates="time_records")
+    track: Mapped["Track"] = relationship("Track", back_populates="time_records")
 
     __table_args__ = (
         Index(
@@ -201,7 +203,7 @@ class WarEvent(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    races = relationship(
+    races: Mapped[list["Race"]] = relationship(
         "Race", back_populates="war_event", cascade="all, delete-orphan"
     )
     __table_args__ = (
@@ -231,8 +233,8 @@ class Race(Base):
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    war_event = relationship("WarEvent", back_populates="races")
-    track = relationship(
+    war_event: Mapped["WarEvent"] = relationship("WarEvent", back_populates="races")
+    track: Mapped["Track"] = relationship(
         "Track",
         foreign_keys=[track_name],
         primaryjoin="and_(Race.track_name == Track.track_name, Race.game == Track.game)",
