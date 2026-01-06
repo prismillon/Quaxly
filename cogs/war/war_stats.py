@@ -12,7 +12,7 @@ from autocomplete import mkc_tag_autocomplete, track_autocomplete
 from cogs.war.base import Base
 from database import get_db_session, r, rs
 from models import GAME_MK8DX, Race, WarEvent
-from utils import ConfirmButton, gameChoices
+from utils import ConfirmButton, Paginator, gameChoices
 
 
 class WarStats(Base):
@@ -270,7 +270,7 @@ class WarStats(Base):
     async def warlist(
         self, interaction: discord.Interaction, channel: discord.TextChannel = None
     ):
-        """list the most recent wars in the channel"""
+        """list all wars in the channel"""
 
         channel = channel or interaction.channel
 
@@ -280,7 +280,6 @@ class WarStats(Base):
                 .options(joinedload(WarEvent.races))
                 .filter(WarEvent.channel_id == channel.id)
                 .order_by(WarEvent.date.desc())
-                .limit(10)
                 .all()
             )
 
@@ -289,11 +288,7 @@ class WarStats(Base):
                     content="no wars found in this channel", ephemeral=True
                 )
 
-            embed = discord.Embed(
-                color=0x47E0FF,
-                title=f"Recent wars in {channel.name}",
-            )
-
+            war_entries = []
             for war_event in war_events:
                 total_home_score = sum(race.home_score for race in war_event.races)
                 total_enemy_score = sum(race.enemy_score for race in war_event.races)
@@ -302,13 +297,29 @@ class WarStats(Base):
                 diff = total_home_score - total_enemy_score
                 diff_str = f"{diff:+.1f}" if diff != 0 else "0.0"
 
-                embed.add_field(
-                    name=f"{war_event.tag} vs {war_event.enemy_tag}",
-                    value=f"**{total_home_score:.1f} - {total_enemy_score:.1f}** ({diff_str}) | {race_count} races\nID: `{war_event.id}` | {war_event.date.strftime('%Y-%m-%d %H:%M')}",
-                    inline=False,
+                timestamp = int(war_event.date.timestamp())
+                discord_timestamp = f"<t:{timestamp}:f>"
+
+                war_entries.append(
+                    f"**{war_event.tag} vs {war_event.enemy_tag}**\n"
+                    f"{total_home_score:.1f} - {total_enemy_score:.1f} ({diff_str}) | {race_count} races\n"
+                    f"ID: `{war_event.id}` | {discord_timestamp}"
                 )
 
-        return await interaction.response.send_message(embed=embed)
+            wars_per_page = 10
+            embeds = []
+            for i in range(0, len(war_entries), wars_per_page):
+                page_entries = war_entries[i : i + wars_per_page]
+                embed = discord.Embed(
+                    color=0x47E0FF,
+                    title=f"Wars in {channel.name}",
+                    description="\n\n".join(page_entries),
+                )
+                embed.set_footer(text=f"Total: {len(war_events)} wars")
+                embeds.append(embed)
+
+        view = Paginator(interaction, embeds)
+        return await interaction.response.send_message(embed=embeds[0], view=view)
 
     @app_commands.command()
     @app_commands.guild_only()
